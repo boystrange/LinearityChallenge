@@ -1,0 +1,232 @@
+# Typing Contexts
+
+This module defines typing contexts and the main operations on them.
+
+```agda
+-- MIT License
+
+-- Copyright (c) 2024 Luca Padovani & Claudia Raffaelli
+
+-- Permission is hereby granted, free of charge, to any person
+-- obtaining a copy of this software and associated documentation
+-- files (the "Software"), to deal in the Software without
+-- restriction, including without limitation the rights to use,
+-- copy, modify, merge, publish, distribute, sublicense, and/or sell
+-- copies of the Software, and to permit persons to whom the
+-- Software is furnished to do so, subject to the following
+-- conditions:
+
+-- The above copyright notice and this permission notice shall be
+-- included in all copies or substantial portions of the Software.
+
+-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+-- EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+-- OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+-- NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+-- HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+-- WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+-- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+-- OTHER DEALINGS IN THE SOFTWARE.
+
+module Context where
+```
+
+## Imports
+
+```agda
+open import Data.Product using (_×_; Σ; _,_; ∃; Σ-syntax; ∃-syntax)
+import Relation.Binary.PropositionalEquality as Eq
+open Eq using (_≡_; refl)
+
+open import Type
+```
+
+## Definition of Typing Context
+
+A **typing context** is simply a list of types. For this reason, the
+*constructors* of `Context` are chosen to resemble those for plain lists. The
+*position* of a type within a typing context indicates which variables it refers
+to.
+
+```agda
+data Context : Set where
+  []   : Context
+  _::_ : Type -> Context -> Context
+
+infixr 5 _::_
+```
+
+We define a helper function to create a singleton list.
+
+```agda
+[_] : Type -> Context
+[_] = _:: []
+```
+
+## Context Permutations
+
+We now define a binary relation $\Gamma \# \Delta$ expressing the fact that a
+typing context $\Gamma$ is a **permutation** of another typing context $\Delta$.
+A permutation is the result of a finite (possibly null) number of *swaps*
+occurring in the types of a context.
+
+```agda
+data _#_ : Context -> Context -> Set where
+  #refl : ∀{Γ} -> Γ # Γ
+  #tran : ∀{Γ Δ Θ} -> Γ # Δ -> Δ # Θ -> Γ # Θ
+  #next : ∀{Γ Δ A} -> Γ # Δ -> (A :: Γ) # (A :: Δ)
+  #here : ∀{Γ A B} -> (A :: B :: Γ) # (B :: A :: Γ)
+```
+
+The constructor `#refl` represents the trivial permutation where no swaps occur.
+The constructor `#tran` builds a permutation as the concatenation of other
+permutations. The constructor `#here` builds a permutation whereby the *two
+topmost* elements of a typing context are swapped. Finally, the constructor
+`#next` builds a permutation occurring deep into a typing context.
+
+It is easy to prove that `#` is symmetric. Hereafter, we will use simple
+permutations to infer the shape of some simple typing contexts: if $\Gamma$ is a
+permutation of the empty context, then $\Gamma$ *is* the empty context; if
+$\Gamma$ is a permutation of a singleton context, then $\Gamma$ *is* that
+singleton context.
+
+```agda
+#nil : ∀{Γ} -> [] # Γ -> Γ ≡ []
+#nil #refl = refl
+#nil (#tran π π') rewrite #nil π | #nil π' = refl
+
+#one : ∀{A Γ} -> [ A ] # Γ -> Γ ≡ [ A ]
+#one #refl = refl
+#one (#tran π π') rewrite #one π | #one π' = refl
+#one (#next π) rewrite #nil π = refl
+```
+
+It is also convenient to define once and for all the permutation that "rotates"
+the first three elements in a typing context. This permutation is named after
+the analogous operation on stacks in the programming language Forth.
+
+```agda
+#rot : ∀{A B C Γ} -> (A :: B :: C :: Γ) # (C :: A :: B :: Γ)
+#rot = #tran (#next #here) #here
+```
+
+## Context Splitting
+
+The most important operation involving typing contexts is that of **context
+splitting**. We indicate that $\Gamma$ can be split into $\Delta$ and $\Theta$
+using the notation $\Gamma \simeq \Delta + \Theta$. Note that this ternary
+relation can also be read as the fact that the **merging** of $\Delta$ and
+$\Theta$ results into the typing context $\Gamma$. Both interpretations are
+valid and can be used interchangeably.
+
+```agda
+infix 4 _≃_+_
+
+data _≃_+_ : Context -> Context -> Context -> Set where
+  split-e : [] ≃ [] + []
+  split-l : ∀{A Γ Δ Θ} -> Γ ≃ Δ + Θ -> A :: Γ ≃ A :: Δ + Θ
+  split-r : ∀{A Γ Δ Θ} -> Γ ≃ Δ + Θ -> A :: Γ ≃ Δ + A :: Θ
+```
+
+Note how a *proof* of $\Gamma \simeq \Delta + \Theta$ specifies how each type of
+$\Gamma$ ends up in either $\Delta$ (by `split-l`) or in $\Theta$ (by
+`split-r`). That is, types are all linear. The empty context can only be split
+into two empty contexts by `split-e`. 
+
+It is easy to see that splitting is commutative.
+
+```agda
++-comm : ∀{Γ Δ Θ} -> Γ ≃ Δ + Θ -> Γ ≃ Θ + Δ
++-comm split-e = split-e
++-comm (split-l p) = split-r (+-comm p)
++-comm (split-r p) = split-l (+-comm p)
+```
+
+The empty context behaves as the "unit" for context splitting.
+
+```agda
++-unit-l : ∀{Γ} -> Γ ≃ [] + Γ
++-unit-l {[]} = split-e
++-unit-l {_ :: _} = split-r +-unit-l
+
++-unit-r : ∀{Γ} -> Γ ≃ Γ + []
++-unit-r = +-comm +-unit-l
+```
+
+Context splitting is also associative in a sense that is made precise below. If
+we write $\Delta + \Theta$ for some $\Gamma$ such that $\Gamma \simeq \Delta +
+\Theta$, then we can prove that $\Gamma_1 + (\Gamma_2 + \Gamma_3) = (\Gamma_1 +
+\Gamma_2) + \Gamma_3$.
+
+```agda
++-assoc-r :
+  ∀{Γ Δ Θ Δ' Θ'} -> Γ ≃ Δ + Θ -> Θ ≃ Δ' + Θ' -> ∃[ Γ' ] Γ' ≃ Δ + Δ' × Γ ≃ Γ' + Θ'
++-assoc-r split-e split-e = [] , split-e , split-e
++-assoc-r (split-l p) q with +-assoc-r p q
+... | _ , p' , q' = _ , split-l p' , split-l q'
++-assoc-r (split-r p) (split-l q) with +-assoc-r p q
+... | _ , p' , q' = _ , split-r p' , split-l q'
++-assoc-r (split-r p) (split-r q) with +-assoc-r p q
+... | _ , p' , q' = _ , p' , split-r q'
+
++-assoc-l :
+  ∀{Γ Δ Θ Δ' Θ'} -> Γ ≃ Δ + Θ -> Δ ≃ Δ' + Θ' -> ∃[ Γ' ] Γ' ≃ Θ' + Θ × Γ ≃ Δ' + Γ'
++-assoc-l p q with +-assoc-r (+-comm p) (+-comm q)
+... | Δ , r , p' = Δ , +-comm r , +-comm p'
+```
+
+A few additional results about splitting and simple contexts follow.
+
+```agda
++-empty-l : ∀{Γ Δ} -> Γ ≃ [] + Δ -> Γ ≡ Δ
++-empty-l split-e = refl
++-empty-l (split-r p) = Eq.cong (_ ::_) (+-empty-l p)
+
++-sing-l : ∀{A B Γ} -> [ A ] ≃ [ B ] + Γ -> A ≡ B × Γ ≡ []
++-sing-l (split-l split-e) = refl , refl
+```
+
+## Splitting and Permutations
+
+When $\Gamma$ is the merge of a singleton context $[A]$ and some other context
+$\Delta$, that is $\Gamma \simeq [A] + \Delta$, then the type $A$ must have been
+inserted "somewhere" within $\Delta$. That is, $A :: \Delta$ must be a
+permutation of $\Gamma$.
+
+```agda
+#cons : ∀{A Γ Δ} -> Γ ≃ [ A ] + Δ -> (A :: Δ) # Γ
+#cons (split-l p) with +-empty-l p
+... | refl = #refl
+#cons (split-r p) with #cons p
+... | π = #tran #here (#next π)
+```
+
+Splitting some context $\Gamma$ that is a permutation of another context
+$\Delta$ results in two sub-contexts $\Gamma_1$ and $\Gamma_2$ which can be
+merged into $\Delta$ once they are suitable permuted into some $\Delta_1$ and
+$\Delta_2$.
+
+```agda
+#split : ∀{Γ Γ₁ Γ₂ Δ} -> Γ # Δ -> Γ ≃ Γ₁ + Γ₂ -> ∃[ Δ₁ ] ∃[ Δ₂ ] (Δ ≃ Δ₁ + Δ₂ × Γ₁ # Δ₁ × Γ₂ # Δ₂)
+#split #refl p = _ , _ , p , #refl , #refl
+#split (#tran π π') p with #split π p
+... | Θ₁ , Θ₂ , p' , π₁ , π₂ with #split π' p'
+... | Δ₁ , Δ₂ , q , π₁' , π₂' = Δ₁ , Δ₂ , q , #tran π₁ π₁' , #tran π₂ π₂'
+#split (#next π) (split-l p) with #split π p
+... | Δ₁ , Δ₂ , q , π₁ , π₂  = _ :: Δ₁ , Δ₂ , split-l q , #next π₁ , π₂
+#split (#next π) (split-r p) with #split π p
+... | Δ₁ , Δ₂ , q , π₁ , π₂ = Δ₁ , _ :: Δ₂ , split-r q , π₁ , #next π₂
+#split #here (split-l (split-l p)) = _ , _ , split-l (split-l p) , #here , #refl
+#split #here (split-l (split-r p)) = _ , _ , split-r (split-l p) , #refl , #refl
+#split #here (split-r (split-l p)) = _ , _ , split-l (split-r p) , #refl , #refl
+#split #here (split-r (split-r p)) = _ , _ , split-r (split-r p) , #refl , #here
+```
+
+Auxiliary minor properties about splitting and permutations follow.
+
+```agda
+#one+ : ∀{A Γ Γ' Δ} ->
+        Γ # Δ -> Γ ≃ [ A ] + Γ' -> ∃[ Δ' ] (Δ ≃ [ A ] + Δ' × Γ' # Δ')
+#one+ π p with #split π p
+... | Θ , Δ' , q , π₁ , π₂ rewrite #one π₁ = Δ' , q , π₂
+```
