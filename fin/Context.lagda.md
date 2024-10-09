@@ -65,10 +65,10 @@ We define a helper function to create a singleton list.
 
 ## Context Permutations
 
-We now define a binary relation $\Gamma \# \Delta$ expressing the fact that a
-typing context $\Gamma$ is a **permutation** of another typing context $\Delta$.
-A permutation is the result of a finite (possibly null) number of *swaps*
-occurring in the types of a context.
+We now define a binary relation `Γ # Δ` expressing the fact that a
+typing context `Γ` is a **permutation** of another typing context
+`Δ`.  A permutation is the result of a finite (possibly null) number
+of *swaps* occurring in the types of a context.
 
 ```agda
 data _#_ : Context -> Context -> Set where
@@ -78,17 +78,18 @@ data _#_ : Context -> Context -> Set where
   #here : ∀{Γ A B} -> (A :: B :: Γ) # (B :: A :: Γ)
 ```
 
-The constructor `#refl` represents the trivial permutation where no swaps occur.
-The constructor `#tran` builds a permutation as the concatenation of other
-permutations. The constructor `#here` builds a permutation whereby the *two
-topmost* elements of a typing context are swapped. Finally, the constructor
-`#next` builds a permutation occurring deep into a typing context.
+The constructor `#refl` represents the trivial permutation where no
+swaps occur.  The constructor `#tran` builds a permutation as the
+concatenation of other permutations. The constructor `#here` builds
+a permutation whereby the *two topmost* elements of a typing context
+are swapped. Finally, the constructor `#next` builds a permutation
+occurring deep into a typing context.
 
-It is easy to prove that `#` is symmetric. Hereafter, we will use simple
-permutations to infer the shape of some simple typing contexts: if $\Gamma$ is a
-permutation of the empty context, then $\Gamma$ *is* the empty context; if
-$\Gamma$ is a permutation of a singleton context, then $\Gamma$ *is* that
-singleton context.
+It is easy to prove that `#` is symmetric. Hereafter, we will use
+simple permutations to infer the shape of some simple typing
+contexts: if `Γ` is a permutation of the empty context, then `Γ`
+*is* the empty context; if `Γ` is a permutation of a singleton
+context, then `Γ` *is* that singleton context.
 
 ```agda
 #nil : ∀{Γ} -> [] # Γ -> Γ ≡ []
@@ -101,9 +102,10 @@ singleton context.
 #one (#next π) rewrite #nil π = refl
 ```
 
-It is also convenient to define once and for all the permutation that "rotates"
-the first three elements in a typing context. This permutation is named after
-the analogous operation on stacks in the programming language Forth.
+It is also convenient to define once and for all the permutation
+that "rotates" the first three elements in a typing context. This
+permutation is named after the analogous operation on stacks in the
+programming language Forth.
 
 ```agda
 #rot : ∀{A B C Γ} -> (A :: B :: C :: Γ) # (C :: A :: B :: Γ)
@@ -112,12 +114,12 @@ the analogous operation on stacks in the programming language Forth.
 
 ## Context Splitting
 
-The most important operation involving typing contexts is that of **context
-splitting**. We indicate that $\Gamma$ can be split into $\Delta$ and $\Theta$
-using the notation $\Gamma \simeq \Delta + \Theta$. Note that this ternary
-relation can also be read as the fact that the **merging** of $\Delta$ and
-$\Theta$ results into the typing context $\Gamma$. Both interpretations are
-valid and can be used interchangeably.
+The most important operation involving typing contexts is that of
+**context splitting**. We indicate that `Γ` can be split into `Δ`
+and `Θ` using the notation `Γ ≃ Δ + Θ`. Note that this ternary
+relation can also be read as the fact that the **merging** of `Δ`
+and `Θ` results into the typing context `Γ`. Both interpretations
+are valid and can be used interchangeably.
 
 ```agda
 infix 4 _≃_+_
@@ -128,10 +130,15 @@ data _≃_+_ : Context -> Context -> Context -> Set where
   split-r : ∀{A Γ Δ Θ} -> Γ ≃ Δ + Θ -> A :: Γ ≃ Δ + A :: Θ
 ```
 
+Note how a *proof* of `Γ ≃ Δ + Θ` specifies how each type of `Γ`
+ends up in either `Δ` (by `split-l`) or in `Θ` (by `split-r`). That
+is, types are all linear. The empty context can only be split into
+two empty contexts by `split-e`.
+
 In many cases we will use splitting for describing relations of the
-form $Γ ≃ Γ₁ + Γ₂$ where $Γ₁$ is a *singleton context*. It is
-therefore convenient to introduce some syntactic sugar for this
-particular form of splitting.
+form `Γ ≃ Δ + Θ` where `Δ` is a *singleton context*. It is therefore
+convenient to introduce some syntactic sugar for this particular
+form of splitting.
 
 ```agda
 infix 4 _≃_,_
@@ -139,11 +146,6 @@ infix 4 _≃_,_
 _≃_,_ : Context -> Type -> Context -> Set
 Γ ≃ A , Δ = Γ ≃ [ A ] + Δ
 ```
-
-Note how a *proof* of $\Gamma \simeq \Delta + \Theta$ specifies how each type of
-$\Gamma$ ends up in either $\Delta$ (by `split-l`) or in $\Theta$ (by
-`split-r`). That is, types are all linear. The empty context can only be split
-into two empty contexts by `split-e`. 
 
 It is easy to see that splitting is commutative.
 
@@ -165,10 +167,11 @@ The empty context behaves as the "unit" for context splitting.
 +-unit-r = +-comm +-unit-l
 ```
 
-Context splitting is also associative in a sense that is made precise below. If
-we write $\Delta + \Theta$ for some $\Gamma$ such that $\Gamma \simeq \Delta +
-\Theta$, then we can prove that $\Gamma_1 + (\Gamma_2 + \Gamma_3) = (\Gamma_1 +
-\Gamma_2) + \Gamma_3$.
+Context splitting is also associative in a sense that is made
+precise below. If we write $\Delta + \Theta$ for some $\Gamma$ such
+that $\Gamma \simeq \Delta + \Theta$, then we can prove that
+$\Gamma_1 + (\Gamma_2 + \Gamma_3) = (\Gamma_1 + \Gamma_2) +
+\Gamma_3$.
 
 ```agda
 +-assoc-r :
@@ -200,10 +203,10 @@ A few additional results about splitting and simple contexts follow.
 
 ## Splitting and Permutations
 
-When $\Gamma$ is the merge of a singleton context $[A]$ and some other context
-$\Delta$, that is $\Gamma \simeq [A] + \Delta$, then the type $A$ must have been
-inserted "somewhere" within $\Delta$. That is, $A :: \Delta$ must be a
-permutation of $\Gamma$.
+When `Γ` is the merge of a singleton context `[ A ]` and some other
+context `Δ` that is `Γ ≃ [ A ] + Δ` then the type `A` must have been
+inserted "somewhere" within `Δ`. That is, `A :: Δ` must be a
+permutation of `Γ`.
 
 ```agda
 #cons : ∀{A Γ Δ} -> Γ ≃ A , Δ -> (A :: Δ) # Γ
@@ -213,10 +216,10 @@ permutation of $\Gamma$.
 ... | π = #tran #here (#next π)
 ```
 
-Splitting some context $\Gamma$ that is a permutation of another context
-$\Delta$ results in two sub-contexts $\Gamma_1$ and $\Gamma_2$ which can be
-merged into $\Delta$ once they are suitable permuted into some $\Delta_1$ and
-$\Delta_2$.
+Splitting some context $\Gamma$ that is a permutation of another
+context $\Delta$ results in two sub-contexts $\Gamma_1$ and
+$\Gamma_2$ which can be merged into $\Delta$ once they are suitable
+permuted into some $\Delta_1$ and $\Delta_2$.
 
 ```agda
 #split : ∀{Γ Γ₁ Γ₂ Δ} -> Γ # Δ -> Γ ≃ Γ₁ + Γ₂ -> ∃[ Δ₁ ] ∃[ Δ₂ ] (Δ ≃ Δ₁ + Δ₂ × Γ₁ # Δ₁ × Γ₂ # Δ₂)
