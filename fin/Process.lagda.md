@@ -44,7 +44,7 @@ open import Type
 open import Context
 ```
 
-## Definition
+## Definition of Well-Typed Processes
 
 A process is a term representing a proof derivation for a given
 typing context `Γ`.
@@ -79,9 +79,9 @@ $\mathbb{1}$.
 
 The `wait p P` process waits for a termination signal from a channel
 and then continues according to the continuation `P`. It is well
-typed in a context of the form $⊥, Δ where $⊥$ (which is the dual of
-$\mathbb{1}$ is the type of the channel. The continuation `P` must
-be well typed in the residual context $Δ$.
+typed in a context of the form $⊥, Δ$ where $⊥$ (which is the dual
+of $\mathbb{1}$ is the type of the channel. The continuation `P`
+must be well typed in the residual context $Δ$.
 
 ```agda
    Wait : ∀{Δ} (p : Γ ≃ Bot , Δ) -> Process Δ -> Process Γ
