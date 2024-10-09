@@ -44,6 +44,8 @@ open import Type
 open import Context
 ```
 
+## Definition
+
 A process is a term representing a proof derivation for a given
 typing context $Γ$.
 
@@ -128,6 +130,13 @@ sub-processes `P` and `Q` connected by a new linear channel. `P` and
    Cut : ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) ->
          Process (A :: Γ₁) -> Process (B :: Γ₂) -> Process Γ
 ```
+
+## Renaming
+
+Every process that is well typed in `Γ` can be turned into a process
+that is well typed in `Δ` if `Γ` is a permutation of `Δ`. This
+transformation corresponds to renaming the variables occurring free
+in the process.
 
 ```agda
 #process : ∀{Γ Δ} -> Γ # Δ -> Process Γ -> Process Δ
