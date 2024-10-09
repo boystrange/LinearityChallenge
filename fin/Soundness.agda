@@ -51,6 +51,3 @@ weak-soundness (fork (split-r ()) q cf cf₁)
 strong-soundness : ¬ (Process [ Zero ])
 strong-soundness P with cut-elimination P
 ... | _ , cf = weak-soundness cf
-
--- lemma : ∀{Γ Δ}(P : Process Γ) -> Γ ≃ [ Zero ] + Δ ->
---         ∃[ Θ ] Δ ≃ [ Top ] + Θ

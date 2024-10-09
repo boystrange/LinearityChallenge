@@ -40,7 +40,7 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
     ∀{Δ A B}
     {P : Process (B :: Δ)}
     (d : Dual A B) (e : Dual A B)
-    (p : Γ ≃ [ B ] + Δ) ->
+    (p : Γ ≃ B , Δ) ->
     Cut d p (Link e (split-l (split-r split-e))) P ~> #process (#cons p) P
 
   r-close :

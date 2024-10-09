@@ -128,6 +128,18 @@ data _≃_+_ : Context -> Context -> Context -> Set where
   split-r : ∀{A Γ Δ Θ} -> Γ ≃ Δ + Θ -> A :: Γ ≃ Δ + A :: Θ
 ```
 
+In many cases we will use splitting for describing relations of the
+form $Γ ≃ Γ₁ + Γ₂$ where $Γ₁$ is a *singleton context*. It is
+therefore convenient to introduce some syntactic sugar for this
+particular form of splitting.
+
+```agda
+infix 4 _≃_,_
+
+_≃_,_ : Context -> Type -> Context -> Set
+Γ ≃ A , Δ = Γ ≃ [ A ] + Δ
+```
+
 Note how a *proof* of $\Gamma \simeq \Delta + \Theta$ specifies how each type of
 $\Gamma$ ends up in either $\Delta$ (by `split-l`) or in $\Theta$ (by
 `split-r`). That is, types are all linear. The empty context can only be split
@@ -182,7 +194,7 @@ A few additional results about splitting and simple contexts follow.
 +-empty-l split-e = refl
 +-empty-l (split-r p) = Eq.cong (_ ::_) (+-empty-l p)
 
-+-sing-l : ∀{A B Γ} -> [ A ] ≃ [ B ] + Γ -> A ≡ B × Γ ≡ []
++-sing-l : ∀{A B Γ} -> [ A ] ≃ B , Γ -> A ≡ B × Γ ≡ []
 +-sing-l (split-l split-e) = refl , refl
 ```
 
@@ -194,7 +206,7 @@ inserted "somewhere" within $\Delta$. That is, $A :: \Delta$ must be a
 permutation of $\Gamma$.
 
 ```agda
-#cons : ∀{A Γ Δ} -> Γ ≃ [ A ] + Δ -> (A :: Δ) # Γ
+#cons : ∀{A Γ Δ} -> Γ ≃ A , Δ -> (A :: Δ) # Γ
 #cons (split-l p) with +-empty-l p
 ... | refl = #refl
 #cons (split-r p) with #cons p
@@ -226,7 +238,7 @@ Auxiliary minor properties about splitting and permutations follow.
 
 ```agda
 #one+ : ∀{A Γ Γ' Δ} ->
-        Γ # Δ -> Γ ≃ [ A ] + Γ' -> ∃[ Δ' ] (Δ ≃ [ A ] + Δ' × Γ' # Δ')
+        Γ # Δ -> Γ ≃ A , Γ' -> ∃[ Δ' ] (Δ ≃ A , Δ' × Γ' # Δ')
 #one+ π p with #split π p
 ... | Θ , Δ' , q , π₁ , π₂ rewrite #one π₁ = Δ' , q , π₂
 ```

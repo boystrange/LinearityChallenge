@@ -34,7 +34,10 @@ import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; cong₂)
 ```
 
-Types are propositions of multiplicative additive linear logic.
+Types are propositions of multiplicative additive linear logic. The constructors
+`Zero`, `One`, `Bot` and `Top` respectively represent the constants
+$\mathbb{0}$, $\mathbb{1}$, $⊥$ and $⊤$. The remaining constructors represent
+the binary connectives.
 
 ```agda
 data Type : Set where
@@ -42,8 +45,8 @@ data Type : Set where
   _&_ _⊕_ _⊗_ _⅋_ : Type -> Type -> Type
 ```
 
-Duality is the standard relation between a type and its dual, which
-represents the complementary protocol.
+Duality is the standard relation between a type and its dual, which represents
+the complementary protocol. A relation `Dual A B` means that $A = B^⊥$.
 
 ```agda
 data Dual : Type -> Type -> Set where

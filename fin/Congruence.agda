@@ -57,14 +57,14 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
 
   s-fail :
     ∀{Γ Γ₁ Γ₂ Δ A B P} (d : Dual A B)
-    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ [ Top ] + Δ) ->
+    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ Top , Δ) ->
     let _ , _ , q' = +-assoc-l p q in
     Cut d p (Fail (split-r q)) P ⊒ Fail q'
 
   s-wait :
     ∀{Γ Γ₁ Γ₂ Δ A B}
     {P : Process (A :: Δ)} {Q : Process (B :: Γ₂)}
-    (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ [ Bot ] + Δ) ->
+    (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ Bot , Δ) ->
     let _ , p' , q' = +-assoc-l p q in
     Cut d p (Wait (split-r q) P) Q ⊒ Wait q' (Cut d p' P Q)
 
@@ -72,7 +72,7 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
     ∀{Γ Γ₁ Γ₂ Δ A B C D}
     {P : Process (C :: A :: Δ)}
     {Q : Process (B :: Γ₂)}
-    (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ [ C ⊕ D ] + Δ) ->
+    (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ C ⊕ D , Δ) ->
     let _ , p' , q' = +-assoc-l p q in
     Cut d p (Select true (split-r q) P) Q ⊒ Select true q' (Cut d (split-l p') (#process #here P) Q)
 
@@ -80,7 +80,7 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
     ∀{Γ Γ₁ Γ₂ Δ A B C D}
     {P : Process (D :: A :: Δ)}
     {Q : Process (B :: Γ₂)}
-    (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ [ C ⊕ D ] + Δ) ->
+    (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ C ⊕ D , Δ) ->
     let _ , p' , q' = +-assoc-l p q in
     Cut d p (Select false (split-r q) P) Q ⊒ Select false q' (Cut d (split-l p') (#process #here P) Q)
 
@@ -90,7 +90,7 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
     {Q : Process (A₂ :: A :: Δ)}
     {R : Process (B :: Γ₂)}
     (d : Dual A B)
-    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ [ A₁ & A₂ ] + Δ) ->
+    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ A₁ & A₂ , Δ) ->
     let _ , p' , q' = +-assoc-l p q in
     Cut d p (Case (split-r q) P Q) R ⊒
     Case q' (Cut d (split-l p') (#process #here P) R)
@@ -102,7 +102,7 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
     {Q : Process (D :: Δ₂)}
     {R : Process (B :: Γ₂)}
     (d : Dual A B)
-    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ [ C ⊗ D ] + Δ) (r : Δ ≃ Δ₁ + Δ₂) ->
+    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ C ⊗ D , Δ) (r : Δ ≃ Δ₁ + Δ₂) ->
     let _ , p' , q' = +-assoc-l p q in
     let _ , p'' , r' = +-assoc-l p' r in
     let _ , q'' , r'' = +-assoc-r r' (+-comm p'') in
@@ -114,7 +114,7 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
     {P : Process (C :: Δ₁)}
     {Q : Process (D :: A :: Δ₂)}
     {R : Process (B :: Γ₂)}
-    (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ [ C ⊗ D ] + Δ)
+    (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ C ⊗ D , Δ)
     (r : Δ ≃ Δ₁ + Δ₂) ->
     let _ , p' , q' = +-assoc-l p q in
     let _ , p'' , r' = +-assoc-l p' r in
@@ -125,7 +125,7 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
     ∀{Γ Γ₁ Γ₂ Δ A B C D}
     {P : Process (D :: C :: A :: Δ)}
     {Q : Process (B :: Γ₂)}
-    (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ [ C ⅋ D ] + Δ) ->
+    (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ C ⅋ D , Δ) ->
     let _ , p' , q' = +-assoc-l p q in
     Cut d p (Join (split-r q) P) Q ⊒
     Join q' (Cut d (split-l (split-l p')) (#process #rot P) Q)
