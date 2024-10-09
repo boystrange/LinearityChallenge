@@ -47,7 +47,7 @@ open import Context
 ## Definition
 
 A process is a term representing a proof derivation for a given
-typing context $Γ$.
+typing context `Γ`.
 
 ```agda
 data Process (Γ : Context) : Set where
@@ -88,8 +88,8 @@ be well typed in the residual context $Δ$.
 ```
 
 The `select x p P` process sends a boolean value `x` along with a
-fresh channel on a channel of type $A ⊕ B$ and continues as a
-process `P` that uses the fresh channel as either $A$ or $B$
+fresh channel on a channel of type `A ⊕ B` and continues as a
+process `P` that uses the fresh channel as either `A` or `B`
 depending on the value of `x`.
 
 ```agda
@@ -98,8 +98,8 @@ depending on the value of `x`.
 ```
 
 The `case p P Q` process receives a boolean value `x` along with a
-fresh channel from a channel of type $A \mathrel\& B$ and continues
-as either `P` or `Q` depending to the the value of `x`.
+fresh channel from a channel of type `A & B` and continues as either
+`P` or `Q` depending to the the value of `x`.
 
 ```agda
    Case : ∀{Δ A B} (p : Γ ≃ A & B , Δ) ->
@@ -107,7 +107,7 @@ as either `P` or `Q` depending to the the value of `x`.
 ```
 
 The `fork p q P Q` process sends a pair of new channels on another
-channel of type $A ⊗ B$. It has *two* continuations, each using one
+channel of type `A ⊗ B`. It has *two* continuations, each using one
 endpoint of the new channels created.
 
 ```agda
@@ -116,7 +116,7 @@ endpoint of the new channels created.
 ```
 
 The `join p P` process receives a pair of channels from a channel of
-type $A ⅋ B$.
+type `A ⅋ B`.
 
 ```agda
    Join : ∀{Δ A B} (p : Γ ≃ A ⅋ B , Δ) -> Process (B :: A :: Δ) -> Process Γ
