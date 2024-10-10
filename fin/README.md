@@ -1,3 +1,3 @@
 # README
 
-This is the Agda formalization of finite $\pi$LIN.
+This is the Agda formalization of finite πLIN.
