@@ -51,85 +51,49 @@ typing context `Γ`.
 
 ```agda
 data Process (Γ : Context) : Set where
+   Link : ∀{A B} (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> Process Γ
+   Fail : ∀{Δ} (p : Γ ≃ Top , Δ) -> Process Γ
+   Close : Γ ≃ One , [] -> Process Γ
+   Wait : ∀{Δ} (p : Γ ≃ Bot , Δ) -> Process Δ -> Process Γ
+   Select : ∀{Δ A B} (x : Bool) (p : Γ ≃ A ⊕ B , Δ) ->
+            Process ((if x then A else B) :: Δ) -> Process Γ
+   Case : ∀{Δ A B} (p : Γ ≃ A & B , Δ) ->
+          Process (A :: Δ) -> Process (B :: Δ) -> Process Γ
+   Fork : ∀{Δ Γ₁ Γ₂ A B} (p : Γ ≃ A ⊗ B , Δ) (q : Δ ≃ Γ₁ + Γ₂) ->
+          Process (A :: Γ₁) -> Process (B :: Γ₂) -> Process Γ
+   Join : ∀{Δ A B} (p : Γ ≃ A ⅋ B , Δ) -> Process (B :: A :: Δ) -> Process Γ
+   Cut : ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) ->
+         Process (A :: Γ₁) -> Process (B :: Γ₂) -> Process Γ
 ```
 
 The `link d p` process forwards a single message from a channel of
 type $A^⊥$ to a channel of type $A$. It is well typed in a context
 that contains exactly two types, which must be related by duality.
-
-```agda
-   Link : ∀{A B} (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> Process Γ
-```
-
 The `fail p` process indicates a runtime error on some channel of
 type $⊤$. There is no process constructor corresponding to the dual
-constant $\mathbb{0}$.
-
-```agda
-   Fail : ∀{Δ} (p : Γ ≃ Top , Δ) -> Process Γ
-```
-
-The `close p` process sends a termination signal on a session and is
+constant $\mathbb{0}$. The `close p` process sends a termination signal on a session and is
 well typed in a singleton context where the only type is
 $\mathbb{1}$.
-
-```agda
-   Close : Γ ≃ One , [] -> Process Γ
-```
-
 The `wait p P` process waits for a termination signal from a channel
 and then continues according to the continuation `P`. It is well
 typed in a context of the form $⊥, Δ$ where $⊥$ (which is the dual
 of $\mathbb{1}$ is the type of the channel. The continuation `P`
 must be well typed in the residual context $Δ$.
-
-```agda
-   Wait : ∀{Δ} (p : Γ ≃ Bot , Δ) -> Process Δ -> Process Γ
-```
-
 The `select x p P` process sends a boolean value `x` along with a
 fresh channel on a channel of type `A ⊕ B` and continues as a
 process `P` that uses the fresh channel as either `A` or `B`
 depending on the value of `x`.
-
-```agda
-   Select : ∀{Δ A B} (x : Bool) (p : Γ ≃ A ⊕ B , Δ) ->
-            Process ((if x then A else B) :: Δ) -> Process Γ
-```
-
 The `case p P Q` process receives a boolean value `x` along with a
 fresh channel from a channel of type `A & B` and continues as either
 `P` or `Q` depending to the the value of `x`.
-
-```agda
-   Case : ∀{Δ A B} (p : Γ ≃ A & B , Δ) ->
-          Process (A :: Δ) -> Process (B :: Δ) -> Process Γ
-```
-
 The `fork p q P Q` process sends a pair of new channels on another
 channel of type `A ⊗ B`. It has *two* continuations, each using one
 endpoint of the new channels created.
-
-```agda
-   Fork : ∀{Δ Γ₁ Γ₂ A B} (p : Γ ≃ A ⊗ B , Δ) (q : Δ ≃ Γ₁ + Γ₂) ->
-          Process (A :: Γ₁) -> Process (B :: Γ₂) -> Process Γ
-```
-
 The `join p P` process receives a pair of channels from a channel of
 type `A ⅋ B`.
-
-```agda
-   Join : ∀{Δ A B} (p : Γ ≃ A ⅋ B , Δ) -> Process (B :: A :: Δ) -> Process Γ
-```
-
-The `cut d p P Q` process represents the parallel composition of two
+Finally, the `cut d p P Q` process represents the parallel composition of two
 sub-processes `P` and `Q` connected by a new linear channel. `P` and
 `Q` use the new channel according to dual types.
-
-```agda
-   Cut : ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) ->
-         Process (A :: Γ₁) -> Process (B :: Γ₂) -> Process Γ
-```
 
 ## Renaming
 

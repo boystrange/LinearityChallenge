@@ -81,7 +81,7 @@ live-cut : ∀{Γ} {P : Process Γ} -> CanonicalCut P -> Live P
 live-cut (cc-link d p (link e (split-l (split-r split-e)))) with dual-fun-r e d
 ... | refl = inj₂ (_ , r-link d e p)
 live-cut (cc-link d p (link e (split-r (split-l split-e)))) with dual-fun-l e (dual-symm d)
-... | refl = inj₂ (_ , r-cong (s-cong d p (s-link e (split-r (split-l split-e)))) (r-link d (dual-symm e) p))
+... | refl = inj₂ (_ , r-cong (s-cong-l d p (s-link e (split-r (split-l split-e)))) (r-link d (dual-symm e) p))
 live-cut (cc-redex dual-one-bot p (close (split-l split-e)) (wait q)) with +-empty-l q | +-empty-l p
 ... | refl | refl = inj₂ (_ , r-close p q)
 live-cut (cc-redex (dual-plus-with d e) p (select false q) (case r)) with +-empty-l q | +-empty-l r
