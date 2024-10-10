@@ -80,6 +80,13 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
     (p : P ⊒ R) (q : R ~> Q) -> P ~> Q
 ```
 
+A process `P` is **reducible** if `P ~> Q` for some `Q`.
+
+```agda
+Reducible : ∀{Γ} -> Process Γ -> Set
+Reducible P = ∃[ Q ] P ~> Q
+```
+
 We also define the reflexive, transitive closure of reduction.
 
 ```agda

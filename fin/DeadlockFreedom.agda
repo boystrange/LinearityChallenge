@@ -3,7 +3,7 @@ open import Data.Product using (Σ; _×_; _,_; ∃; Σ-syntax; ∃-syntax)
 open import Data.Bool using (Bool; if_then_else_)
 open Bool using (true; false)
 
-open import Relation.Nullary using (¬_; contradiction)
+open import Relation.Nullary using (¬_)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (refl)
 
@@ -18,9 +18,6 @@ open import Congruence
 
 Observable : ∀{Γ} -> Process Γ -> Set
 Observable P = ∃[ Q ] P ⊒ Q × Thread Q
-
-Reducible : ∀{Γ} -> Process Γ -> Set
-Reducible P = ∃[ Q ] P ~> Q
 
 data Close : ∀{Γ} -> Process Γ -> Set where
   close : Close (close (split-l split-e))
