@@ -22,10 +22,10 @@ Observable P = ∃[ Q ] P ⊒ Q × Thread Q
 Reducible : ∀{Γ} -> Process Γ -> Set
 Reducible P = ∃[ Q ] P ~> Q
 
-data Closed : ∀{Γ} -> Process Γ -> Set where
-  close : Closed (close (split-l split-e))
+data Close : ∀{Γ} -> Process Γ -> Set where
+  close : Close (close (split-l split-e))
 
-thread-closed : {P : Process [ One ]} -> Thread P -> Closed P
+thread-closed : {P : Process [ One ]} -> Thread P -> Close P
 thread-closed (link d (split-l ()))
 thread-closed (link d (split-r ()))
 thread-closed (fail (split-r ()))
@@ -36,15 +36,15 @@ thread-closed (close (split-l split-e)) = close
 thread-closed (select x (split-r ()))
 thread-closed (fork (split-r ()) q)
 
-⊒Closed : {P Q : Process [ One ]} -> P ⊒ Q -> Closed Q -> Closed P
-⊒Closed s-refl Qc = Qc
-⊒Closed (s-tran pcong₁ pcong₂) Qc = ⊒Closed pcong₁ (⊒Closed pcong₂ Qc)
+⊒Close : {P Q : Process [ One ]} -> P ⊒ Q -> Close Q -> Close P
+⊒Close s-refl Qc = Qc
+⊒Close (s-tran pcong₁ pcong₂) Qc = ⊒Close pcong₁ (⊒Close pcong₂ Qc)
 
 Live : ∀{Γ} -> Process Γ -> Set
 Live P = Observable P ⊎ Reducible P
 
 Live' : Process [ One ] -> Set
-Live' P = Closed P ⊎ Reducible P
+Live' P = Close P ⊎ Reducible P
 
 ⊒Live : ∀{Γ} {P Q : Process Γ} -> P ⊒ Q -> Live Q -> Live P
 ⊒Live pcong (inj₁ (_ , x , th)) = inj₁ (_ , s-tran pcong x , th)
@@ -104,7 +104,7 @@ live P with process-is P
 live' : (P : Process [ One ]) -> Live' P
 live' P with live P
 ... | inj₂ x = inj₂ x
-... | inj₁ (Q , pcong , Qt) = inj₁ (⊒Closed pcong (thread-closed Qt))
+... | inj₁ (Q , pcong , Qt) = inj₁ (⊒Close pcong (thread-closed Qt))
 
 -- TODO: MOVE THIS RELATION TO LANGUAGE
 
