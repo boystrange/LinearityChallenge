@@ -23,7 +23,7 @@ Reducible : ∀{Γ} -> Process Γ -> Set
 Reducible P = ∃[ Q ] P ~> Q
 
 data Closed : ∀{Γ} -> Process Γ -> Set where
-  close : Closed (Close (split-l split-e))
+  close : Closed (close (split-l split-e))
 
 thread-closed : {P : Process [ One ]} -> Thread P -> Closed P
 thread-closed (link d (split-l ()))

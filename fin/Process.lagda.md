@@ -26,18 +26,18 @@ typing context `Γ`.
 
 ```agda
 data Process (Γ : Context) : Set where
-   Link : ∀{A B} (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> Process Γ
-   Fail : ∀{Δ} (p : Γ ≃ Top , Δ) -> Process Γ
-   Close : Γ ≃ One , [] -> Process Γ
-   Wait : ∀{Δ} (p : Γ ≃ Bot , Δ) -> Process Δ -> Process Γ
-   Select : ∀{Δ A B} (x : Bool) (p : Γ ≃ A ⊕ B , Δ) ->
+   link : ∀{A B} (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> Process Γ
+   fail : ∀{Δ} (p : Γ ≃ Top , Δ) -> Process Γ
+   close : Γ ≃ One , [] -> Process Γ
+   wait : ∀{Δ} (p : Γ ≃ Bot , Δ) -> Process Δ -> Process Γ
+   select : ∀{Δ A B} (x : Bool) (p : Γ ≃ A ⊕ B , Δ) ->
             Process ((if x then A else B) :: Δ) -> Process Γ
-   Case : ∀{Δ A B} (p : Γ ≃ A & B , Δ) ->
+   branch : ∀{Δ A B} (p : Γ ≃ A & B , Δ) ->
           Process (A :: Δ) -> Process (B :: Δ) -> Process Γ
-   Fork : ∀{Δ Γ₁ Γ₂ A B} (p : Γ ≃ A ⊗ B , Δ) (q : Δ ≃ Γ₁ + Γ₂) ->
+   fork : ∀{Δ Γ₁ Γ₂ A B} (p : Γ ≃ A ⊗ B , Δ) (q : Δ ≃ Γ₁ + Γ₂) ->
           Process (A :: Γ₁) -> Process (B :: Γ₂) -> Process Γ
-   Join : ∀{Δ A B} (p : Γ ≃ A ⅋ B , Δ) -> Process (B :: A :: Δ) -> Process Γ
-   Cut : ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) ->
+   join : ∀{Δ A B} (p : Γ ≃ A ⅋ B , Δ) -> Process (B :: A :: Δ) -> Process Γ
+   cut : ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) ->
          Process (A :: Γ₁) -> Process (B :: Γ₂) -> Process Γ
 ```
 
@@ -79,25 +79,25 @@ in the process.
 
 ```agda
 #process : ∀{Γ Δ} -> Γ # Δ -> Process Γ -> Process Δ
-#process π (Link d p) with #one+ π p
+#process π (link d p) with #one+ π p
 ... | Δ' , q , π' with #one π'
-... | refl = Link d q
-#process π (Close p) with #split π p
+... | refl = link d q
+#process π (close p) with #split π p
 ... | Δ₁ , Δ₂ , q , π₁ , π₂ with #one π₁ | #nil π₂
-... | refl | refl = Close q
-#process π (Fail p) with #one+ π p
-... | Δ' , q , π' = Fail q
-#process π (Wait p P) with #one+ π p
-... | Δ' , q , π' = Wait q (#process π' P)
-#process π (Select x p P) with #one+ π p
-... | Δ' , q , π' = Select x q (#process (#next π') P)
-#process π (Case p P Q) with #one+ π p
-... | Δ' , q , π' = Case q (#process (#next π') P) (#process (#next π') Q)
-#process π (Fork p q P Q) with #one+ π p
+... | refl | refl = close q
+#process π (fail p) with #one+ π p
+... | Δ' , q , π' = fail q
+#process π (wait p P) with #one+ π p
+... | Δ' , q , π' = wait q (#process π' P)
+#process π (select x p P) with #one+ π p
+... | Δ' , q , π' = select x q (#process (#next π') P)
+#process π (branch p P Q) with #one+ π p
+... | Δ' , q , π' = branch q (#process (#next π') P) (#process (#next π') Q)
+#process π (fork p q P Q) with #one+ π p
 ... | Δ' , p' , π' with #split π' q
-... | Δ₁ , Δ₂ , q' , π₁ , π₂ = Fork p' q' (#process (#next π₁) P) (#process (#next π₂) Q)
-#process π (Join p P) with #one+ π p
-... | Δ' , q , π' = Join q (#process (#next (#next π')) P)
-#process π (Cut d p P Q) with #split π p
-... | Δ₁ , Δ₂ , q , π₁ , π₂ = Cut d q (#process (#next π₁) P) (#process (#next π₂) Q)
+... | Δ₁ , Δ₂ , q' , π₁ , π₂ = fork p' q' (#process (#next π₁) P) (#process (#next π₂) Q)
+#process π (join p P) with #one+ π p
+... | Δ' , q , π' = join q (#process (#next (#next π')) P)
+#process π (cut d p P Q) with #split π p
+... | Δ₁ , Δ₂ , q , π₁ , π₂ = cut d q (#process (#next π₁) P) (#process (#next π₂) Q)
 ```

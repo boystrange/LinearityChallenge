@@ -12,13 +12,13 @@ data ActionCut {Γ} : Process Γ -> Set where
   is-action-cut :
     ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂)
     {P : Process (A :: Γ₁)} {Q : Process (B :: Γ₂)} ->
-    Action P -> Action Q -> ActionCut (Cut d p P Q)
+    Action P -> Action Q -> ActionCut (cut d p P Q)
 
 data SafeCut {Γ} : Process Γ -> Set where
   is-action-cut :
     ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂)
     {P : Process (A :: Γ₁)} {Q : Process (B :: Γ₂)} ->
-    Output P -> Input Q -> SafeCut (Cut d p P Q)
+    Output P -> Input Q -> SafeCut (cut d p P Q)
 
 safety : ∀{Γ} {P : Process Γ} -> ActionCut P -> ∃[ Q ] P ⊒ Q × SafeCut Q
 safety (is-action-cut d p (inj₁ x) (inj₁ y)) = contradiction (x , y) (input-input d)

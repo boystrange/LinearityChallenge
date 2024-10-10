@@ -24,12 +24,12 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
     {P : Process (B :: Δ)}
     (d : Dual A B) (e : Dual A B)
     (p : Γ ≃ B , Δ) ->
-    Cut d p (Link e (split-l (split-r split-e))) P ~> #process (#cons p) P
+    cut d p (link e (split-l (split-r split-e))) P ~> #process (#cons p) P
 
   r-close :
     ∀{P : Process Γ}
     (p₀ : Γ ≃ [] + Γ) (q₀ : Γ ≃ [] + Γ) ->
-    Cut dual-one-bot p₀ (Close (split-l split-e)) (Wait (split-l q₀) P) ~> P
+    cut dual-one-bot p₀ (close (split-l split-e)) (wait (split-l q₀) P) ~> P
 
   r-select-l :
     ∀{Γ₁ Γ₂ A A' B B'}
@@ -38,9 +38,9 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
     {R : Process (B' :: Γ₂)}
     (d : Dual A A') (e : Dual B B')
     (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) ->
-    Cut (dual-plus-with d e) p
-        (Select true (split-l p₀) P)
-        (Case (split-l q₀) Q R) ~> Cut d p P Q
+    cut (dual-plus-with d e) p
+        (select true (split-l p₀) P)
+        (branch (split-l q₀) Q R) ~> cut d p P Q
 
   r-select-r :
     ∀{Γ₁ Γ₂ A A' B B'}
@@ -49,9 +49,9 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
     {R : Process (B' :: Γ₂)}
     (d : Dual A A') (e : Dual B B')
     (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) ->
-    Cut (dual-plus-with d e) p
-        (Select false (split-l p₀) P)
-        (Case (split-l q₀) Q R) ~> Cut e p P R
+    cut (dual-plus-with d e) p
+        (select false (split-l p₀) P)
+        (branch (split-l q₀) Q R) ~> cut e p P R
 
   r-fork :
     ∀{Γ₁ Γ₂ Γ₃ Δ A B A' B'}
@@ -62,9 +62,9 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
     (p : Γ ≃ Δ + Γ₃) (p₀ : Γ₃ ≃ [] + Γ₃)
     (q : Δ ≃ Γ₁ + Γ₂) (q₀ : Δ ≃ [] + Δ) ->
     let _ , p' , q' = +-assoc-l p q in
-    Cut (dual-fork-join d e) p
-        (Fork (split-l q₀) q P Q)
-        (Join (split-l p₀) R) ~> Cut d q' P (Cut e (split-r p') Q R)
+    cut (dual-fork-join d e) p
+        (fork (split-l q₀) q P Q)
+        (join (split-l p₀) R) ~> cut d q' P (cut e (split-r p') Q R)
 
   r-cut :
     ∀{Γ₁ Γ₂ A B}
@@ -73,7 +73,7 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
     (d : Dual A B)
     (q : Γ ≃ Γ₁ + Γ₂)
     (r : P ~> Q) ->
-    Cut d q P R ~> Cut d q Q R
+    cut d q P R ~> cut d q Q R
 
   r-cong :
     {P R Q : Process Γ}

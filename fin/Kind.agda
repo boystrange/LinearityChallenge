@@ -10,33 +10,33 @@ open import Context
 open import Process
 open import Congruence
 
-data IsLink {Γ} : Process Γ -> Set where
+data Link {Γ} : Process Γ -> Set where
   link :
-    ∀{A B} (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> IsLink (Link d p)
+    ∀{A B} (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> Link (link d p)
 
 data Input : ∀{Γ} -> Process Γ -> Set where
   fail :
     ∀{Γ Δ}
-    (p : Γ ≃ [] + Δ) -> Input (Fail (split-l p))
+    (p : Γ ≃ [] + Δ) -> Input (fail (split-l p))
   wait :
-    ∀{Γ Δ} (p : Γ ≃ [] + Δ) {P : Process Δ} -> Input (Wait (split-l p) P)
+    ∀{Γ Δ} (p : Γ ≃ [] + Δ) {P : Process Δ} -> Input (wait (split-l p) P)
   case :
     ∀{Γ Δ A B} (p : Γ ≃ [] + Δ) {P : Process (A :: Δ)} {Q : Process (B :: Δ)} ->
-    Input (Case (split-l p) P Q)
+    Input (branch (split-l p) P Q)
   join :
     ∀{Γ Δ A B} (p : Γ ≃ [] + Δ) {P : Process (B :: A :: Δ)} ->
-    Input (Join (split-l p) P)
+    Input (join (split-l p) P)
 
 data Output : ∀{Γ} -> Process Γ -> Set where
   close :
-    ∀{Γ} (p : Γ ≃ [ One ] + []) -> Output (Close p)
+    ∀{Γ} (p : Γ ≃ [ One ] + []) -> Output (close p)
   select :
     ∀{Γ Δ A B} (x : Bool) (p : Γ ≃ [] + Δ) {P : Process ((if x then A else B) :: Δ)} ->
-    Output (Select x (split-l p) P)
+    Output (select x (split-l p) P)
   fork :
     ∀{Γ Δ Δ₁ Δ₂ A B} (p : Γ ≃ [] + Δ) (q : Δ ≃ Δ₁ + Δ₂)
     {P : Process (A :: Δ₁)} {Q : Process (B :: Δ₂)} ->
-    Output (Fork (split-l p) q P Q)
+    Output (fork (split-l p) q P Q)
 
 Action : ∀{Γ} -> Process Γ -> Set
 Action P = Input P ⊎ Output P
@@ -44,78 +44,78 @@ Action P = Input P ⊎ Output P
 data ThreadNext : ∀{Γ} -> Process Γ -> Set where
   fail :
     ∀{A Γ Δ}
-    (p : Γ ≃ [ Top ] + Δ) -> ThreadNext (Fail (split-r {A} p))
+    (p : Γ ≃ [ Top ] + Δ) -> ThreadNext (fail (split-r {A} p))
   wait :
-    ∀{C Γ Δ} (p : Γ ≃ [ Bot ] + Δ) {P : Process (C :: Δ)} -> ThreadNext (Wait (split-r p) P)
+    ∀{C Γ Δ} (p : Γ ≃ [ Bot ] + Δ) {P : Process (C :: Δ)} -> ThreadNext (wait (split-r p) P)
   case :
     ∀{Γ Δ C A B} (p : Γ ≃ [ A & B ] + Δ) {P : Process (A :: C :: Δ)} {Q : Process (B :: C :: Δ)} ->
-    ThreadNext (Case (split-r p) P Q)
+    ThreadNext (branch (split-r p) P Q)
   join :
     ∀{Γ Δ C A B} (p : Γ ≃ [ A ⅋ B ] + Δ) {P : Process (B :: A :: C :: Δ)} ->
-    ThreadNext (Join (split-r p) P)
+    ThreadNext (join (split-r p) P)
   select :
     ∀{Γ Δ C A B} (x : Bool) (p : Γ ≃ [ A ⊕ B ] + Δ) {P : Process ((if x then A else B) :: C :: Δ)} ->
-    ThreadNext (Select x (split-r p) P)
+    ThreadNext (select x (split-r p) P)
   fork-l :
     ∀{Γ Δ Δ₁ Δ₂ C A B} (p : Γ ≃ [ A ⊗ B ] + Δ) (q : Δ ≃ Δ₁ + Δ₂)
     {P : Process (A :: C :: Δ₁)} {Q : Process (B :: Δ₂)} ->
-    ThreadNext (Fork (split-r p) (split-l q) P Q)
+    ThreadNext (fork (split-r p) (split-l q) P Q)
   fork-r :
     ∀{Γ Δ Δ₁ Δ₂ C A B} (p : Γ ≃ [ A ⊗ B ] + Δ) (q : Δ ≃ Δ₁ + Δ₂)
     {P : Process (A :: Δ₁)} {Q : Process (B :: C :: Δ₂)} ->
-    ThreadNext (Fork (split-r p) (split-r q) P Q)
+    ThreadNext (fork (split-r p) (split-r q) P Q)
 
 data Thread {Γ} : Process Γ -> Set where
   link :
     ∀{A B}
-    (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> Thread (Link d p)
+    (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> Thread (link d p)
   fail :
     ∀{Δ}
-    (p : Γ ≃ [ Top ] + Δ) -> Thread (Fail p)
+    (p : Γ ≃ [ Top ] + Δ) -> Thread (fail p)
   wait :
-    ∀{Δ} (p : Γ ≃ [ Bot ] + Δ) {P : Process Δ} -> Thread (Wait p P)
+    ∀{Δ} (p : Γ ≃ [ Bot ] + Δ) {P : Process Δ} -> Thread (wait p P)
   case :
     ∀{Δ A B} (p : Γ ≃ [ A & B ] + Δ) {P : Process (A :: Δ)} {Q : Process (B :: Δ)} ->
-    Thread (Case p P Q)
+    Thread (branch p P Q)
   join :
     ∀{Δ A B} (p : Γ ≃ [ A ⅋ B ] + Δ) {P : Process (B :: A :: Δ)} ->
-    Thread (Join p P)
+    Thread (join p P)
   close :
-    ∀(p : Γ ≃ [ One ] + []) -> Thread (Close p)
+    ∀(p : Γ ≃ [ One ] + []) -> Thread (close p)
   select :
     ∀{Δ A B} (x : Bool) (p : Γ ≃ [ A ⊕ B ] + Δ) {P : Process ((if x then A else B) :: Δ)} ->
-    Thread (Select x p P)
+    Thread (select x p P)
   fork :
     ∀{Δ Δ₁ Δ₂ A B} (p : Γ ≃ [ A ⊗ B ] + Δ) (q : Δ ≃ Δ₁ + Δ₂)
     {P : Process (A :: Δ₁)} {Q : Process (B :: Δ₂)} ->
-    Thread (Fork p q P Q)
+    Thread (fork p q P Q)
 
 data CutFree {Γ} : Process Γ -> Set where
   link :
     ∀{A B}
-    (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> CutFree (Link d p)
+    (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> CutFree (link d p)
   fail :
-    ∀{Δ} (p : Γ ≃ [ Top ] + Δ) -> CutFree (Fail p)
+    ∀{Δ} (p : Γ ≃ [ Top ] + Δ) -> CutFree (fail p)
   wait :
-    ∀{Δ} (p : Γ ≃ [ Bot ] + Δ) {P : Process Δ} -> CutFree P -> CutFree (Wait p P)
+    ∀{Δ} (p : Γ ≃ [ Bot ] + Δ) {P : Process Δ} -> CutFree P -> CutFree (wait p P)
   case :
     ∀{Δ A B} (p : Γ ≃ [ A & B ] + Δ) {P : Process (A :: Δ)} {Q : Process (B :: Δ)} ->
-    CutFree P -> CutFree Q -> CutFree (Case p P Q)
+    CutFree P -> CutFree Q -> CutFree (branch p P Q)
   join :
     ∀{Δ A B} (p : Γ ≃ [ A ⅋ B ] + Δ) {P : Process (B :: A :: Δ)} ->
-    CutFree P -> CutFree (Join p P)
+    CutFree P -> CutFree (join p P)
   close :
-    ∀(p : Γ ≃ [ One ] + []) -> CutFree (Close p)
+    ∀(p : Γ ≃ [ One ] + []) -> CutFree (close p)
   select :
     ∀{Δ A B} (x : Bool) (p : Γ ≃ [ A ⊕ B ] + Δ) {P : Process ((if x then A else B) :: Δ)} ->
-    CutFree P -> CutFree (Select x p P)
+    CutFree P -> CutFree (select x p P)
   fork :
     ∀{Δ Δ₁ Δ₂ A B} (p : Γ ≃ [ A ⊗ B ] + Δ) (q : Δ ≃ Δ₁ + Δ₂)
     {P : Process (A :: Δ₁)} {Q : Process (B :: Δ₂)} ->
-    CutFree P -> CutFree Q -> CutFree (Fork p q P Q)
+    CutFree P -> CutFree Q -> CutFree (fork p q P Q)
 
 thread-is : ∀{Γ} {P : Process Γ} -> Thread P ->
-  IsLink P ⊎ ThreadNext P ⊎ Input P ⊎ Output P
+  Link P ⊎ ThreadNext P ⊎ Input P ⊎ Output P
 thread-is (link d p) = inj₁ (link d p)
 thread-is (fail (split-l p)) = inj₂ (inj₂ (inj₁ (fail p)))
 thread-is (fail (split-r p)) = inj₂ (inj₁ (fail p))
@@ -134,25 +134,25 @@ thread-is (fork (split-r p) (split-r q)) = inj₂ (inj₁ (fork-r p q))
 
 -- CLASSIFICATION OF CUTS
 
-data IsCut {Γ} : Process Γ -> Set where
+data Cut {Γ} : Process Γ -> Set where
   cut :
     ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂)
     {P : Process (A :: Γ₁)} {Q : Process (B :: Γ₂)} ->
-    IsCut (Cut d p P Q)
+    Cut (cut d p P Q)
 
 data CanonicalCut {Γ} : Process Γ -> Set where
   cc-link :
     ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂)
     {P : Process (A :: Γ₁)} {Q : Process (B :: Γ₂)} ->
-    IsLink P -> CanonicalCut (Cut d p P Q)
+    Link P -> CanonicalCut (cut d p P Q)
   cc-next :
     ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂)
     {P : Process (A :: Γ₁)} {Q : Process (B :: Γ₂)} ->
-    ThreadNext P -> CanonicalCut (Cut d p P Q)
+    ThreadNext P -> CanonicalCut (cut d p P Q)
   cc-redex :
     ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂)
     {P : Process (A :: Γ₁)} {Q : Process (B :: Γ₂)} ->
-    Output P -> Input Q -> CanonicalCut (Cut d p P Q)
+    Output P -> Input Q -> CanonicalCut (cut d p P Q)
 
 input-input :
   ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
@@ -174,7 +174,7 @@ canonical-cut :
   {P : Process (A :: Γ₁)} {Q : Process (B :: Γ₂)}
   (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) ->
   Thread P -> Thread Q ->
-  ∃[ R ] CanonicalCut R × Cut d p P Q ⊒ R
+  ∃[ R ] CanonicalCut R × cut d p P Q ⊒ R
 canonical-cut dc pc Pt Qt with thread-is Pt | thread-is Qt
 ... | inj₁ x | y = _ , cc-link dc pc x , s-refl
 ... | inj₂ (inj₁ x) | y = _ , cc-next dc pc x , s-refl
@@ -185,13 +185,13 @@ canonical-cut dc pc Pt Qt with thread-is Pt | thread-is Qt
 ... | inj₂ (inj₂ (inj₂ x)) | inj₂ (inj₂ (inj₁ y)) = _ , cc-redex dc pc x y , s-refl
 ... | inj₂ (inj₂ (inj₂ x)) | inj₂ (inj₂ (inj₂ y)) = contradiction (x , y) (output-output dc)
 
-process-is : ∀{Γ} (P : Process Γ) -> Thread P ⊎ IsCut P
-process-is (Close p) = inj₁ (close p)
-process-is (Link d p) = inj₁ (link d p)
-process-is (Fail p) = inj₁ (fail p)
-process-is (Wait p P) = inj₁ (wait p)
-process-is (Select x p P) = inj₁ (select x p)
-process-is (Case p P Q) = inj₁ (case p)
-process-is (Fork p q P Q) = inj₁ (fork p q)
-process-is (Join p P) = inj₁ (join p)
-process-is (Cut d p P Q) = inj₂ (cut d p)
+process-is : ∀{Γ} (P : Process Γ) -> Thread P ⊎ Cut P
+process-is (close p) = inj₁ (close p)
+process-is (link d p) = inj₁ (link d p)
+process-is (fail p) = inj₁ (fail p)
+process-is (wait p P) = inj₁ (wait p)
+process-is (select x p P) = inj₁ (select x p)
+process-is (branch p P Q) = inj₁ (case p)
+process-is (fork p q P Q) = inj₁ (fork p q)
+process-is (join p P) = inj₁ (join p)
+process-is (cut d p P Q) = inj₂ (cut d p)

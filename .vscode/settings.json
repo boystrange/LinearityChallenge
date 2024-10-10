@@ -1,6 +1,7 @@
 {
     "files.exclude": {
         "**/*.agdai": true,
-        "MAlonzo/**": true
+        "MAlonzo/**": true,
+        "**/*~": true
     }
 }
