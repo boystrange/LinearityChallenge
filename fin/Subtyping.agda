@@ -4,13 +4,13 @@ open import Data.Sum
 open import Data.Product using (Σ; _×_; _,_; ∃; Σ-syntax; ∃-syntax)
 open import Relation.Nullary using (¬_; contradiction)
 import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl)
+open Eq using (_≡_; refl; cong₂)
 
 open import Type
 open import Context
 open import Process
 
-infix 4 _<=_ _<<_
+infix 4 _<=_
 
 data _<=_ : Type -> Type -> Set where
   sub-0 : ∀{A} -> Zero <= A
@@ -32,9 +32,41 @@ data _<=_ : Type -> Type -> Set where
 <=-refl {A ⊗ B} = sub-⊗ <=-refl <=-refl
 <=-refl {A ⅋ B} = sub-⅋ <=-refl <=-refl
 
-data _<<_ : Context -> Context -> Set where
-  zero : [] << []
-  succ : ∀{A B Γ Δ} -> A <= B -> Γ << Δ -> A :: Γ << B :: Δ
+<=-tran : ∀{A B C} -> A <= B -> B <= C -> A <= C
+<=-tran sub-0 t = sub-0
+<=-tran s sub-⊤ = sub-⊤
+<=-tran sub-1 t = t
+<=-tran sub-⊥ t = t
+<=-tran (sub-& s₁ s₂) (sub-& t₁ t₂) = sub-& (<=-tran s₁ t₁) (<=-tran s₂ t₂)
+<=-tran (sub-⊕ s₁ s₂) (sub-⊕ t₁ t₂) = sub-⊕ (<=-tran s₁ t₁) (<=-tran s₂ t₂)
+<=-tran (sub-⅋ s₁ s₂) (sub-⅋ t₁ t₂) = sub-⅋ (<=-tran s₁ t₁) (<=-tran s₂ t₂)
+<=-tran (sub-⊗ s₁ s₂) (sub-⊗ t₁ t₂) = sub-⊗ (<=-tran s₁ t₁) (<=-tran s₂ t₂)
+
+<=-anti-symm : ∀{A B} -> A <= B -> B <= A -> A ≡ B
+<=-anti-symm sub-0 sub-0 = refl
+<=-anti-symm sub-⊤ sub-⊤ = refl
+<=-anti-symm sub-1 sub-1 = refl
+<=-anti-symm sub-⊥ sub-⊥ = refl
+<=-anti-symm (sub-& s₁ s₂) (sub-& t₁ t₂) = cong₂ _&_ (<=-anti-symm s₁ t₁) (<=-anti-symm s₂ t₂)
+<=-anti-symm (sub-⊕ s₁ s₂) (sub-⊕ t₁ t₂) = cong₂ _⊕_ (<=-anti-symm s₁ t₁) (<=-anti-symm s₂ t₂)
+<=-anti-symm (sub-⅋ s₁ s₂) (sub-⅋ t₁ t₂) = cong₂ _⅋_ (<=-anti-symm s₁ t₁) (<=-anti-symm s₂ t₂)
+<=-anti-symm (sub-⊗ s₁ s₂) (sub-⊗ t₁ t₂) = cong₂ _⊗_ (<=-anti-symm s₁ t₁) (<=-anti-symm s₂ t₂)
+
+dual<= : ∀{A A' B B'} -> Dual A A' -> Dual B B' -> A <= B -> B' <= A'
+dual<= dual-zero-top e sub-0 = sub-⊤
+dual<= d dual-top-zero sub-⊤ = sub-0
+dual<= dual-one-bot dual-one-bot sub-1 = sub-⊥
+dual<= dual-bot-one dual-bot-one sub-⊥ = sub-1
+dual<= (dual-with-plus d₁ d₂) (dual-with-plus e₁ e₂) (sub-& s₁ s₂) = sub-⊕ (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
+dual<= (dual-plus-with d₁ d₂) (dual-plus-with e₁ e₂) (sub-⊕ s₁ s₂) = sub-& (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
+dual<= (dual-join-fork d₁ d₂) (dual-join-fork e₁ e₂) (sub-⅋ s₁ s₂) = sub-⊗ (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
+dual<= (dual-fork-join d₁ d₂) (dual-fork-join e₁ e₂) (sub-⊗ s₁ s₂) = sub-⅋ (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
+
+infix 4 _<=⁺_
+
+data _<=⁺_ : Context -> Context -> Set where
+  zero : [] <=⁺ []
+  succ : ∀{A B Γ Δ} -> A <= B -> Γ <=⁺ Δ -> A :: Γ <=⁺ B :: Δ
 
 double-split : ∀{Γ Δ₁ Δ₂ A₁ A₂} -> Γ ≃ A₁ , Δ₁ -> Γ ≃ A₂ , Δ₂ -> (A₁ ≡ A₂ × Δ₁ ≡ Δ₂) ⊎
   ∃[ Θ ] Δ₁ ≃ A₂ , Θ × Δ₂ ≃ A₁ , Θ
@@ -78,24 +110,24 @@ make-link (sub-⊗ s₁ s₃) (sub-⅋ s₂ s₄) (dual-fork-join d₁ d₂) =
              (make-link s₁ s₂ d₁)
              (make-link s₃ s₄ d₂))
 
-split<< : ∀{Γ Γ₁ Γ₂ Δ} -> Γ << Δ -> Γ ≃ Γ₁ + Γ₂ ->
-          ∃[ Δ₁ ] ∃[ Δ₂ ] Δ ≃ Δ₁ + Δ₂ × Γ₁ << Δ₁ × Γ₂ << Δ₂
-split<< zero split-e = [] , [] , split-e , zero , zero
-split<< (succ s₁ s₂) (split-l p) with split<< s₂ p
+split<=⁺ : ∀{Γ Γ₁ Γ₂ Δ} -> Γ <=⁺ Δ -> Γ ≃ Γ₁ + Γ₂ ->
+          ∃[ Δ₁ ] ∃[ Δ₂ ] Δ ≃ Δ₁ + Δ₂ × Γ₁ <=⁺ Δ₁ × Γ₂ <=⁺ Δ₂
+split<=⁺ zero split-e = [] , [] , split-e , zero , zero
+split<=⁺ (succ s₁ s₂) (split-l p) with split<=⁺ s₂ p
 ... | Δ₁ , Δ₂ , p' , s₃ , s₄ = _ , _ , split-l p' , succ s₁ s₃ , s₄
-split<< (succ s₁ s₂) (split-r p) with split<< s₂ p
+split<=⁺ (succ s₁ s₂) (split-r p) with split<=⁺ s₂ p
 ... | _ , _ , p' , s₃ , s₄ = _ , _ , split-r p' , s₃ , succ s₁ s₄
 
-split<= : ∀{Γ Γ' A Δ} -> Γ << Δ -> Γ ≃ A , Γ' ->
-          ∃[ B ] ∃[ Δ' ] Δ ≃ B , Δ' × A <= B × Γ' << Δ'
-split<= s p with split<< s p
+split<= : ∀{Γ Γ' A Δ} -> Γ <=⁺ Δ -> Γ ≃ A , Γ' ->
+          ∃[ B ] ∃[ Δ' ] Δ ≃ B , Δ' × A <= B × Γ' <=⁺ Δ'
+split<= s p with split<=⁺ s p
 ... | _ , _ , p' , succ s₁ zero , s₃ = _ , _ , p' , s₁ , s₃
 
-sub-link : ∀{Γ Δ A B} -> Γ << Δ -> Dual A B -> Γ ≃ [ A ] + [ B ] -> Process Δ
+sub-link : ∀{Γ Δ A B} -> Γ <=⁺ Δ -> Dual A B -> Γ ≃ [ A ] + [ B ] -> Process Δ
 sub-link (succ s₁ (succ s₂ zero)) d (split-l (split-r split-e)) = make-link s₁ s₂ d
 sub-link (succ s₁ (succ s₂ zero)) d (split-r (split-l split-e)) = make-link s₁ s₂ (dual-symm d)
 
-sub : ∀{Γ Δ} -> Γ << Δ -> Process Γ -> Process Δ
+sub : ∀{Γ Δ} -> Γ <=⁺ Δ -> Process Γ -> Process Δ
 sub s (link d p) = sub-link s d p
 sub s (fail p) with split<= s p
 ... | _ , _ , p' , sub-⊤ , _ = fail p'
@@ -115,10 +147,10 @@ sub s (branch p P Q) with split<= s p
 ... | _ , _ , p' , sub-& s₁ s₂ , s₃ = branch p' (sub (succ s₁ s₃) P) (sub (succ s₂ s₃) Q)
 sub s (fork p q P Q) with split<= s p
 ... | _ , _ , p' , sub-⊤ , s₃ = fail p'
-... | _ , _ , p' , sub-⊗ s₁ s₂ , s₃ with split<< s₃ q
+... | _ , _ , p' , sub-⊗ s₁ s₂ , s₃ with split<=⁺ s₃ q
 ... | _ , _ , q' , s₄ , s₅ = fork p' q' (sub (succ s₁ s₄) P) (sub (succ s₂ s₅) Q)
 sub s (join p P) with split<= s p
 ... | _ , _ , p' , sub-⊤ , s₂ = fail p'
 ... | _ , _ , p' , sub-⅋ s₁ s₂ , s₃ = join p' (sub (succ s₂ (succ s₁ s₃)) P)
-sub s (cut d p P Q) with split<< s p
+sub s (cut d p P Q) with split<=⁺ s p
 ... | _ , _ , p' , s₁ , s₂ = cut d p' (sub (succ <=-refl s₁) P) (sub (succ <=-refl s₂) Q)
