@@ -52,13 +52,13 @@ live-cut (cc-link d p (link e (split-l (split-r split-e)))) with dual-fun-r e d
 ... | refl = inj₂ (_ , r-link d e p)
 live-cut (cc-link d p (link e (split-r (split-l split-e)))) with dual-fun-l e (dual-symm d)
 ... | refl = inj₂ (_ , r-cong (s-cong-l d p (s-link e (split-r (split-l split-e)))) (r-link d (dual-symm e) p))
-live-cut (cc-redex dual-one-bot p (close (split-l split-e)) (wait q)) with +-empty-l q | +-empty-l p
+live-cut (cc-redex d-1-⊥ p (close (split-l split-e)) (wait q)) with +-empty-l q | +-empty-l p
 ... | refl | refl = inj₂ (_ , r-close p q)
-live-cut (cc-redex (dual-plus-with d e) p (select false q) (case r)) with +-empty-l q | +-empty-l r
+live-cut (cc-redex (d-⊕-& d e) p (select false q) (case r)) with +-empty-l q | +-empty-l r
 ... | refl | refl = inj₂ (_ , r-select-r d e p q r)
-live-cut (cc-redex (dual-plus-with d e) p (select true q) (case r)) with +-empty-l q | +-empty-l r
+live-cut (cc-redex (d-⊕-& d e) p (select true q) (case r)) with +-empty-l q | +-empty-l r
 ... | refl | refl = inj₂ (_ , r-select-l d e p q r)
-live-cut (cc-redex (dual-fork-join d e) p (fork q r) (join s)) with +-empty-l q | +-empty-l s
+live-cut (cc-redex (d-⊗-⅋ d e) p (fork q r) (join s)) with +-empty-l q | +-empty-l s
 ... | refl | refl = inj₂ (_ , r-fork d e p s r q)
 live-cut (cc-next d p (fail q)) =
   let _ , _ , q' = +-assoc-l p q in

@@ -9,5 +9,9 @@ open import Process
 open import Congruence
 open import Reduction
 open import Safety
+```
+
+```agda
 open import DeadlockFreedom
+open import Subtyping
 ```

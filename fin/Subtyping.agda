@@ -53,14 +53,14 @@ data _<=_ : Type -> Type -> Set where
 <=-anti-symm (sub-⊗ s₁ s₂) (sub-⊗ t₁ t₂) = cong₂ _⊗_ (<=-anti-symm s₁ t₁) (<=-anti-symm s₂ t₂)
 
 dual<= : ∀{A A' B B'} -> Dual A A' -> Dual B B' -> A <= B -> B' <= A'
-dual<= dual-zero-top e sub-0 = sub-⊤
-dual<= d dual-top-zero sub-⊤ = sub-0
-dual<= dual-one-bot dual-one-bot sub-1 = sub-⊥
-dual<= dual-bot-one dual-bot-one sub-⊥ = sub-1
-dual<= (dual-with-plus d₁ d₂) (dual-with-plus e₁ e₂) (sub-& s₁ s₂) = sub-⊕ (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
-dual<= (dual-plus-with d₁ d₂) (dual-plus-with e₁ e₂) (sub-⊕ s₁ s₂) = sub-& (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
-dual<= (dual-join-fork d₁ d₂) (dual-join-fork e₁ e₂) (sub-⅋ s₁ s₂) = sub-⊗ (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
-dual<= (dual-fork-join d₁ d₂) (dual-fork-join e₁ e₂) (sub-⊗ s₁ s₂) = sub-⅋ (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
+dual<= d-0-⊤ e sub-0 = sub-⊤
+dual<= d d-⊤-0 sub-⊤ = sub-0
+dual<= d-1-⊥ d-1-⊥ sub-1 = sub-⊥
+dual<= d-⊥-1 d-⊥-1 sub-⊥ = sub-1
+dual<= (d-&-⊕ d₁ d₂) (d-&-⊕ e₁ e₂) (sub-& s₁ s₂) = sub-⊕ (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
+dual<= (d-⊕-& d₁ d₂) (d-⊕-& e₁ e₂) (sub-⊕ s₁ s₂) = sub-& (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
+dual<= (d-⅋-⊗ d₁ d₂) (d-⅋-⊗ e₁ e₂) (sub-⅋ s₁ s₂) = sub-⊗ (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
+dual<= (d-⊗-⅋ d₁ d₂) (d-⊗-⅋ e₁ e₂) (sub-⊗ s₁ s₂) = sub-⅋ (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
 
 infix 4 _<=⁺_
 
@@ -81,30 +81,30 @@ double-split (split-r p) (split-r q) with double-split p q
 ... | inj₂ (Θ , p' , q') = inj₂ (_ , split-r p' , split-r q')
 
 make-link : ∀{A A' B B'} -> A <= A' -> B <= B' -> Dual A B -> Process (A' :: B' :: [])
-make-link sub-0 sub-⊤ dual-zero-top = fail (split-r (split-l split-e))
+make-link sub-0 sub-⊤ d-0-⊤ = fail (split-r (split-l split-e))
 make-link sub-⊤ s₂ d = fail (split-l (split-r split-e))
-make-link sub-1 sub-⊤ dual-one-bot = fail (split-r (split-l split-e))
-make-link sub-1 sub-⊥ dual-one-bot = wait (split-r (split-l split-e)) (close (split-l split-e))
-make-link sub-⊥ sub-⊤ dual-bot-one = fail (split-r (split-l split-e))
-make-link sub-⊥ sub-1 dual-bot-one = wait (split-l (split-r split-e)) (close (split-l split-e))
-make-link (sub-& s₁ s₃) sub-⊤ (dual-with-plus d₁ d₂) = fail (split-r (split-l split-e))
-make-link (sub-& s₁ s₃) (sub-⊕ s₂ s₄) (dual-with-plus d₁ d₂) =
+make-link sub-1 sub-⊤ d-1-⊥ = fail (split-r (split-l split-e))
+make-link sub-1 sub-⊥ d-1-⊥ = wait (split-r (split-l split-e)) (close (split-l split-e))
+make-link sub-⊥ sub-⊤ d-⊥-1 = fail (split-r (split-l split-e))
+make-link sub-⊥ sub-1 d-⊥-1 = wait (split-l (split-r split-e)) (close (split-l split-e))
+make-link (sub-& s₁ s₃) sub-⊤ (d-&-⊕ d₁ d₂) = fail (split-r (split-l split-e))
+make-link (sub-& s₁ s₃) (sub-⊕ s₂ s₄) (d-&-⊕ d₁ d₂) =
   branch (split-l (split-r split-e))
          (select true (split-r (split-l split-e)) (make-link s₂ s₁ (dual-symm d₁)))
          (select false (split-r (split-l split-e)) (make-link s₄ s₃ (dual-symm d₂)))
-make-link (sub-⊕ s₁ s₃) sub-⊤ (dual-plus-with d₁ d₂) = fail (split-r (split-l split-e))
-make-link (sub-⊕ s₁ s₃) (sub-& s₂ s₄) (dual-plus-with d₁ d₂) =
+make-link (sub-⊕ s₁ s₃) sub-⊤ (d-⊕-& d₁ d₂) = fail (split-r (split-l split-e))
+make-link (sub-⊕ s₁ s₃) (sub-& s₂ s₄) (d-⊕-& d₁ d₂) =
   branch (split-r (split-l split-e))
          (select true (split-r (split-l split-e)) (make-link s₁ s₂ d₁))
          (select false (split-r (split-l split-e)) (make-link s₃ s₄ d₂))
-make-link (sub-⅋ s₁ s₃) sub-⊤ (dual-join-fork d d₁) = fail (split-r (split-l split-e))
-make-link (sub-⅋ s₁ s₃) (sub-⊗ s₂ s₄) (dual-join-fork d₁ d₂) =
+make-link (sub-⅋ s₁ s₃) sub-⊤ (d-⅋-⊗ d d₁) = fail (split-r (split-l split-e))
+make-link (sub-⅋ s₁ s₃) (sub-⊗ s₂ s₄) (d-⅋-⊗ d₁ d₂) =
   join (split-l (split-r split-e))
        (fork (split-r (split-r (split-l split-e))) (split-r (split-l split-e))
              (make-link s₂ s₁ (dual-symm d₁))
              (make-link s₄ s₃ (dual-symm d₂)))
-make-link (sub-⊗ s₁ s₃) sub-⊤ (dual-fork-join d d₁) = fail (split-r (split-l split-e))
-make-link (sub-⊗ s₁ s₃) (sub-⅋ s₂ s₄) (dual-fork-join d₁ d₂) =
+make-link (sub-⊗ s₁ s₃) sub-⊤ (d-⊗-⅋ d d₁) = fail (split-r (split-l split-e))
+make-link (sub-⊗ s₁ s₃) (sub-⅋ s₂ s₄) (d-⊗-⅋ d₁ d₂) =
   join (split-r (split-l split-e))
        (fork (split-r (split-r (split-l split-e))) (split-r (split-l split-e))
              (make-link s₁ s₂ d₁)

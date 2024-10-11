@@ -29,7 +29,7 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
   r-close :
     ∀{P : Process Γ}
     (p₀ : Γ ≃ [] + Γ) (q₀ : Γ ≃ [] + Γ) ->
-    cut dual-one-bot p₀ (close (split-l split-e)) (wait (split-l q₀) P) ~> P
+    cut d-1-⊥ p₀ (close (split-l split-e)) (wait (split-l q₀) P) ~> P
 
   r-select-l :
     ∀{Γ₁ Γ₂ A A' B B'}
@@ -38,7 +38,7 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
     {R : Process (B' :: Γ₂)}
     (d : Dual A A') (e : Dual B B')
     (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) ->
-    cut (dual-plus-with d e) p
+    cut (d-⊕-& d e) p
         (select true (split-l p₀) P)
         (branch (split-l q₀) Q R) ~> cut d p P Q
 
@@ -49,7 +49,7 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
     {R : Process (B' :: Γ₂)}
     (d : Dual A A') (e : Dual B B')
     (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) ->
-    cut (dual-plus-with d e) p
+    cut (d-⊕-& d e) p
         (select false (split-l p₀) P)
         (branch (split-l q₀) Q R) ~> cut e p P R
 
@@ -62,7 +62,7 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
     (p : Γ ≃ Δ + Γ₃) (p₀ : Γ₃ ≃ [] + Γ₃)
     (q : Δ ≃ Γ₁ + Γ₂) (q₀ : Δ ≃ [] + Δ) ->
     let _ , p' , q' = +-assoc-l p q in
-    cut (dual-fork-join d e) p
+    cut (d-⊗-⅋ d e) p
         (fork (split-l q₀) q P Q)
         (join (split-l p₀) R) ~> cut d q' P (cut e (split-r p') Q R)
 

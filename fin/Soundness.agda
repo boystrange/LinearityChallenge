@@ -94,14 +94,14 @@ dual-top : ∀{A B} -> Dual A B -> IsTop A -> IsZero B
 dual-top d At = {!!}
 
 dual-zero : ∀{A B} -> Dual A B -> IsZero A -> IsTop B
-dual-zero dual-zero-top refl = refl
-dual-zero (dual-plus-with d e) (plus-b Az Bz) = with-b (dual-zero d Az) (dual-zero e Bz)
-dual-zero (dual-with-plus d e) (with-l Az) = plus-l (dual-zero d Az)
-dual-zero (dual-with-plus d e) (with-r Az) = plus-r (dual-zero e Az)
-dual-zero (dual-fork-join d e) (fork-l iz) = join-l (dual-zero d iz)
-dual-zero (dual-fork-join d e) (fork-r iz) = join-r (dual-zero e iz)
-dual-zero (dual-join-fork d e) (join-l iz) = fork-l (dual-zero d iz)
-dual-zero (dual-join-fork d e) (join-r iz) = fork-r (dual-zero e iz)
+dual-zero d-0-⊤ refl = refl
+dual-zero (d-⊕-& d e) (plus-b Az Bz) = with-b (dual-zero d Az) (dual-zero e Bz)
+dual-zero (d-&-⊕ d e) (with-l Az) = plus-l (dual-zero d Az)
+dual-zero (d-&-⊕ d e) (with-r Az) = plus-r (dual-zero e Az)
+dual-zero (d-⊗-⅋ d e) (fork-l iz) = join-l (dual-zero d iz)
+dual-zero (d-⊗-⅋ d e) (fork-r iz) = join-r (dual-zero e iz)
+dual-zero (d-⅋-⊗ d e) (join-l iz) = fork-l (dual-zero d iz)
+dual-zero (d-⅋-⊗ d e) (join-r iz) = fork-r (dual-zero e iz)
 
 top-top : ∀{A B} -> Dual A B -> ¬ (IsTop A × IsTop B)
 top-top d p = {!!}
@@ -157,10 +157,10 @@ zero (cut d p P Q) Az Ain | inj₂ Ain₂ with zero Q Az (next Ain₂)
 ... | C , next Cin , Ct = C , split-in-l p Cin , Ct
 ... | C , here , Ct = contradiction (Ct , Bt) (top-top d)
 
--- zero (link dual-zero-top (split-l (split-r split-e))) here = _ , next here , refl
--- zero (link dual-top-zero (split-l (split-r split-e))) (next here) = _ , here , refl
--- zero (link dual-top-zero (split-r (split-l split-e))) here = _ , next here , refl
--- zero (link dual-zero-top (split-r (split-l split-e))) (next here) = _ , here , refl
+-- zero (link d-0-⊤ (split-l (split-r split-e))) here = _ , next here , refl
+-- zero (link d-⊤-0 (split-l (split-r split-e))) (next here) = _ , here , refl
+-- zero (link d-⊤-0 (split-r (split-l split-e))) here = _ , next here , refl
+-- zero (link d-0-⊤ (split-r (split-l split-e))) (next here) = _ , here , refl
 -- zero (fail p) x = {!!}
 -- zero (close p) x = {!!}
 -- zero (wait p P) x = {!!}

@@ -157,17 +157,17 @@ data CanonicalCut {Γ} : Process Γ -> Set where
 input-input :
   ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
   Dual A B -> ¬ (Input P × Input Q)
-input-input dual-top-zero (fail p , ())
-input-input dual-bot-one (wait p , ())
-input-input (dual-with-plus d d₁) (case p , ())
-input-input (dual-join-fork d d₁) (join p , ())
+input-input d-⊤-0 (fail p , ())
+input-input d-⊥-1 (wait p , ())
+input-input (d-&-⊕ d d₁) (case p , ())
+input-input (d-⅋-⊗ d d₁) (join p , ())
 
 output-output :
   ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
   Dual A B -> ¬ (Output P × Output Q)
-output-output dual-one-bot (close _ , close ())
-output-output (dual-plus-with d d₁) (select _ p , close ())
-output-output (dual-fork-join d d₁) (fork p q , close ())
+output-output d-1-⊥ (close _ , close ())
+output-output (d-⊕-& d d₁) (select _ p , close ())
+output-output (d-⊗-⅋ d d₁) (fork p q , close ())
 
 canonical-cut :
   ∀{Γ Γ₁ Γ₂ A B}
