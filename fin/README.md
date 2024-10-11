@@ -4,39 +4,17 @@ By Luca Padovani and Claudia Raffaelli
 
 This is a solution in Agda of the linearity challenge[^5], which concerns the
 formalization of a calculus of binary sessions, of its type system and of a
-**safety result** for well-typed processes.
-
-Below is a summary of the main features of this formalization:
-
-* Processes are **intrinsically typed** so that only well-typed processes can be
-  represented by the [`Process`](Process.lagda.md) data type. This choice
-  slightly complicates the representation of processes, but has some notable
-  advantages. First of all, there is no need to define processes and typing
-  rules separately, as these are conflated within the same data type. Second,
-  structural precongruence and reduction preserve typing *by definition*. In
-  particular, there is no need to prove a subject reduction result for the
-  calculus.
-* Linearity is enforced by means of a [**context splitting**
-  predicate](Context.lagda.md) making sure that every channel is used *exactly
-  once*.
-* Channels are (implicitly) represented by *de Bruijn indexes*. The
-  representation is only implicit in the sense that every reference to a channel
-  makes use of context splitting for singling out the type of the channel being
-  used and the remaining context. In this way, there is no need to define a
-  separate predicate for expressing the membership of a given type association
-  to a given typing context as is the case in other Agda formalizations of
-  session calculi and languages[^3][^4].
-
-The calculus being formalized is called **πLIN**[^1] and differs from the
-calculus described in the challenge[^5] for two main reasons:
+**safety result** for well-typed processes. The calculus we formalize is called
+**πLIN**[^1] and differs from the calculus described in the challenge[^5] for
+two main reasons:
 
 * πLIN is based on **multiplicative additive linear logic (MALL)** in the sense
   that its [types](Type.lagda.md) are MALL propositions and its typing rules are
-  MALL proof rules. This property of πLIN has a notable impact in the
-  formalization. In particular, there is no need to name the two endpoints of a
-  session differently (as is the case in the calculus in the challenge
-  description[^5]) because the typing rules guarantee that no *thread* (i.e.
-  sequential process) can ever own both endpoints at the same time.
+  MALL proof rules. This property of πLIN has a notable impact in its
+  formalization: there is no need to name the two endpoints of a session
+  differently (as is the case in the calculus in the challenge description[^5])
+  because the typing rules guarantee that no *thread* (i.e. sequential process)
+  can ever own both endpoints at the same time.
 * πLIN channels are **linear** in the (strong) sense of the linear π-calculus:
   every channel can (and must) be used **exactly once**. Structured
   communications are modeled by the explicit creation and exchange of
@@ -50,6 +28,27 @@ calculus described in the challenge[^5] for two main reasons:
   channel, being fresh, is simply **added** at the beginning of the residual
   typing context, which is a straightforward operation if typing contexts are
   represented as lists.
+
+Below is a summary of the main features of this formalization:
+
+* Processes are **intrinsically typed** so that only well-typed processes can be
+  represented by the [`Process`](Process.lagda.md) data type. This choice
+  slightly complicates the representation, but has some notable advantages. In
+  particular, there is no need to define processes and typing rules separately,
+  as these are conflated into the same data type. Also, [structural
+  (pre)congruence](Congruence.lagda.md) and [reduction](Reduction.lagda.md)
+  preserve typing *by definition* and there is no need to separately prove a
+  subject reduction result for the calculus.
+* Linearity is enforced by means of a [**context splitting**
+  predicate](Context.lagda.md) making sure that every channel is used *exactly
+  once*.
+* Channels are (implicitly) represented by *de Bruijn indexes*. The
+  representation is only implicit in the sense that every reference to a channel
+  makes use of context splitting for singling out the type of the channel being
+  used from the typing context. In this way, there is no need to define a
+  separate predicate for expressing the membership of a given type association
+  to a given typing context as is the case in other Agda formalizations of
+  session calculi and languages[^3][^4].
 
 In addition to the [safety property](Safety.lagda.md), the solution also proves
 two [deadlock freedom results](DeadlockFreedom.lagda.md) as well as the
