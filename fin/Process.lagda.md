@@ -147,7 +147,8 @@ Action P = Input P ⊎ Output P
 
 We prove that two processes whose youngest channels have types
 related by duality cannot be both `Input` or both `Output`
-processes. This is key to prove safety and deadlock freedom.
+processes. This is key to prove [safety](Safety.lagda.md) and
+[deadlock freedom](DeadlockFreedom.lagda.md).
 
 ```agda
 input-input :
