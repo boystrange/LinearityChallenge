@@ -274,11 +274,11 @@ deadlock-freedom P Q reds = live Q
 
 ## Deadlock Freedom for Closed Processes
 
-For processes, that are well typed in a singleton context containing
-only the type `One`, it is possible to prove a specialized
-deadlock-freedom result that more closely resembles those for
-calculi/languages not based on logic. To do so, let us introduce the
-`Close` class to easily identify `close p` processes.
+Processes that are well typed in a singleton context containing only
+the type `One` enjoy a specialized deadlock-freedom result that more
+closely resembles those for calculi/languages not based on logic. To
+prove this version of deadlock freedom, let us introduce the `Close`
+class to easily identify `close p` processes.
 
 ```agda
 data Close : ∀{Γ} -> Process Γ -> Set where
