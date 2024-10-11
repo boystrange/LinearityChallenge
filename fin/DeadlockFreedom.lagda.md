@@ -4,7 +4,7 @@ This module proves two deadlock freedom results.
 
 ## Imports
 
-```
+```agda
 open import Data.Sum
 open import Data.Product using (Σ; _×_; _,_; ∃; Σ-syntax; ∃-syntax)
 open import Data.Bool using (Bool; if_then_else_)
@@ -27,7 +27,7 @@ We introduce further classes of processes, distinguishing between
 **threads** (sequential processes) and **cuts** (parallel
 compositions of processes).
 
-```
+```agda
 data Thread {Γ} : Process Γ -> Set where
   link :
     ∀{A B}
@@ -59,9 +59,10 @@ data Cut {Γ} : Process Γ -> Set where
     {P : Process (A :: Γ₁)} {Q : Process (B :: Γ₂)} ->
     Cut (cut d p P Q)
 ```
+
 Every process is either a thread or a cut.
 
-```
+```agda
 process-is : ∀{Γ} (P : Process Γ) -> Thread P ⊎ Cut P
 process-is (close p) = inj₁ (close p)
 process-is (link d p) = inj₁ (link d p)
@@ -81,7 +82,7 @@ Concerning threads, we have already made a distinction between
 **delayed** threads, namely those threads beginning with an action
 on a channel different from the youngest one.
 
-```
+```agda
 data Link {Γ} : Process Γ -> Set where
   link :
     ∀{A B} (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> Link (link d p)
@@ -114,7 +115,7 @@ data Delayed : ∀{Γ} -> Process Γ -> Set where
 Every thread is either a link, a delayed thread, an input or an
 output.
 
-```
+```agda
 thread-is : ∀{Γ} {P : Process Γ} -> Thread P ->
   Link P ⊎ Delayed P ⊎ Input P ⊎ Output P
 thread-is (link d p) = inj₁ (link d p)
@@ -139,7 +140,7 @@ thread-is (fork (split-r p) (split-r q)) = inj₂ (inj₁ (fork-r p q))
 Structural precongruence and reduction operate on cuts having a
 particular form, which we call **canonical**.
 
-```
+```agda
 data CanonicalCut {Γ} : Process Γ -> Set where
   cc-link :
     ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂)
@@ -158,7 +159,7 @@ data CanonicalCut {Γ} : Process Γ -> Set where
 Every cut between two threads is structurally precongruent to a
 canonical cut.
 
-```
+```agda
 canonical-cut :
   ∀{Γ Γ₁ Γ₂ A B}
   {P : Process (A :: Γ₁)} {Q : Process (B :: Γ₂)}
@@ -182,7 +183,7 @@ We say that a process is **observable** if it is (structurally
 precongruent to) a thread. The terminology is justified by the fact
 that a thread necessarily performs an action on a free channel.
 
-```
+```agda
 Observable : ∀{Γ} -> Process Γ -> Set
 Observable P = ∃[ Q ] P ⊒ Q × Thread Q
 ```
@@ -191,7 +192,7 @@ Then, we say that a process is **live** if it is either observable
 or reducible. **Deadlock freedom** is then defined as the
 preservation of liveness throughout reductions.
 
-```
+```agda
 Live : ∀{Γ} -> Process Γ -> Set
 Live P = Observable P ⊎ Reducible P
 
@@ -203,7 +204,7 @@ A few auxiliary results about the `Live` predicate follow. First of
 all, we see that `Live` is backward preserved by structural
 precongruence.
 
-```
+```agda
 ⊒Live : ∀{Γ} {P Q : Process Γ} -> P ⊒ Q -> Live Q -> Live P
 ⊒Live pcong (inj₁ (_ , x , th)) = inj₁ (_ , s-tran pcong x , th)
 ⊒Live pcong (inj₂ (_ , red)) = inj₂ (_ , r-cong pcong red)
@@ -211,7 +212,7 @@ precongruence.
 
 Also, every (well-typed) process is `Live`.
 
-```
+```agda
 live-cut : ∀{Γ} {P : Process Γ} -> CanonicalCut P -> Live P
 live-cut (cc-link d p (link e (split-l (split-r split-e)))) with dual-fun-r e d
 ... | refl = inj₂ (_ , r-link d e p)
@@ -266,7 +267,7 @@ live P with process-is P
 
 At this point the proof of deadlock freedom is straightforward.
 
-```
+```agda
 deadlock-freedom : ∀{Γ} (P : Process Γ) -> DeadlockFree P
 deadlock-freedom P Q reds = live Q
 ```
@@ -279,7 +280,7 @@ deadlock-freedom result that more closely resembles those for
 calculi/languages not based on logic. To do so, let us introduce the
 `Close` class to easily identify `close p` processes.
 
-```
+```agda
 data Close : ∀{Γ} -> Process Γ -> Set where
   close : Close (close (split-l split-e))
 ```
@@ -287,7 +288,7 @@ data Close : ∀{Γ} -> Process Γ -> Set where
 It is easy to prove that the only thread that is well typed in the
 singleton context `[ One ]` is `Close`.
 
-```
+```agda
 thread-closed : {P : Process [ One ]} -> Thread P -> Close P
 thread-closed (link d (split-l ()))
 thread-closed (link d (split-r ()))
@@ -302,7 +303,7 @@ thread-closed (fork (split-r ()) q)
 
 Further, `Close` is backward preserved by structural precongruence.
 
-```
+```agda
 ⊒Close : {P Q : Process [ One ]} -> P ⊒ Q -> Close Q -> Close P
 ⊒Close s-refl Qc = Qc
 ⊒Close (s-tran pcong₁ pcong₂) Qc = ⊒Close pcong₁ (⊒Close pcong₂ Qc)
@@ -312,7 +313,7 @@ The specialized version of deadlock freedom that we prove is based
 on `Live'` predicate that characterizes those processes that are
 either `Close` or `Reducible`.
 
-```
+```agda
 Live' : ∀{Γ} -> Process Γ -> Set
 Live' P = Close P ⊎ Reducible P
 
@@ -323,7 +324,7 @@ DeadlockFree' {Γ} P = ∀(Q : Process Γ) -> P ~>* Q -> Live' Q
 Every process that is well typed in the singleton context `[ One ]`
 is also `Live'` and therefore `DeadlockFree'`.
 
-```
+```agda
 live' : (P : Process [ One ]) -> Live' P
 live' P with live P
 ... | inj₂ x = inj₂ x
