@@ -3,10 +3,6 @@
 In this module we define a structural precongruence relation for
 processes.
 
-```agda
-module Congruence where
-```
-
 ## Imports
 
 ```agda

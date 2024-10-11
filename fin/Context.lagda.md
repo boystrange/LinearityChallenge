@@ -2,10 +2,6 @@
 
 This module defines typing contexts and the main operations on them.
 
-```agda
-module Context where
-```
-
 ## Imports
 
 ```agda

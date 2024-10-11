@@ -3,10 +3,6 @@
 This module defines the data type for representing intrinsically
 typed processes.
 
-```agda
-module Process where
-```
-
 ## Imports
 
 ```agda
