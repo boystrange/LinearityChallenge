@@ -2,6 +2,8 @@
 
 This module imports *everything*.
 
+## Linearity Challenge
+
 ```agda
 open import Type
 open import Context
@@ -10,6 +12,8 @@ open import Congruence
 open import Reduction
 open import Safety
 ```
+
+## Extensions
 
 ```agda
 open import DeadlockFreedom
