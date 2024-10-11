@@ -10,10 +10,7 @@ open Eq using (_≡_; refl)
 open import Type
 open import Context
 open import Process
-open import Kind
-
-postulate
-  cut-elimination : ∀{Γ} (P : Process Γ) -> Σ[ Q ∈ Process Γ ] CutFree Q
+open import CutElimination
 
 weak-soundness : ∀{P : Process [ Zero ]} -> ¬ CutFree P
 weak-soundness (link d (split-l ()))
@@ -70,25 +67,38 @@ split-in-l (split-r p) (next q) = next (split-in-l p (next q))
 split-in-r : ∀{Γ Γ₁ Γ₂ A} -> Γ ≃ Γ₁ + Γ₂ -> A ∈ Γ₂ -> A ∈ Γ
 split-in-r p q = split-in-l (+-comm p) q
 
-data IsTop : Type -> Set where
+data IsTop : Type -> Set
+data IsZero : Type -> Set
+
+data IsTop where
   refl   : IsTop Top
   plus-l : ∀{A B} -> IsTop A -> IsTop (A ⊕ B)
   plus-r : ∀{A B} -> IsTop B -> IsTop (A ⊕ B)
   with-b : ∀{A B} -> IsTop A -> IsTop B -> IsTop (A & B)
-  fork-l : ∀{A B} -> IsTop A -> IsTop (A ⊗ B)
-  fork-r : ∀{A B} -> IsTop B -> IsTop (A ⊗ B)
+  fork-l : ∀{A B} -> IsTop A -> ¬ IsZero B -> IsTop (A ⊗ B)
+  fork-r : ∀{A B} -> ¬ IsZero A -> IsTop B -> IsTop (A ⊗ B)
   join-l : ∀{A B} -> IsTop A -> IsTop (A ⅋ B)
   join-r : ∀{A B} -> IsTop B -> IsTop (A ⅋ B)
 
-data IsZero : Type -> Set where
+data IsZero where
   refl   : IsZero Zero
   plus-b : ∀{A B} -> IsZero A -> IsZero B -> IsZero (A ⊕ B)
   with-l : ∀{A B} -> IsZero A -> IsZero (A & B)
   with-r : ∀{A B} -> IsZero B -> IsZero (A & B)
   fork-l : ∀{A B} -> IsZero A -> IsZero (A ⊗ B)
   fork-r : ∀{A B} -> IsZero B -> IsZero (A ⊗ B)
-  join-l : ∀{A B} -> IsZero A -> IsZero (A ⅋ B)
-  join-r : ∀{A B} -> IsZero B -> IsZero (A ⅋ B)
+  join-l : ∀{A B} -> IsZero A -> ¬ IsTop B -> IsZero (A ⅋ B)
+  join-r : ∀{A B} -> ¬ IsTop A -> IsZero B -> IsZero (A ⅋ B)
+
+top-zero : ∀{A} -> ¬ (IsTop A × IsZero A)
+top-zero (plus-l x , plus-b y _) = top-zero (x , y)
+top-zero (plus-r x , plus-b _ y) = top-zero (x , y)
+top-zero (with-b x _ , with-l y) = top-zero (x , y)
+top-zero (with-b _ x , with-r y) = top-zero (x , y)
+top-zero (fork-l x _ , fork-l y) = top-zero (x , y)
+top-zero (fork-r _ x , fork-r y) = top-zero (x , y)
+top-zero (join-l x , join-l y _) = top-zero (x , y)
+top-zero (join-r x , join-r _ y) = top-zero (x , y)
 
 dual-top : ∀{A B} -> Dual A B -> IsTop A -> IsZero B
 dual-top d At = {!!}
@@ -98,10 +108,8 @@ dual-zero d-0-⊤ refl = refl
 dual-zero (d-⊕-& d e) (plus-b Az Bz) = with-b (dual-zero d Az) (dual-zero e Bz)
 dual-zero (d-&-⊕ d e) (with-l Az) = plus-l (dual-zero d Az)
 dual-zero (d-&-⊕ d e) (with-r Az) = plus-r (dual-zero e Az)
-dual-zero (d-⊗-⅋ d e) (fork-l iz) = join-l (dual-zero d iz)
-dual-zero (d-⊗-⅋ d e) (fork-r iz) = join-r (dual-zero e iz)
-dual-zero (d-⅋-⊗ d e) (join-l iz) = fork-l (dual-zero d iz)
-dual-zero (d-⅋-⊗ d e) (join-r iz) = fork-r (dual-zero e iz)
+dual-zero (d-⊗-⅋ d e) (fork-l Az) = {!!}
+dual-zero (d-⅋-⊗ d e) (join-l Az _) = {!!}
 
 top-top : ∀{A B} -> Dual A B -> ¬ (IsTop A × IsTop B)
 top-top d p = {!!}
@@ -116,35 +124,26 @@ zero (close (split-l split-e)) () here
 zero (close (split-l split-e)) At (next ())
 zero (wait p P) Az Ain = {!!}
 zero (select x p P) Az Ain = {!!}
-zero (branch p P Q) Az Ain = {!!}
+zero (branch p P Q) Az Ain with in-split Ain p
+zero (branch p P Q) (with-l Az) Ain | inj₁ here with zero P Az here
+... | B , here , Bt = contradiction (Bt , Az) top-zero
+... | B , next Bin , Bt = B , split-in-r p Bin , Bt
+zero (branch p P Q) (with-r Az) Ain | inj₁ here = {!!}
+zero (branch p P Q) Az Ain | inj₂ y = {!!}
 zero (fork p q P Q) Az Ain with in-split Ain p
 zero (fork p q P Q) (fork-l Az) Ain | inj₁ here with zero P Az here
-... | B , here , Bt = _ , split-in-l p here , fork-l Bt
-... | B , next Bin , Bt = B , split-in-r p (split-in-l q Bin) , Bt
-zero (fork p q P Q) (fork-r Az) Ain | inj₁ here with zero Q Az here
-... | B , here , Bt = _ , split-in-l p here , fork-r Bt
-... | B , next Bin , Bt = B , split-in-r p (split-in-r q Bin) , Bt
+... | A' , here , At = contradiction (At , Az) top-zero
+... | A' , next Ain' , At = A' , split-in-r p (split-in-l q Ain') , At
+zero (fork p q P Q) (fork-r Bz) Ain | inj₁ here with zero Q Bz here
+... | B' , here , Bt = contradiction (Bt , Bz) top-zero
+... | B' , next Bin' , Bt = B' , split-in-r p (split-in-r q Bin') , Bt
 zero (fork p q P Q) Az Ain | inj₂ Ain' with in-split Ain' q
-zero (fork p q P Q) Az Ain | inj₂ Ain' | inj₁ Ain₁ with zero P Az (next Ain₁)
-... | B , here , Bt = _ , split-in-l p here , fork-l Bt
+zero (fork p q P Q) Az Ain | inj₂ Ain' | inj₁ Ain'' with zero P Az (next Ain'')
+... | B , here , Bt = _ , split-in-l p here , {!!}
 ... | B , next Bin , Bt = B , split-in-r p (split-in-l q Bin) , Bt
-zero (fork p q P Q) Az Ain | inj₂ Ain' | inj₂ Ain₂ with zero Q Az (next Ain₂)
-... | B , here , Bt = _ , split-in-l p here , fork-r Bt
-... | B , next Bin , Bt = B , split-in-r p (split-in-r q Bin) , Bt
+zero (fork p q P Q) Az Ain | inj₂ Ain' | inj₂ Ain'' = {!!}
 zero (join p P) Az Ain with in-split Ain p
-zero (join p P) (join-l Az) Ain | inj₁ here with zero P Az (next here)
-... | B , here , Bt = _ , split-in-l p here , join-r Bt
-... | B , next here , Bt = _ , split-in-l p here , join-l Bt
-... | B , next (next Bin) , Bt = B , split-in-r p Bin , Bt
-zero (join p P) (join-r Az) Ain | inj₁ here with zero P Az here
-... | B , here , Bt = _ , Ain , join-r Bt
-... | B , next here , Bt = _ , Ain , join-l Bt
-... | B , next (next Bin) , Bt = B , split-in-r p Bin , Bt
-zero (join p P) (join-r Az) Ain | inj₁ (next ())
-zero (join p P) Az Ain | inj₂ Ain' with zero P Az (next (next Ain'))
-... | B , here , Bt = _ , split-in-l p here , join-r Bt
-... | B , next here , Bt = _ , split-in-l p here , join-l Bt
-... | B , next (next Bin) , Bt = B , split-in-r p Bin , Bt
+... | r = {!!}
 zero (cut d p P Q) Az Ain with in-split Ain p
 zero (cut d p P Q) Az Ain | inj₁ Ain₁ with zero P Az (next Ain₁)
 ... | B , next Bin , Bt = B , split-in-l p Bin , Bt
@@ -156,30 +155,3 @@ zero (cut d p P Q) Az Ain | inj₂ Ain₂ with zero Q Az (next Ain₂)
 ... | B , here , Bt with zero P (dual-top (dual-symm d) Bt) here
 ... | C , next Cin , Ct = C , split-in-l p Cin , Ct
 ... | C , here , Ct = contradiction (Ct , Bt) (top-top d)
-
--- zero (link d-0-⊤ (split-l (split-r split-e))) here = _ , next here , refl
--- zero (link d-⊤-0 (split-l (split-r split-e))) (next here) = _ , here , refl
--- zero (link d-⊤-0 (split-r (split-l split-e))) here = _ , next here , refl
--- zero (link d-0-⊤ (split-r (split-l split-e))) (next here) = _ , here , refl
--- zero (fail p) x = {!!}
--- zero (close p) x = {!!}
--- zero (wait p P) x = {!!}
--- zero (select b p P) x with in-split x p
--- ... | inj₁ (next ())
--- zero (select false p P) x | inj₂ r with zero P (next r)
--- ... | A , here , t = _ , split-in-l p here , plus-r t
--- ... | A , next y , t = _ , split-in-r p y , t
--- zero (select true p P) x | inj₂ r = {!!}
--- zero (branch p P Q) x with in-split x p
--- ... | inj₁ (next ())
--- ... | inj₂ y with zero P (next y) | zero Q (next y)
--- ... | A , here , at | B , here , bt = _ , split-in-l p here , with-b at bt
--- ... | A , here , at | B , next b , bt = _ , split-in-r p b , bt
--- ... | A , next a , at | B , b , bt = _ , split-in-r p a , at
--- zero (fork p q P Q) x = {!!}
--- zero (join p P) x = {!!}
--- zero (cut d p P Q) x with in-split x p
--- zero (cut d p P Q) x | inj₁ y with zero P (next y)
--- ... | A , next a , at = A , split-in-l p a , at
--- ... | A , here , t = {!!}
--- zero (cut d p P Q) x | inj₂ y = {!!}

@@ -1,3 +1,8 @@
+# Subtyping
+
+## Imports
+
+```agda
 open import Data.Bool using (Bool; if_then_else_)
 open Bool using (true; false)
 open import Data.Sum
@@ -9,7 +14,19 @@ open Eq using (_≡_; refl; cong₂)
 open import Type
 open import Context
 open import Process
+```
 
+## Definition of subtyping
+
+We start by defining the subtyping relation `<=` for (finite)
+session types as described in the paper by [Horne and
+Padovani](http://dx.doi.org/10.1016/j.jlamp.2024.100986). Basically,
+`Zero` is the least session type and `Top` is the greatest
+one. Every other relation follows from the other expected properties
+of `<=`: it should be reflexive and *covariant* with respect to
+every connective.
+
+```agda
 infix 4 _<=_
 
 data _<=_ : Type -> Type -> Set where
@@ -21,7 +38,12 @@ data _<=_ : Type -> Type -> Set where
   sub-⊕ : ∀{A B A' B'} -> A <= A' -> B <= B' -> A ⊕ B <= A' ⊕ B'
   sub-⅋ : ∀{A B A' B'} -> A <= A' -> B <= B' -> A ⅋ B <= A' ⅋ B'
   sub-⊗ : ∀{A B A' B'} -> A <= A' -> B <= B' -> A ⊗ B <= A' ⊗ B'
+```
 
+The fact that `<=` is reflexive, transitive and antisymmetric is
+proved below.
+
+```agda
 <=-refl : ∀{A} -> A <= A
 <=-refl {Zero} = sub-0
 <=-refl {One} = sub-1
@@ -51,7 +73,13 @@ data _<=_ : Type -> Type -> Set where
 <=-anti-symm (sub-⊕ s₁ s₂) (sub-⊕ t₁ t₂) = cong₂ _⊕_ (<=-anti-symm s₁ t₁) (<=-anti-symm s₂ t₂)
 <=-anti-symm (sub-⅋ s₁ s₂) (sub-⅋ t₁ t₂) = cong₂ _⅋_ (<=-anti-symm s₁ t₁) (<=-anti-symm s₂ t₂)
 <=-anti-symm (sub-⊗ s₁ s₂) (sub-⊗ t₁ t₂) = cong₂ _⊗_ (<=-anti-symm s₁ t₁) (<=-anti-symm s₂ t₂)
+```
 
+Notoriously, `<=` should behave contravariantly with respect to
+duality, namely if $A \leq B$ then $B^\bot \leq A^\bot$. This is
+proved below.
+
+```agda
 dual<= : ∀{A A' B B'} -> Dual A A' -> Dual B B' -> A <= B -> B' <= A'
 dual<= d-0-⊤ e sub-0 = sub-⊤
 dual<= d d-⊤-0 sub-⊤ = sub-0
@@ -61,25 +89,27 @@ dual<= (d-&-⊕ d₁ d₂) (d-&-⊕ e₁ e₂) (sub-& s₁ s₂) = sub-⊕ (dual
 dual<= (d-⊕-& d₁ d₂) (d-⊕-& e₁ e₂) (sub-⊕ s₁ s₂) = sub-& (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
 dual<= (d-⅋-⊗ d₁ d₂) (d-⅋-⊗ e₁ e₂) (sub-⅋ s₁ s₂) = sub-⊗ (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
 dual<= (d-⊗-⅋ d₁ d₂) (d-⊗-⅋ e₁ e₂) (sub-⊗ s₁ s₂) = sub-⅋ (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
+```
 
+For the results that follow, it is convenient to extend subtyping
+from types to typing contexts, in the expected way.
+
+```agda
 infix 4 _<=⁺_
 
 data _<=⁺_ : Context -> Context -> Set where
   zero : [] <=⁺ []
   succ : ∀{A B Γ Δ} -> A <= B -> Γ <=⁺ Δ -> A :: Γ <=⁺ B :: Δ
+```
 
-double-split : ∀{Γ Δ₁ Δ₂ A₁ A₂} -> Γ ≃ A₁ , Δ₁ -> Γ ≃ A₂ , Δ₂ -> (A₁ ≡ A₂ × Δ₁ ≡ Δ₂) ⊎
-  ∃[ Θ ] Δ₁ ≃ A₂ , Θ × Δ₂ ≃ A₁ , Θ
-double-split (split-l p) (split-l q) with +-empty-l p | +-empty-l q
-... | refl | refl = inj₁ (refl , refl)
-double-split (split-l p) (split-r q) with +-empty-l p
-... | refl = inj₂ (_ , q , split-l +-unit-l)
-double-split (split-r p) (split-l q) with +-empty-l q
-... | refl = inj₂ (_ , split-l +-unit-l , p)
-double-split (split-r p) (split-r q) with double-split p q
-... | inj₁ (refl , refl) = inj₁ (refl , refl)
-... | inj₂ (Θ , p' , q') = inj₂ (_ , split-r p' , split-r q')
+An important auxiliary result that is needed in order to prove the
+soundness of subtyping is the ability to synthesize a process that
+acts as a **link** between channels of type `A'` and `B'` whenever
+`A'` and `B'` are supertypes of some `A` and `B` that are dual to
+one another. By reflexivity of subtyping, this result also shows
+that the axiom is *admissable*.
 
+```agda
 make-link : ∀{A A' B B'} -> A <= A' -> B <= B' -> Dual A B -> Process (A' :: B' :: [])
 make-link sub-0 sub-⊤ d-0-⊤ = fail (split-r (split-l split-e))
 make-link sub-⊤ s₂ d = fail (split-l (split-r split-e))
@@ -109,7 +139,12 @@ make-link (sub-⊗ s₁ s₃) (sub-⅋ s₂ s₄) (d-⊗-⅋ d₁ d₂) =
        (fork (split-r (split-r (split-l split-e))) (split-r (split-l split-e))
              (make-link s₁ s₂ d₁)
              (make-link s₃ s₄ d₂))
+```
 
+Next we have two expected results relating subtyping (for typing
+contexts) and splitting.
+
+```agda
 split<=⁺ : ∀{Γ Γ₁ Γ₂ Δ} -> Γ <=⁺ Δ -> Γ ≃ Γ₁ + Γ₂ ->
           ∃[ Δ₁ ] ∃[ Δ₂ ] Δ ≃ Δ₁ + Δ₂ × Γ₁ <=⁺ Δ₁ × Γ₂ <=⁺ Δ₂
 split<=⁺ zero split-e = [] , [] , split-e , zero , zero
@@ -122,7 +157,14 @@ split<= : ∀{Γ Γ' A Δ} -> Γ <=⁺ Δ -> Γ ≃ A , Γ' ->
           ∃[ B ] ∃[ Δ' ] Δ ≃ B , Δ' × A <= B × Γ' <=⁺ Δ'
 split<= s p with split<=⁺ s p
 ... | _ , _ , p' , succ s₁ zero , s₃ = _ , _ , p' , s₁ , s₃
+```
 
+We can now prove the soundness of subtyping as the following
+**subsumption** result. Any process that is well typed in `Γ` can be
+subsumed into a process that is well typed in `Δ` whenever `Γ` is a
+subtyping context of `Δ`.
+
+```agda
 sub-link : ∀{Γ Δ A B} -> Γ <=⁺ Δ -> Dual A B -> Γ ≃ [ A ] + [ B ] -> Process Δ
 sub-link (succ s₁ (succ s₂ zero)) d (split-l (split-r split-e)) = make-link s₁ s₂ d
 sub-link (succ s₁ (succ s₂ zero)) d (split-r (split-l split-e)) = make-link s₁ s₂ (dual-symm d)
@@ -154,3 +196,4 @@ sub s (join p P) with split<= s p
 ... | _ , _ , p' , sub-⅋ s₁ s₂ , s₃ = join p' (sub (succ s₂ (succ s₁ s₃)) P)
 sub s (cut d p P Q) with split<=⁺ s p
 ... | _ , _ , p' , s₁ , s₂ = cut d p' (sub (succ <=-refl s₁) P) (sub (succ <=-refl s₂) Q)
+```
