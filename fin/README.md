@@ -2,8 +2,7 @@
 
 By Luca Padovani and Claudia Raffaelli
 
-This is a solution in Agda of the [linearity
-challenge](https://concurrentbenchmark.github.io), which concerns the
+This is a solution in Agda of the linearity challenge[^5], which concerns the
 formalization of a calculus of binary sessions, of its type system and of a
 **safety result** for well-typed processes.
 
