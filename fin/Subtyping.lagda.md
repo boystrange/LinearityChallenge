@@ -1,5 +1,7 @@
 # Subtyping
 
+This module defines subtyping and proves its soundness.
+
 ## Imports
 
 ```agda
