@@ -1,11 +1,12 @@
 # README
 
 This is a solution in Agda of the [linearity
-challenge](https://concurrentbenchmark.github.io) for the finite fragment of
-**πLIN**[^1]. In addition to the [safety property](Safety.lagda.md), the
-solution also proves two [deadlock freedom results](DeadlockFreedom.lagda.md) as
-well as the soundness of subsumption for the **logical subtyping** of session
-types[^2].
+challenge](https://concurrentbenchmark.github.io) for the finite
+fragment of **πLIN**[^1]. In addition to the [safety
+property](Safety.lagda.md), the solution also proves two [deadlock
+freedom results](DeadlockFreedom.lagda.md) as well as the soundness
+of [subsumption](Subtyping.lagda.md) for the **logical subtyping**
+of session types[^2].
 
 [^1]: Luca Ciccone and Luca Padovani, [An Infinitary Proof Theory of Linear
     Logic Ensuring Fair Termination in the Linear
