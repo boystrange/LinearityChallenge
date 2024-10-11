@@ -123,14 +123,14 @@ make-link sub-⊥ sub-⊤ d-⊥-1 = fail (split-r (split-l split-e))
 make-link sub-⊥ sub-1 d-⊥-1 = wait (split-l (split-r split-e)) (close (split-l split-e))
 make-link (sub-& s₁ s₃) sub-⊤ (d-&-⊕ d₁ d₂) = fail (split-r (split-l split-e))
 make-link (sub-& s₁ s₃) (sub-⊕ s₂ s₄) (d-&-⊕ d₁ d₂) =
-  branch (split-l (split-r split-e))
-         (select true (split-r (split-l split-e)) (make-link s₂ s₁ (dual-symm d₁)))
-         (select false (split-r (split-l split-e)) (make-link s₄ s₃ (dual-symm d₂)))
+  case (split-l (split-r split-e))
+       (select true (split-r (split-l split-e)) (make-link s₂ s₁ (dual-symm d₁)))
+       (select false (split-r (split-l split-e)) (make-link s₄ s₃ (dual-symm d₂)))
 make-link (sub-⊕ s₁ s₃) sub-⊤ (d-⊕-& d₁ d₂) = fail (split-r (split-l split-e))
 make-link (sub-⊕ s₁ s₃) (sub-& s₂ s₄) (d-⊕-& d₁ d₂) =
-  branch (split-r (split-l split-e))
-         (select true (split-r (split-l split-e)) (make-link s₁ s₂ d₁))
-         (select false (split-r (split-l split-e)) (make-link s₃ s₄ d₂))
+  case (split-r (split-l split-e))
+       (select true (split-r (split-l split-e)) (make-link s₁ s₂ d₁))
+       (select false (split-r (split-l split-e)) (make-link s₃ s₄ d₂))
 make-link (sub-⅋ s₁ s₃) sub-⊤ (d-⅋-⊗ d d₁) = fail (split-r (split-l split-e))
 make-link (sub-⅋ s₁ s₃) (sub-⊗ s₂ s₄) (d-⅋-⊗ d₁ d₂) =
   join (split-l (split-r split-e))
@@ -188,9 +188,9 @@ sub s (select false p P) with split<= s p
 sub s (select true p P) with split<= s p
 ... | _ , _ , p' , sub-⊤ , s₂ = fail p'
 ... | _ , _ , p' , sub-⊕ s₁ s₂ , s₃ = select true p' (sub (succ s₁ s₃) P)
-sub s (branch p P Q) with split<= s p
+sub s (case p P Q) with split<= s p
 ... | _ , _ , p' , sub-⊤ , s₃ = fail p'
-... | _ , _ , p' , sub-& s₁ s₂ , s₃ = branch p' (sub (succ s₁ s₃) P) (sub (succ s₂ s₃) Q)
+... | _ , _ , p' , sub-& s₁ s₂ , s₃ = case p' (sub (succ s₁ s₃) P) (sub (succ s₂ s₃) Q)
 sub s (fork p q P Q) with split<= s p
 ... | _ , _ , p' , sub-⊤ , s₃ = fail p'
 ... | _ , _ , p' , sub-⊗ s₁ s₂ , s₃ with split<=⁺ s₃ q

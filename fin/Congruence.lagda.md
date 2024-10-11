@@ -83,8 +83,8 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
     (d : Dual A B)
     (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ A₁ & A₂ , Δ) ->
     let _ , p' , q' = +-assoc-l p q in
-    cut d p (branch (split-r q) P Q) R ⊒
-    branch q' (cut d (split-l p') (#process #here P) R)
+    cut d p (case (split-r q) P Q) R ⊒
+    case q' (cut d (split-l p') (#process #here P) R)
             (cut d (split-l p') (#process #here Q) R)
 
   s-fork-l :

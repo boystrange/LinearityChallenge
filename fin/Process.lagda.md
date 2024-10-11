@@ -34,7 +34,7 @@ data Process (Γ : Context) : Set where
    wait : ∀{Δ} (p : Γ ≃ Bot , Δ) -> Process Δ -> Process Γ
    select : ∀{Δ A B} (x : Bool) (p : Γ ≃ A ⊕ B , Δ) ->
             Process ((if x then A else B) :: Δ) -> Process Γ
-   branch : ∀{Δ A B} (p : Γ ≃ A & B , Δ) ->
+   case : ∀{Δ A B} (p : Γ ≃ A & B , Δ) ->
           Process (A :: Δ) -> Process (B :: Δ) -> Process Γ
    fork : ∀{Δ Γ₁ Γ₂ A B} (p : Γ ≃ A ⊗ B , Δ) (q : Δ ≃ Γ₁ + Γ₂) ->
           Process (A :: Γ₁) -> Process (B :: Γ₂) -> Process Γ
@@ -48,29 +48,27 @@ type $A^⊥$ to a channel of type $A$. It is well typed in a context
 that contains exactly two types, which must be related by duality.
 The `fail p` process indicates a runtime error on some channel of
 type $⊤$. There is no process constructor corresponding to the dual
-constant $\mathbb{0}$. The `close p` process sends a termination signal on a session and is
-well typed in a singleton context where the only type is
-$\mathbb{1}$.
-The `wait p P` process waits for a termination signal from a channel
-and then continues according to the continuation `P`. It is well
-typed in a context of the form $⊥, Δ$ where $⊥$ (which is the dual
-of $\mathbb{1}$ is the type of the channel. The continuation `P`
-must be well typed in the residual context $Δ$.
-The `select x p P` process sends a boolean value `x` along with a
-fresh channel on a channel of type `A ⊕ B` and continues as a
-process `P` that uses the fresh channel as either `A` or `B`
-depending on the value of `x`.
-The `case p P Q` process receives a boolean value `x` along with a
-fresh channel from a channel of type `A & B` and continues as either
-`P` or `Q` depending to the the value of `x`.
-The `fork p q P Q` process sends a pair of new channels on another
-channel of type `A ⊗ B`. It has *two* continuations, each using one
-endpoint of the new channels created.
+constant $\mathbb{0}$. The `close p` process sends a termination
+signal on a session and is well typed in a singleton context where
+the only type is $\mathbb{1}$.  The `wait p P` process waits for a
+termination signal from a channel and then continues according to
+the continuation `P`. It is well typed in a context of the form $⊥,
+Δ$ where $⊥$ (which is the dual of $\mathbb{1}$ is the type of the
+channel. The continuation `P` must be well typed in the residual
+context $Δ$.  The `select x p P` process sends a boolean value `x`
+along with a fresh channel on a channel of type `A ⊕ B` and
+continues as a process `P` that uses the fresh channel as either `A`
+or `B` depending on the value of `x`.  The `case p P Q` process
+receives a boolean value `x` along with a fresh channel from a
+channel of type `A & B` and continues as either `P` or `Q` depending
+to the the value of `x`.  The `fork p q P Q` process sends a pair of
+new channels on another channel of type `A ⊗ B`. It has *two*
+continuations, each using one endpoint of the new channels created.
 The `join p P` process receives a pair of channels from a channel of
-type `A ⅋ B`.
-Finally, the `cut d p P Q` process represents the parallel composition of two
-sub-processes `P` and `Q` connected by a new linear channel. `P` and
-`Q` use the new channel according to dual types.
+type `A ⅋ B`.  Finally, the `cut d p P Q` process represents the
+parallel composition of two sub-processes `P` and `Q` connected by a
+new linear channel. `P` and `Q` use the new channel according to
+dual types.
 
 ## Renaming
 
@@ -93,8 +91,8 @@ in the process.
 ... | Δ' , q , π' = wait q (#process π' P)
 #process π (select x p P) with #one+ π p
 ... | Δ' , q , π' = select x q (#process (#next π') P)
-#process π (branch p P Q) with #one+ π p
-... | Δ' , q , π' = branch q (#process (#next π') P) (#process (#next π') Q)
+#process π (case p P Q) with #one+ π p
+... | Δ' , q , π' = case q (#process (#next π') P) (#process (#next π') Q)
 #process π (fork p q P Q) with #one+ π p
 ... | Δ' , p' , π' with #split π' q
 ... | Δ₁ , Δ₂ , q' , π₁ , π₂ = fork p' q' (#process (#next π₁) P) (#process (#next π₂) Q)
@@ -120,7 +118,7 @@ data Input : ∀{Γ} -> Process Γ -> Set where
     ∀{Γ Δ} (p : Γ ≃ [] + Δ) {P : Process Δ} -> Input (wait (split-l p) P)
   case :
     ∀{Γ Δ A B} (p : Γ ≃ [] + Δ) {P : Process (A :: Δ)} {Q : Process (B :: Δ)} ->
-    Input (branch (split-l p) P Q)
+    Input (case (split-l p) P Q)
   join :
     ∀{Γ Δ A B} (p : Γ ≃ [] + Δ) {P : Process (B :: A :: Δ)} ->
     Input (join (split-l p) P)

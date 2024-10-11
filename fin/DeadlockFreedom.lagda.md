@@ -39,7 +39,7 @@ data Thread {Γ} : Process Γ -> Set where
     ∀{Δ} (p : Γ ≃ [ Bot ] + Δ) {P : Process Δ} -> Thread (wait p P)
   case :
     ∀{Δ A B} (p : Γ ≃ [ A & B ] + Δ) {P : Process (A :: Δ)} {Q : Process (B :: Δ)} ->
-    Thread (branch p P Q)
+    Thread (case p P Q)
   join :
     ∀{Δ A B} (p : Γ ≃ [ A ⅋ B ] + Δ) {P : Process (B :: A :: Δ)} ->
     Thread (join p P)
@@ -69,7 +69,7 @@ process-is (link d p) = inj₁ (link d p)
 process-is (fail p) = inj₁ (fail p)
 process-is (wait p P) = inj₁ (wait p)
 process-is (select x p P) = inj₁ (select x p)
-process-is (branch p P Q) = inj₁ (case p)
+process-is (case p P Q) = inj₁ (case p)
 process-is (fork p q P Q) = inj₁ (fork p q)
 process-is (join p P) = inj₁ (join p)
 process-is (cut d p P Q) = inj₂ (cut d p)
@@ -95,7 +95,7 @@ data Delayed : ∀{Γ} -> Process Γ -> Set where
     ∀{C Γ Δ} (p : Γ ≃ [ Bot ] + Δ) {P : Process (C :: Δ)} -> Delayed (wait (split-r p) P)
   case :
     ∀{Γ Δ C A B} (p : Γ ≃ [ A & B ] + Δ) {P : Process (A :: C :: Δ)} {Q : Process (B :: C :: Δ)} ->
-    Delayed (branch (split-r p) P Q)
+    Delayed (case (split-r p) P Q)
   join :
     ∀{Γ Δ C A B} (p : Γ ≃ [ A ⅋ B ] + Δ) {P : Process (B :: A :: C :: Δ)} ->
     Delayed (join (split-r p) P)

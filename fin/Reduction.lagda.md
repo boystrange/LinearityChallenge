@@ -40,7 +40,7 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
     (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) ->
     cut (d-⊕-& d e) p
         (select true (split-l p₀) P)
-        (branch (split-l q₀) Q R) ~> cut d p P Q
+        (case (split-l q₀) Q R) ~> cut d p P Q
 
   r-select-r :
     ∀{Γ₁ Γ₂ A A' B B'}
@@ -51,7 +51,7 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
     (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) ->
     cut (d-⊕-& d e) p
         (select false (split-l p₀) P)
-        (branch (split-l q₀) Q R) ~> cut e p P R
+        (case (split-l q₀) Q R) ~> cut e p P R
 
   r-fork :
     ∀{Γ₁ Γ₂ Γ₃ Δ A B A' B'}
