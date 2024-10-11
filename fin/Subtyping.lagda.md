@@ -16,7 +16,7 @@ open import Context
 open import Process
 ```
 
-## Definition of subtyping
+## Definition and basic properties of subtyping
 
 We start by defining the subtyping relation `<=` for (finite)
 session types as described in the paper by [Horne and
@@ -90,6 +90,8 @@ dual<= (d-⊕-& d₁ d₂) (d-⊕-& e₁ e₂) (sub-⊕ s₁ s₂) = sub-& (dual
 dual<= (d-⅋-⊗ d₁ d₂) (d-⅋-⊗ e₁ e₂) (sub-⅋ s₁ s₂) = sub-⊗ (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
 dual<= (d-⊗-⅋ d₁ d₂) (d-⊗-⅋ e₁ e₂) (sub-⊗ s₁ s₂) = sub-⅋ (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
 ```
+
+## Soundness of subtyping
 
 For the results that follow, it is convenient to extend subtyping
 from types to typing contexts, in the expected way.
