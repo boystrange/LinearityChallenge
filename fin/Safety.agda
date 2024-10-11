@@ -5,7 +5,6 @@ open import Relation.Nullary using (contradiction)
 open import Type
 open import Context
 open import Process
-open import Kind
 open import Congruence
 
 data ActionCut {Γ} : Process Γ -> Set where

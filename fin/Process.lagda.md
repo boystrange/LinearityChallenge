@@ -13,7 +13,9 @@ module Process where
 open import Data.Bool using (Bool; if_then_else_)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
+open import Data.Sum
 open import Data.Product using (Σ; _×_; _,_; ∃; Σ-syntax; ∃-syntax)
+open import Relation.Nullary using (¬_)
 
 open import Type
 open import Context
@@ -100,4 +102,66 @@ in the process.
 ... | Δ' , q , π' = join q (#process (#next (#next π')) P)
 #process π (cut d p P Q) with #split π p
 ... | Δ₁ , Δ₂ , q , π₁ , π₂ = cut d q (#process (#next π₁) P) (#process (#next π₂) Q)
+```
+
+## Process Classification
+
+We define a few predicates to classify processes in various (not
+necessarily disjoint) families. First of all, we distinguish between
+`Input` and `Output` processes that perform an action on the
+"youngest" (the most recently introduced) channel.
+
+```agda
+data Input : ∀{Γ} -> Process Γ -> Set where
+  fail :
+    ∀{Γ Δ}
+    (p : Γ ≃ [] + Δ) -> Input (fail (split-l p))
+  wait :
+    ∀{Γ Δ} (p : Γ ≃ [] + Δ) {P : Process Δ} -> Input (wait (split-l p) P)
+  case :
+    ∀{Γ Δ A B} (p : Γ ≃ [] + Δ) {P : Process (A :: Δ)} {Q : Process (B :: Δ)} ->
+    Input (branch (split-l p) P Q)
+  join :
+    ∀{Γ Δ A B} (p : Γ ≃ [] + Δ) {P : Process (B :: A :: Δ)} ->
+    Input (join (split-l p) P)
+
+data Output : ∀{Γ} -> Process Γ -> Set where
+  close :
+    ∀{Γ} (p : Γ ≃ [ One ] + []) -> Output (close p)
+  select :
+    ∀{Γ Δ A B} (x : Bool) (p : Γ ≃ [] + Δ) {P : Process ((if x then A else B) :: Δ)} ->
+    Output (select x (split-l p) P)
+  fork :
+    ∀{Γ Δ Δ₁ Δ₂ A B} (p : Γ ≃ [] + Δ) (q : Δ ≃ Δ₁ + Δ₂)
+    {P : Process (A :: Δ₁)} {Q : Process (B :: Δ₂)} ->
+    Output (fork (split-l p) q P Q)
+```
+
+Then, an `Action` process is either an `Input` or an `Output`
+process.
+
+```agda
+Action : ∀{Γ} -> Process Γ -> Set
+Action P = Input P ⊎ Output P
+```
+
+We prove that two processes whose youngest channels have types
+related by duality cannot be both `Input` or both `Output`
+processes. This is key to prove safety and deadlock freedom.
+
+```agda
+input-input :
+  ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
+  Dual A B -> ¬ (Input P × Input Q)
+input-input d-⊤-0 (fail p , ())
+input-input d-⊥-1 (wait p , ())
+input-input (d-&-⊕ d d₁) (case p , ())
+input-input (d-⅋-⊗ d d₁) (join p , ())
+
+output-output :
+  ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
+  Dual A B -> ¬ (Output P × Output Q)
+output-output d-1-⊥ (close _ , close ())
+output-output (d-⊕-& d d₁) (select _ p , close ())
+output-output (d-⊗-⅋ d d₁) (fork p q , close ())
 ```
