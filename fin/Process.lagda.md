@@ -24,19 +24,28 @@ typing context `Γ`.
 
 ```agda
 data Process (Γ : Context) : Set where
-   link : ∀{A B} (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> Process Γ
-   fail : ∀{Δ} (p : Γ ≃ Top , Δ) -> Process Γ
-   close : Γ ≃ One , [] -> Process Γ
-   wait : ∀{Δ} (p : Γ ≃ Bot , Δ) -> Process Δ -> Process Γ
-   select : ∀{Δ A B} (x : Bool) (p : Γ ≃ A ⊕ B , Δ) ->
-            Process ((if x then A else B) :: Δ) -> Process Γ
-   case : ∀{Δ A B} (p : Γ ≃ A & B , Δ) ->
-          Process (A :: Δ) -> Process (B :: Δ) -> Process Γ
-   fork : ∀{Δ Γ₁ Γ₂ A B} (p : Γ ≃ A ⊗ B , Δ) (q : Δ ≃ Γ₁ + Γ₂) ->
-          Process (A :: Γ₁) -> Process (B :: Γ₂) -> Process Γ
-   join : ∀{Δ A B} (p : Γ ≃ A ⅋ B , Δ) -> Process (B :: A :: Δ) -> Process Γ
-   cut : ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) ->
-         Process (A :: Γ₁) -> Process (B :: Γ₂) -> Process Γ
+   link :
+     ∀{A B} (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> Process Γ
+   fail :
+     ∀{Δ} (p : Γ ≃ Top , Δ) -> Process Γ
+   close :
+     Γ ≃ One , [] -> Process Γ
+   wait :
+     ∀{Δ} (p : Γ ≃ Bot , Δ) -> Process Δ -> Process Γ
+   select :
+     ∀{Δ A B} (x : Bool) (p : Γ ≃ A ⊕ B , Δ) ->
+     Process ((if x then A else B) :: Δ) -> Process Γ
+   case :
+     ∀{Δ A B} (p : Γ ≃ A & B , Δ) ->
+     Process (A :: Δ) -> Process (B :: Δ) -> Process Γ
+   fork :
+     ∀{Δ Γ₁ Γ₂ A B} (p : Γ ≃ A ⊗ B , Δ) (q : Δ ≃ Γ₁ + Γ₂) ->
+     Process (A :: Γ₁) -> Process (B :: Γ₂) -> Process Γ
+   join :
+     ∀{Δ A B} (p : Γ ≃ A ⅋ B , Δ) -> Process (B :: A :: Δ) -> Process Γ
+   cut :
+     ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) ->
+     Process (A :: Γ₁) -> Process (B :: Γ₂) -> Process Γ
 ```
 
 The `link d p` process forwards a single message from a channel of
