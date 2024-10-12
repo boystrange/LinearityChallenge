@@ -46,8 +46,6 @@ also define the notion of reduction context. A term of type
 typed in a context of type Γ that contains a "hole" which is assumed
 to be well typed in a context of type Δ.
 
-Safety follows easily.
-
 ```agda
 data ReductionContext (Δ : Context) : Context -> Set where
   hole  : ReductionContext Δ Δ
