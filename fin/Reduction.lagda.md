@@ -15,7 +15,7 @@ open import Process
 open import Congruence
 ```
 
-## Definition of Reduction
+## Definition
 
 ```agda
 data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
@@ -87,7 +87,9 @@ Reducible : ∀{Γ} -> Process Γ -> Set
 Reducible P = ∃[ Q ] P ~> Q
 ```
 
-We also define the reflexive, transitive closure of reduction.
+We also define the reflexive, transitive closure of reduction which
+is useful e.g. for stating and proving [deadlock
+freedom](DeadlockFreedom.lagda.md).
 
 ```agda
 data _~>*_ {Γ} : Process Γ -> Process Γ -> Set where

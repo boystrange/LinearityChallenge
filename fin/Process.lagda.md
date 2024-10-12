@@ -17,7 +17,7 @@ open import Type
 open import Context
 ```
 
-## Definition of Well-Typed Processes
+## Definition
 
 A process is a term representing a proof derivation for a given
 typing context `Γ`.
@@ -107,7 +107,7 @@ in the process.
 ... | Δ₁ , Δ₂ , q , π₁ , π₂ = cut d q (#process (#next π₁) P) (#process (#next π₂) Q)
 ```
 
-## Process Classification
+## Classification
 
 We define a few predicates to classify processes in various (not
 necessarily disjoint) families. First of all, we distinguish between

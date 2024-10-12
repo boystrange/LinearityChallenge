@@ -1,4 +1,4 @@
-# Structural Pre-Congruence
+# Structural precongruence
 
 In this module we define a structural precongruence relation for
 processes.
@@ -15,7 +15,7 @@ open import Context
 open import Process
 ```
 
-## Definition of Structural Pre-Congruence
+## Definition
 
 ```agda
 data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
@@ -127,7 +127,7 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
     (p : Γ ≃ Γ₁ + Γ₂) -> P ⊒ Q -> cut d p P R ⊒ cut d p Q R
 ```
 
-## Equational Reasoning for ⊒
+## Equational reasoning for ⊒
 
 ```agda
 infix  1 ⊒begin_
@@ -147,10 +147,10 @@ _⊒⟨⟩_ : {Γ : Context} (P : Process Γ) {Q : Process Γ} -> P ⊒ Q -> P �
 _ ⊒⟨⟩ p = p
 ```
 
-## Properties of Structural Pre-Congruence
+## Properties
 
-We prove a few derivable properties about `⊒`. First, that
-associativity of cuts also works in the opposite direction.
+We prove a few properties about `⊒`. First, that associativity of
+cuts also works in the opposite direction.
 
 ```agda
 s-assoc-l : ∀{Γ Γ₁ Γ₂ Δ Δ₁ Δ₂ A A' B B'}

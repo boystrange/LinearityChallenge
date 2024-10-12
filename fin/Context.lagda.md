@@ -1,4 +1,4 @@
-# Typing Contexts
+# Typing contexts
 
 This module defines typing contexts and the main operations on them.
 
@@ -12,7 +12,7 @@ open Eq using (_≡_; refl)
 open import Type
 ```
 
-## Definition of Typing Context
+## Definition
 
 A **typing context** is simply a list of types. For this reason, the
 *constructors* of `Context` are chosen to resemble those for plain lists. The
@@ -34,7 +34,7 @@ We define a helper function to create a singleton list.
 [_] = _:: []
 ```
 
-## Context Permutations
+## Permutations
 
 We now define a binary relation `Γ # Δ` expressing the fact that a
 typing context `Γ` is a **permutation** of another typing context
@@ -83,7 +83,7 @@ programming language Forth.
 #rot = #tran (#next #here) #here
 ```
 
-## Context Splitting
+## Splitting
 
 The most important operation involving typing contexts is that of
 **context splitting**. We indicate that `Γ` can be split into `Δ`
@@ -172,7 +172,7 @@ A few additional results about splitting and simple contexts follow.
 +-sing-l (split-l split-e) = refl , refl
 ```
 
-## Splitting and Permutations
+## Splitting and permutations
 
 When `Γ` is the merge of a singleton context `[ A ]` and some other
 context `Δ` that is `Γ ≃ [ A ] + Δ` then the type `A` must have been

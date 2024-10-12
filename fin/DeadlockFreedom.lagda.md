@@ -1,4 +1,4 @@
-# Deadlock Freedom
+# Deadlock freedom
 
 This module proves two deadlock freedom results.
 
@@ -21,7 +21,7 @@ open import Reduction
 open import Congruence
 ```
 
-## Additional Process Classification
+## Additional process classification
 
 We introduce further classes of processes, distinguishing between
 **threads** (sequential processes) and **cuts** (parallel
@@ -75,7 +75,7 @@ process-is (join p P) = inj₁ (join p)
 process-is (cut d p P Q) = inj₂ (cut d p)
 ```
 
-## Thread Classification
+## Thread classification
 
 Concerning threads, we have already made a distinction between
 `Input` and `Output` threads. Here we further distinguish links and
@@ -135,7 +135,7 @@ thread-is (fork (split-r p) (split-l q)) = inj₂ (inj₁ (fork-l p q))
 thread-is (fork (split-r p) (split-r q)) = inj₂ (inj₁ (fork-r p q))
 ```
 
-## Canonical Cuts
+## Canonical cuts
 
 Structural precongruence and reduction operate on cuts having a
 particular form, which we call **canonical**.
@@ -177,7 +177,7 @@ canonical-cut dc pc Pt Qt with thread-is Pt | thread-is Qt
 ... | inj₂ (inj₂ (inj₂ x)) | inj₂ (inj₂ (inj₂ y)) = contradiction (x , y) (output-output dc)
 ```
 
-## Deadlock Freedom for General Processes
+## Deadlock freedom for general processes
 
 We say that a process is **observable** if it is (structurally
 precongruent to) a thread. The terminology is justified by the fact
@@ -272,7 +272,7 @@ deadlock-freedom : ∀{Γ} (P : Process Γ) -> DeadlockFree P
 deadlock-freedom P Q reds = live Q
 ```
 
-## Deadlock Freedom for Closed Processes
+## Deadlock freedom for closed processes
 
 Processes that are well typed in a singleton context containing only
 the type `One` enjoy a specialized deadlock-freedom result that more

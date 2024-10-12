@@ -14,7 +14,7 @@ Types are propositions of multiplicative additive linear logic. The constructors
 $\mathbb{0}$, $\mathbb{1}$, $⊥$ and $⊤$. The remaining constructors represent
 the binary connectives.
 
-## Definition of Types
+## Definition
 
 ```agda
 data Type : Set where

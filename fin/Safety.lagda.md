@@ -39,12 +39,15 @@ data SafeCut {Γ} : Process Γ -> Set where
     ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂)
     {P : Process (A :: Γ₁)} {Q : Process (B :: Γ₂)} ->
     Output P -> Input Q -> SafeCut (cut d p P Q)
+
+Safe : ∀{Γ} -> Process Γ -> Set
+Safe P = ActionCut P -> ∃[ Q ] P ⊒ Q × SafeCut Q
 ```
 
 Safety follows easily.
 
 ```agda
-safety : ∀{Γ} {P : Process Γ} -> ActionCut P -> ∃[ Q ] P ⊒ Q × SafeCut Q
+safety : ∀{Γ} {P : Process Γ} -> Safe P
 safety (is-action-cut d p (inj₁ x) (inj₁ y)) = contradiction (x , y) (input-input d)
 safety (is-action-cut d p (inj₁ x) (inj₂ y)) = _ , s-comm d (dual-symm d) p (+-comm p) , is-safe-cut (dual-symm d) (+-comm p) y x
 safety (is-action-cut d p (inj₂ x) (inj₁ y)) = _ , s-refl , is-safe-cut d p x y

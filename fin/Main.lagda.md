@@ -1,8 +1,8 @@
-# Main Module
+# Main module
 
 This module imports *everything*.
 
-## Linearity Challenge
+## Linearity challenge
 
 ```agda
 open import Type

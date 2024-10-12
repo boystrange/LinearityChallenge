@@ -18,7 +18,7 @@ open import Context
 open import Process
 ```
 
-## Definition and basic properties of subtyping
+## Definition
 
 We start by defining the subtyping relation `<=` for (finite)
 session types as described in the paper by [Horne and
@@ -41,6 +41,8 @@ data _<=_ : Type -> Type -> Set where
   sub-⅋ : ∀{A B A' B'} -> A <= A' -> B <= B' -> A ⅋ B <= A' ⅋ B'
   sub-⊗ : ∀{A B A' B'} -> A <= A' -> B <= B' -> A ⊗ B <= A' ⊗ B'
 ```
+
+## Properties
 
 The fact that `<=` is reflexive, transitive and antisymmetric is
 proved below.
@@ -93,7 +95,7 @@ dual<= (d-⅋-⊗ d₁ d₂) (d-⅋-⊗ e₁ e₂) (sub-⅋ s₁ s₂) = sub-⊗
 dual<= (d-⊗-⅋ d₁ d₂) (d-⊗-⅋ e₁ e₂) (sub-⊗ s₁ s₂) = sub-⅋ (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
 ```
 
-## Soundness of subtyping
+## Soundness
 
 For the results that follow, it is convenient to extend subtyping
 from types to typing contexts, in the expected way.

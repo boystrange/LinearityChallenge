@@ -30,25 +30,28 @@ two main reasons:
 
 Below is a summary of the main features of the formalization:
 
-* Processes are **intrinsically typed** so that only well-typed processes can be
-  represented by the [`Process`](Process.lagda.md) data type. This choice
-  slightly complicates the representation, but has some notable advantages as
-  well: (1) there is no need to define processes and typing rules separately, as
-  these are conflated into the same data type; (2) [structural
-  (pre)congruence](Congruence.lagda.md) and [reduction](Reduction.lagda.md)
-  preserve typing *by definition* and there is no need to prove a subject
-  reduction result; (3) the [safety property](Safety.ladga.md) can be proved for
-  an arbitrary, isolated restriction without dealing with process contexts.
+* Processes are **intrinsically typed** so that only well-typed
+  processes can be represented by the
+  [`Process`](Process.lagda.md#definition) data type. This choice
+  slightly complicates the representation, but has some notable
+  advantages as well: (1) there is no need to define processes and
+  typing rules separately, as these are conflated into the same data
+  type; (2) [structural (pre)congruence](Congruence.lagda.md) and
+  [reduction](Reduction.lagda.md) preserve typing *by definition*
+  and there is no need to prove a subject reduction result; (3) the
+  [safety property](Safety.ladga.md) can be proved for an arbitrary,
+  isolated restriction without dealing with process contexts.
 * Linearity is enforced by means of a [**context splitting**
-  predicate](Context.lagda.md) making sure that every channel is used *exactly
-  once*.
+  predicate](Context.lagda.md#splitting) making sure that every
+  channel is used *exactly once*.
 * Channels are (implicitly) represented by *de Bruijn indexes*. The
-  representation is "implicit" in the sense that every reference to a channel
-  makes use of context splitting for singling out the type of the channel being
-  used from the typing context. In this way, there is no need to define a
-  separate predicate for expressing the membership of a given type association
-  to a given typing context as is the case in other Agda formalizations of
-  session calculi and languages[^3][^4].
+  representation is "implicit" in the sense that every reference to
+  a channel makes use of context splitting for singling out the type
+  of the channel being used from the typing context. In this way,
+  there is no need to define a separate predicate for expressing the
+  membership of a given type association to a given typing context
+  as is the case in other Agda formalizations of session calculi and
+  languages[^3][^4].
 
 In addition to the [safety property](Safety.lagda.md) mentioned in the
 challenge, the solution also proves two [deadlock freedom
