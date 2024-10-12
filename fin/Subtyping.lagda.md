@@ -24,9 +24,9 @@ We start by defining the subtyping relation `<=` for (finite)
 session types as described in the paper by [Horne and
 Padovani](http://dx.doi.org/10.1016/j.jlamp.2024.100986). Basically,
 `Zero` is the least session type and `Top` is the greatest
-one. Every other relation follows from the other expected properties
-of `<=`: it should be reflexive and *covariant* with respect to
-every connective.
+one. Every other relation follows from the expected properties of
+`<=`: it should be reflexive on constants and *covariant* with
+respect to every connective.
 
 ```agda
 infix 4 _<=_
@@ -44,8 +44,8 @@ data _<=_ : Type -> Type -> Set where
 
 ## Properties
 
-The fact that `<=` is reflexive, transitive and antisymmetric is
-proved below.
+The fact that `<=` is reflexive in general, transitive and
+antisymmetric is proved below.
 
 ```agda
 <=-refl : ∀{A} -> A <= A
@@ -80,8 +80,8 @@ proved below.
 ```
 
 Notoriously, `<=` should behave contravariantly with respect to
-duality, namely if $A \leq B$ then $B^\bot \leq A^\bot$. This is
-proved below.
+duality, namely if $A \leq B$ then we expect $B^\bot \leq
+A^\bot$. This is proved below.
 
 ```agda
 dual<= : ∀{A A' B B'} -> Dual A A' -> Dual B B' -> A <= B -> B' <= A'
@@ -98,7 +98,7 @@ dual<= (d-⊗-⅋ d₁ d₂) (d-⊗-⅋ e₁ e₂) (sub-⊗ s₁ s₂) = sub-⅋
 ## Soundness
 
 For the results that follow, it is convenient to extend subtyping
-from types to typing contexts, in the expected way.
+from types to typing contexts pointwise.
 
 ```agda
 infix 4 _<=⁺_
@@ -113,7 +113,7 @@ soundness of subtyping is the ability to synthesize a process that
 acts as a **link** between channels of type `A'` and `B'` whenever
 `A'` and `B'` are supertypes of some `A` and `B` that are dual to
 one another. By reflexivity of subtyping, this result also shows
-that the axiom is *admissable*.
+that the link (and related axiom rule) is *admissable* in πLIN.
 
 ```agda
 make-link : ∀{A A' B B'} -> A <= A' -> B <= B' -> Dual A B -> Process (A' :: B' :: [])
@@ -167,8 +167,9 @@ split<= s p with split<=⁺ s p
 
 We can now prove the soundness of subtyping as the following
 **subsumption** result. Any process that is well typed in `Γ` can be
-subsumed into a process that is well typed in `Δ` whenever `Γ` is a
-subtyping context of `Δ`.
+subsumed to a process that is well typed in `Δ` whenever `Γ` is a
+subtyping context of `Δ`. The `sub-link` is just a special case of
+this result that is better proved in isolation.
 
 ```agda
 sub-link : ∀{Γ Δ A B} -> Γ <=⁺ Δ -> Dual A B -> Γ ≃ [ A ] + [ B ] -> Process Δ
