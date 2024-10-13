@@ -1,4 +1,4 @@
-# Solution to the linearity challenge
+# A solution of the linearity challenge
 
 By Luca Padovani and Claudia Raffaelli
 
