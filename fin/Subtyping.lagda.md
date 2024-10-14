@@ -120,9 +120,9 @@ make-link : ∀{A A' B B'} -> A <= A' -> B <= B' -> Dual A B -> Process (A' :: B
 make-link sub-0 sub-⊤ d-0-⊤ = fail (split-r (split-l split-e))
 make-link sub-⊤ s₂ d = fail (split-l (split-r split-e))
 make-link sub-1 sub-⊤ d-1-⊥ = fail (split-r (split-l split-e))
-make-link sub-1 sub-⊥ d-1-⊥ = wait (split-r (split-l split-e)) (close (split-l split-e))
+make-link sub-1 sub-⊥ d-1-⊥ = wait (split-r (split-l split-e)) close
 make-link sub-⊥ sub-⊤ d-⊥-1 = fail (split-r (split-l split-e))
-make-link sub-⊥ sub-1 d-⊥-1 = wait (split-l (split-r split-e)) (close (split-l split-e))
+make-link sub-⊥ sub-1 d-⊥-1 = wait (split-l (split-r split-e)) close
 make-link (sub-& s₁ s₃) sub-⊤ (d-&-⊕ d₁ d₂) = fail (split-r (split-l split-e))
 make-link (sub-& s₁ s₃) (sub-⊕ s₂ s₄) (d-&-⊕ d₁ d₂) =
   case (split-l (split-r split-e))
@@ -180,8 +180,8 @@ sub : ∀{Γ Δ} -> Γ <=⁺ Δ -> Process Γ -> Process Δ
 sub s (link d p) = sub-link s d p
 sub s (fail p) with split<= s p
 ... | _ , _ , p' , sub-⊤ , _ = fail p'
-sub (succ sub-⊤ zero) (close (split-l split-e)) = fail (split-l split-e)
-sub (succ sub-1 zero) (close (split-l split-e)) = close (split-l split-e)
+sub (succ sub-⊤ zero) close = fail (split-l split-e)
+sub (succ sub-1 zero) close = close
 sub s (wait p P) with split<= s p
 ... | .Top , Δ' , p' , sub-⊤ , s₂ = fail p'
 ... | .Bot , Δ' , p' , sub-⊥ , s₂ = wait p' (sub s₂ P)

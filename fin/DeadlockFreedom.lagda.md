@@ -28,28 +28,27 @@ We introduce further classes of processes, distinguishing between
 compositions of processes).
 
 ```agda
-data Thread {Γ} : Process Γ -> Set where
+data Thread : ∀{Γ} -> Process Γ -> Set where
   link :
-    ∀{A B}
+    ∀{Γ A B}
     (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> Thread (link d p)
   fail :
-    ∀{Δ}
+    ∀{Γ Δ}
     (p : Γ ≃ [ Top ] + Δ) -> Thread (fail p)
   wait :
-    ∀{Δ} (p : Γ ≃ [ Bot ] + Δ) {P : Process Δ} -> Thread (wait p P)
+    ∀{Γ Δ} (p : Γ ≃ [ Bot ] + Δ) {P : Process Δ} -> Thread (wait p P)
   case :
-    ∀{Δ A B} (p : Γ ≃ [ A & B ] + Δ) {P : Process (A :: Δ)} {Q : Process (B :: Δ)} ->
+    ∀{Γ Δ A B} (p : Γ ≃ [ A & B ] + Δ) {P : Process (A :: Δ)} {Q : Process (B :: Δ)} ->
     Thread (case p P Q)
   join :
-    ∀{Δ A B} (p : Γ ≃ [ A ⅋ B ] + Δ) {P : Process (B :: A :: Δ)} ->
+    ∀{Γ Δ A B} (p : Γ ≃ [ A ⅋ B ] + Δ) {P : Process (B :: A :: Δ)} ->
     Thread (join p P)
-  close :
-    ∀(p : Γ ≃ [ One ] + []) -> Thread (close p)
+  close : Thread close
   select :
-    ∀{Δ A B} (x : Bool) (p : Γ ≃ [ A ⊕ B ] + Δ) {P : Process ((if x then A else B) :: Δ)} ->
+    ∀{Γ Δ A B} (x : Bool) (p : Γ ≃ [ A ⊕ B ] + Δ) {P : Process ((if x then A else B) :: Δ)} ->
     Thread (select x p P)
   fork :
-    ∀{Δ Δ₁ Δ₂ A B} (p : Γ ≃ [ A ⊗ B ] + Δ) (q : Δ ≃ Δ₁ + Δ₂)
+    ∀{Γ Δ Δ₁ Δ₂ A B} (p : Γ ≃ [ A ⊗ B ] + Δ) (q : Δ ≃ Δ₁ + Δ₂)
     {P : Process (A :: Δ₁)} {Q : Process (B :: Δ₂)} ->
     Thread (fork p q P Q)
 
@@ -64,7 +63,7 @@ Every process is either a thread or a cut.
 
 ```agda
 process-is : ∀{Γ} (P : Process Γ) -> Thread P ⊎ Cut P
-process-is (close p) = inj₁ (close p)
+process-is close = inj₁ close
 process-is (link d p) = inj₁ (link d p)
 process-is (fail p) = inj₁ (fail p)
 process-is (wait p P) = inj₁ (wait p)
@@ -127,7 +126,7 @@ thread-is (case (split-l p)) = inj₂ (inj₂ (inj₁ (case p)))
 thread-is (case (split-r p)) = inj₂ (inj₁ (case p))
 thread-is (join (split-l p)) = inj₂ (inj₂ (inj₁ (join p)))
 thread-is (join (split-r p)) = inj₂ (inj₁ (join p))
-thread-is (close p) = inj₂ (inj₂ (inj₂ (close p)))
+thread-is close = inj₂ (inj₂ (inj₂ close))
 thread-is (select x (split-l p)) = inj₂ (inj₂ (inj₂ (select x p)))
 thread-is (select x (split-r p)) = inj₂ (inj₁ (select x p))
 thread-is (fork (split-l p) q) = inj₂ (inj₂ (inj₂ (fork p q)))
@@ -218,7 +217,7 @@ live-cut (cc-link d p (link e (split-l (split-r split-e)))) with dual-fun-r e d
 ... | refl = inj₂ (_ , r-link d e p)
 live-cut (cc-link d p (link e (split-r (split-l split-e)))) with dual-fun-l e (dual-symm d)
 ... | refl = inj₂ (_ , r-cong (s-cong-l d p (s-link e (split-r (split-l split-e)))) (r-link d (dual-symm e) p))
-live-cut (cc-redex d-1-⊥ p (close (split-l split-e)) (wait q)) with +-empty-l q | +-empty-l p
+live-cut (cc-redex d-1-⊥ p close (wait q)) with +-empty-l q | +-empty-l p
 ... | refl | refl = inj₂ (_ , r-close p q)
 live-cut (cc-redex (d-⊕-& d e) p (select false q) (case r)) with +-empty-l q | +-empty-l r
 ... | refl | refl = inj₂ (_ , r-select-r d e p q r)
@@ -282,7 +281,7 @@ class to easily identify `close p` processes.
 
 ```agda
 data Close : ∀{Γ} -> Process Γ -> Set where
-  close : Close (close (split-l split-e))
+  close : Close close
 ```
 
 It is easy to prove that the only thread that is well typed in the
@@ -296,7 +295,7 @@ thread-closed (fail (split-r ()))
 thread-closed (wait (split-r ()))
 thread-closed (case (split-r ()))
 thread-closed (join (split-r ()))
-thread-closed (close (split-l split-e)) = close
+thread-closed close = close
 thread-closed (select x (split-r ()))
 thread-closed (fork (split-r ()) q)
 ```

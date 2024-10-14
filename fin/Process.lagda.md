@@ -23,28 +23,27 @@ A process is a term representing a proof derivation for a given
 typing context `Γ`.
 
 ```agda
-data Process (Γ : Context) : Set where
+data Process : Context -> Set where
    link :
-     ∀{A B} (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> Process Γ
+     ∀{Γ A B} (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> Process Γ
    fail :
-     ∀{Δ} (p : Γ ≃ Top , Δ) -> Process Γ
-   close :
-     Γ ≃ One , [] -> Process Γ
+     ∀{Γ Δ} (p : Γ ≃ Top , Δ) -> Process Γ
+   close : Process (One :: [])
    wait :
-     ∀{Δ} (p : Γ ≃ Bot , Δ) -> Process Δ -> Process Γ
+     ∀{Γ Δ} (p : Γ ≃ Bot , Δ) -> Process Δ -> Process Γ
    select :
-     ∀{Δ A B} (x : Bool) (p : Γ ≃ A ⊕ B , Δ) ->
+     ∀{Γ Δ A B} (x : Bool) (p : Γ ≃ A ⊕ B , Δ) ->
      Process ((if x then A else B) :: Δ) -> Process Γ
    case :
-     ∀{Δ A B} (p : Γ ≃ A & B , Δ) ->
+     ∀{Γ Δ A B} (p : Γ ≃ A & B , Δ) ->
      Process (A :: Δ) -> Process (B :: Δ) -> Process Γ
    fork :
-     ∀{Δ Γ₁ Γ₂ A B} (p : Γ ≃ A ⊗ B , Δ) (q : Δ ≃ Γ₁ + Γ₂) ->
+     ∀{Γ Δ Γ₁ Γ₂ A B} (p : Γ ≃ A ⊗ B , Δ) (q : Δ ≃ Γ₁ + Γ₂) ->
      Process (A :: Γ₁) -> Process (B :: Γ₂) -> Process Γ
    join :
-     ∀{Δ A B} (p : Γ ≃ A ⅋ B , Δ) -> Process (B :: A :: Δ) -> Process Γ
+     ∀{Γ Δ A B} (p : Γ ≃ A ⅋ B , Δ) -> Process (B :: A :: Δ) -> Process Γ
    cut :
-     ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) ->
+     ∀{Γ Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) ->
      Process (A :: Γ₁) -> Process (B :: Γ₂) -> Process Γ
 ```
 
@@ -87,9 +86,8 @@ in the process.
 #process π (link d p) with #one+ π p
 ... | Δ' , q , π' with #one π'
 ... | refl = link d q
-#process π (close p) with #split π p
-... | Δ₁ , Δ₂ , q , π₁ , π₂ with #one π₁ | #nil π₂
-... | refl | refl = close q
+#process π close with #one π
+... | refl = close
 #process π (fail p) with #one+ π p
 ... | Δ' , q , π' = fail q
 #process π (wait p P) with #one+ π p
@@ -129,8 +127,7 @@ data Input : ∀{Γ} -> Process Γ -> Set where
     Input (join (split-l p) P)
 
 data Output : ∀{Γ} -> Process Γ -> Set where
-  close :
-    ∀{Γ} (p : Γ ≃ [ One ] + []) -> Output (close p)
+  close : Output close
   select :
     ∀{Γ Δ A B} (x : Bool) (p : Γ ≃ [] + Δ) {P : Process ((if x then A else B) :: Δ)} ->
     Output (select x (split-l p) P)
@@ -165,7 +162,7 @@ input-input (d-⅋-⊗ d d₁) (join p , ())
 output-output :
   ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
   Dual A B -> ¬ (Output P × Output Q)
-output-output d-1-⊥ (close _ , close ())
-output-output (d-⊕-& d d₁) (select _ p , close ())
-output-output (d-⊗-⅋ d d₁) (fork p q , close ())
+output-output d-1-⊥ (close , ())
+output-output (d-⊕-& d d₁) (select x p , ())
+output-output (d-⊗-⅋ d d₁) (fork p q , ())
 ```
