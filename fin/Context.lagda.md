@@ -65,7 +65,7 @@ context, then `Γ` *is* that singleton context.
 ```agda
 #nil : ∀{Γ} -> [] # Γ -> Γ ≡ []
 #nil #refl = refl
-#nil (#tran π π') rewrite #nil π | #nil π' = refl
+#nil {Γ} (#tran π π') rewrite #nil π = #nil π'
 
 #one : ∀{A Γ} -> [ A ] # Γ -> Γ ≡ [ A ]
 #one #refl = refl
