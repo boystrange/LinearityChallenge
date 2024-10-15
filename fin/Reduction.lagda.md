@@ -6,6 +6,7 @@ This module defines the reduction relation for processes.
 
 ```agda
 open import Data.Bool using (Bool; if_then_else_)
+open import Data.Nat using (ℕ; zero; suc)
 open Bool using (true; false)
 open import Data.Product using (Σ; _,_; ∃; Σ-syntax; ∃-syntax)
 
@@ -92,7 +93,16 @@ is useful e.g. for stating and proving [deadlock
 freedom](DeadlockFreedom.lagda.md).
 
 ```agda
-data _~>*_ {Γ} : Process Γ -> Process Γ -> Set where
-  refl : ∀{P : Process Γ} -> P ~>* P
-  tran : ∀{P Q R : Process Γ} -> P ~> Q -> Q ~>* R -> P ~>* R
+data _=>_ {Γ} : Process Γ -> Process Γ -> Set where
+  refl : ∀{P : Process Γ} -> P => P
+  tran : ∀{P Q R : Process Γ} -> P ~> Q -> Q => R -> P => R
+```
+
+The *length* of a sequence of reductions is computed by the
+following function:
+
+```
+run-length : ∀{Γ} {P Q : Process Γ} -> P => Q -> ℕ
+run-length refl = 0
+run-length (tran _ reds) = suc (run-length reds)
 ```

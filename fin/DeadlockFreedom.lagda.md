@@ -196,7 +196,7 @@ Live : ∀{Γ} -> Process Γ -> Set
 Live P = Observable P ⊎ Reducible P
 
 DeadlockFree : ∀{Γ} -> Process Γ -> Set
-DeadlockFree {Γ} P = ∀(Q : Process Γ) -> P ~>* Q -> Live Q
+DeadlockFree {Γ} P = ∀(Q : Process Γ) -> P => Q -> Live Q
 ```
 
 A few auxiliary results about the `Live` predicate follow. First of
@@ -317,7 +317,7 @@ Live' : ∀{Γ} -> Process Γ -> Set
 Live' P = Close P ⊎ Reducible P
 
 DeadlockFree' : ∀{Γ} -> Process Γ -> Set
-DeadlockFree' {Γ} P = ∀(Q : Process Γ) -> P ~>* Q -> Live' Q
+DeadlockFree' {Γ} P = ∀(Q : Process Γ) -> P => Q -> Live' Q
 ```
 
 Every process that is well typed in the singleton context `[ One ]`

@@ -130,21 +130,22 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
 ## Equational reasoning for ⊒
 
 ```agda
-infix  1 ⊒begin_
-infixr 2 _⊒⟨⟩_ _⊒⟨_⟩_
-infix  3 _⊒end
+module ⊒-Reasoning where
+  infix  1 begin_
+  infixr 2 _≡⟨⟩_ _⊒⟨_⟩_
+  infix  3 _∎
 
-⊒begin_ : {Γ : Context} {P Q : Process Γ} -> P ⊒ Q -> P ⊒ Q
-⊒begin_ p = p
+  begin_ : {Γ : Context} {P Q : Process Γ} -> P ⊒ Q -> P ⊒ Q
+  begin_ p = p
 
-_⊒end : {Γ : Context} (P : Process Γ) -> P ⊒ P
-_⊒end _ = s-refl
+  _∎ : {Γ : Context} (P : Process Γ) -> P ⊒ P
+  _∎ _ = s-refl
 
-_⊒⟨_⟩_ : {Γ : Context} (P : Process Γ) {Q R : Process Γ} -> P ⊒ Q -> Q ⊒ R -> P ⊒ R
-_⊒⟨_⟩_ _ = s-tran
+  _⊒⟨_⟩_ : {Γ : Context} (P : Process Γ) {Q R : Process Γ} -> P ⊒ Q -> Q ⊒ R -> P ⊒ R
+  _⊒⟨_⟩_ _ = s-tran
 
-_⊒⟨⟩_ : {Γ : Context} (P : Process Γ) {Q : Process Γ} -> P ⊒ Q -> P ⊒ Q
-_ ⊒⟨⟩ p = p
+  _≡⟨⟩_ : {Γ : Context} (P : Process Γ) {Q : Process Γ} -> P ⊒ Q -> P ⊒ Q
+  _ ≡⟨⟩ p = p
 ```
 
 ## Properties
@@ -162,18 +163,17 @@ s-assoc-l : ∀{Γ Γ₁ Γ₂ Δ Δ₁ Δ₂ A A' B B'}
             (p' : Δ ≃ Δ₂ + Γ₂) (q' : Γ ≃ Δ₁ + Δ) ->
             cut d p (cut e (split-r q) P Q) R ⊒
             cut e q' P (cut d (split-l p') (#process #here Q) R)
-s-assoc-l {P = P} {Q = Q} {R = R} d e p q p' q' =
-  ⊒begin
-    cut d p (cut e (split-r q) P Q) R ⊒⟨ s-cong-l d p
-                                          (s-comm e (dual-symm e) (split-r q) (split-l (+-comm q))) ⟩
-    cut d p (cut (dual-symm e) (split-l (+-comm q)) Q P) R ⊒⟨ s-comm d (dual-symm d) p (+-comm p) ⟩
-    cut (dual-symm d) (+-comm p) R (cut (dual-symm e) (split-l (+-comm q)) Q P) ⊒⟨ s-assoc-r (dual-symm d) (dual-symm e) (+-comm p) (+-comm q)
-                                                                                    (+-comm p') (+-comm q') ⟩
-    cut (dual-symm e) (+-comm q') (cut (dual-symm d) (split-r (+-comm p')) R (#process #here Q)) P ⊒⟨ s-cong-l (dual-symm e) (+-comm q')
-                                                                                                       (s-comm (dual-symm d) d (split-r (+-comm p')) (split-l p')) ⟩
-    cut (dual-symm e) (+-comm q') (cut d (split-l p') (#process #here Q) R) P ⊒⟨ s-comm (dual-symm e) e (+-comm q') q' ⟩
-    cut e q' P (cut d (split-l p') (#process #here Q) R)
-  ⊒end
+s-assoc-l {P = P} {Q = Q} {R = R} d e p q p' q' = begin
+  cut d p (cut e (split-r q) P Q) R ⊒⟨ s-cong-l d p
+                                        (s-comm e (dual-symm e) (split-r q) (split-l (+-comm q))) ⟩
+  cut d p (cut (dual-symm e) (split-l (+-comm q)) Q P) R ⊒⟨ s-comm d (dual-symm d) p (+-comm p) ⟩
+  cut (dual-symm d) (+-comm p) R (cut (dual-symm e) (split-l (+-comm q)) Q P) ⊒⟨ s-assoc-r (dual-symm d) (dual-symm e) (+-comm p) (+-comm q)
+                                                                                  (+-comm p') (+-comm q') ⟩
+  cut (dual-symm e) (+-comm q') (cut (dual-symm d) (split-r (+-comm p')) R (#process #here Q)) P ⊒⟨ s-cong-l (dual-symm e) (+-comm q')
+                                                                                                     (s-comm (dual-symm d) d (split-r (+-comm p')) (split-l p')) ⟩
+  cut (dual-symm e) (+-comm q') (cut d (split-l p') (#process #here Q) R) P ⊒⟨ s-comm (dual-symm e) e (+-comm q') q' ⟩
+  cut e q' P (cut d (split-l p') (#process #here Q) R) ∎
+  where open ⊒-Reasoning
 ```
 
 Then we prove that `⊒` is a congruence on the *right* of cuts and,
@@ -188,13 +188,12 @@ s-cong-r :
   (d : Dual A B)
   (p : Γ ≃ Γ₁ + Γ₂) ->
   Q ⊒ Q' -> cut d p P Q ⊒ cut d p P Q'
-s-cong-r {P = P} {Q} {Q'} d p pcong =
-  ⊒begin
-    cut d p P Q                       ⊒⟨ s-comm d (dual-symm d) p (+-comm p) ⟩
-    cut (dual-symm d) (+-comm p) Q P  ⊒⟨ s-cong-l (dual-symm d) (+-comm p) pcong ⟩
-    cut (dual-symm d) (+-comm p) Q' P ⊒⟨ s-comm (dual-symm d) d (+-comm p) p ⟩
-    cut d p P Q'
-  ⊒end
+s-cong-r {P = P} {Q} {Q'} d p pcong = begin
+  cut d p P Q                       ⊒⟨ s-comm d (dual-symm d) p (+-comm p) ⟩
+  cut (dual-symm d) (+-comm p) Q P  ⊒⟨ s-cong-l (dual-symm d) (+-comm p) pcong ⟩
+  cut (dual-symm d) (+-comm p) Q' P ⊒⟨ s-comm (dual-symm d) d (+-comm p) p ⟩
+  cut d p P Q' ∎
+  where open ⊒-Reasoning
 
 s-cong-2 :
   ∀{Γ Γ₁ Γ₂ A B}
@@ -203,10 +202,9 @@ s-cong-2 :
   (d : Dual A B)
   (p : Γ ≃ Γ₁ + Γ₂) ->
   P ⊒ P' -> Q ⊒ Q' -> cut d p P Q ⊒ cut d p P' Q'
-s-cong-2 {P = P} {P'} {Q} {Q'} d p Pc Qc =
-  ⊒begin
-    cut d p P Q   ⊒⟨ s-cong-l d p Pc ⟩
-    cut d p P' Q  ⊒⟨ s-cong-r d p Qc ⟩
-    cut d p P' Q'
-  ⊒end
+s-cong-2 {P = P} {P'} {Q} {Q'} d p Pc Qc = begin
+  cut d p P Q   ⊒⟨ s-cong-l d p Pc ⟩
+  cut d p P' Q  ⊒⟨ s-cong-r d p Qc ⟩
+  cut d p P' Q' ∎
+  where open ⊒-Reasoning
 ```
