@@ -1,7 +1,7 @@
 # Safety
 
 This module proves the **safety** property. In words, a process is
-*(*type) safe** if every (unguarded) cut therein that involves two
+**(type) safe** if every (unguarded) cut therein that involves two
 threads acting on the channel restricted by the cut describe
 complementary actions (an input and an output).
 

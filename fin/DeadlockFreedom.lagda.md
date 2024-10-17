@@ -182,7 +182,9 @@ canonical-cut dc pc Pt Qt with thread-is Pt | thread-is Qt
 
 We say that a process is **observable** if it is (structurally
 precongruent to) a thread. The terminology is justified by the fact
-that a thread necessarily performs an action on a free channel.
+that a thread necessarily performs an action on a free channel so
+this action can be ``observed'' if the thread is composed in
+parallel with another process.
 
 ```agda
 Observable : ∀{Γ} -> Process Γ -> Set
@@ -202,7 +204,7 @@ DeadlockFree {Γ} P = ∀(Q : Process Γ) -> P => Q -> Live Q
 ```
 
 A few auxiliary results about the `Live` predicate follow. First of
-all, we see that `Live` is backward preserved by structural
+all, we prove that `Live` is backward preserved by structural
 precongruence.
 
 ```agda
