@@ -25,7 +25,9 @@ open import Congruence
 
 We introduce further classes of processes, distinguishing between
 **threads** (sequential processes) and **cuts** (parallel
-compositions of processes).
+compositions of processes). By ``sequential'' process we mean a
+process that begins with an action, or that it is made of only one
+action (like `close` and `fail`) or that is a link.
 
 ```agda
 data Thread : ∀{Γ} -> Process Γ -> Set where

@@ -1,6 +1,9 @@
 # Safety
 
-This module proves the **safety** property.
+This module proves the **safety** property. In words, a process is
+*(*type) safe** if every (unguarded) cut therein that involves two
+threads acting on the channel restricted by the cut describe
+complementary actions (an input and an output).
 
 ## Imports
 
@@ -17,11 +20,8 @@ open import Congruence
 
 ## Type safety
 
-In words, a process is **type safe** if every (unguarded) cut
-therein that involves two threads acting on the channel restricted
-by the cut describe complementary actions (an input and an
-output). To prove type safety, we introduce the class of **action
-cuts** (where the composed sub-processes are [`Action`
+To prove type safety, we introduce the class of **action cuts**
+(where the composed sub-processes are [`Action`
 processes](Process.lagda.md)) and the class of **safe cuts** (where
 the sub-process on the left is an `Output` process and the
 sub-process on the right is an `Input` process).
@@ -43,8 +43,8 @@ data SafeCut {Γ} : Process Γ -> Set where
 Since we want to reason on arbitrarily deep (but unguarded) cuts we
 also define the notion of reduction context. A term of type
 `ReductionContext Δ Γ` represents an incomplete process that is well
-typed in a context of type Γ that contains a "hole" which is assumed
-to be well typed in a context of type Δ.
+typed in a context of type Γ and that contains a "hole" which is
+assumed to be well typed in a context of type Δ.
 
 ```agda
 data ReductionContext (Δ : Context) : Context -> Set where
@@ -83,7 +83,13 @@ TypeSafe {Γ} P =
 The proof that every (well-typed) process `P` is also type safe
 follows easily. In fact, it is not even necessary to look at `P` or
 at the proof that `P ⊒ C ⟦ Q ⟧` since processes are intrinsically
-typed.
+typed. Once we know that `Q` is an action cut, the cases in which
+the sub-processes of `Q` are of the same kind (both inputs or both
+outputs) immediately lead to a contradiction, the case in which the
+sub-process on the left is an output and the one on the right is an
+input already corresponds to the fact that `Q` is a safe cut, and
+the remaining case easily leads to a safe cut by commutativity of
+cuts.
 
 ```agda
 type-safety : ∀{Γ} (P : Process Γ) -> TypeSafe P
