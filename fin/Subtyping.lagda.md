@@ -135,8 +135,8 @@ use the property that every process can be rewritten into an
 "equivalent one" that uses no links.
 
 ```agda
-sub' : ∀{Γ Δ} -> Γ <=⁺ Δ -> Process Γ -> Process Δ
-sub' s P with link-elimination P
+subsumption : ∀{Γ Δ} -> Γ <=⁺ Δ -> Process Γ -> Process Δ
+subsumption s P with link-elimination P
 ... | _ , Plf = aux s Plf
   where
     aux : ∀{Γ Δ} {P : Process Γ} -> Γ <=⁺ Δ -> LinkFree P -> Process Δ
