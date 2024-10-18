@@ -16,6 +16,7 @@ open Eq using (_≡_; refl; cong₂)
 open import Type
 open import Context
 open import Process
+open import LinkElimination
 ```
 
 ## Definition
@@ -108,45 +109,6 @@ data _<=⁺_ : Context -> Context -> Set where
   succ : ∀{A B Γ Δ} -> A <= B -> Γ <=⁺ Δ -> A :: Γ <=⁺ B :: Δ
 ```
 
-An important auxiliary result that is needed in order to prove the
-soundness of subtyping is the ability to synthesize a process that
-acts as a **link** between channels of type `A'` and `B'` whenever
-`A'` and `B'` are supertypes of some `A` and `B` that are dual to
-one another. By reflexivity of subtyping, this result also shows
-that the link (and related axiom rule) is *admissable* in πLIN.
-
-```agda
-make-link : ∀{A A' B B'} -> A <= A' -> B <= B' -> Dual A B -> Process (A' :: B' :: [])
-make-link sub-0 sub-⊤ d-0-⊤ = fail (split-r (split-l split-e))
-make-link sub-⊤ s₂ d = fail (split-l (split-r split-e))
-make-link sub-1 sub-⊤ d-1-⊥ = fail (split-r (split-l split-e))
-make-link sub-1 sub-⊥ d-1-⊥ = wait (split-r (split-l split-e)) close
-make-link sub-⊥ sub-⊤ d-⊥-1 = fail (split-r (split-l split-e))
-make-link sub-⊥ sub-1 d-⊥-1 = wait (split-l (split-r split-e)) close
-make-link (sub-& s₁ s₃) sub-⊤ (d-&-⊕ d₁ d₂) = fail (split-r (split-l split-e))
-make-link (sub-& s₁ s₃) (sub-⊕ s₂ s₄) (d-&-⊕ d₁ d₂) =
-  case (split-l (split-r split-e))
-       (select true (split-r (split-l split-e)) (make-link s₂ s₁ (dual-symm d₁)))
-       (select false (split-r (split-l split-e)) (make-link s₄ s₃ (dual-symm d₂)))
-make-link (sub-⊕ s₁ s₃) sub-⊤ (d-⊕-& d₁ d₂) = fail (split-r (split-l split-e))
-make-link (sub-⊕ s₁ s₃) (sub-& s₂ s₄) (d-⊕-& d₁ d₂) =
-  case (split-r (split-l split-e))
-       (select true (split-r (split-l split-e)) (make-link s₁ s₂ d₁))
-       (select false (split-r (split-l split-e)) (make-link s₃ s₄ d₂))
-make-link (sub-⅋ s₁ s₃) sub-⊤ (d-⅋-⊗ d d₁) = fail (split-r (split-l split-e))
-make-link (sub-⅋ s₁ s₃) (sub-⊗ s₂ s₄) (d-⅋-⊗ d₁ d₂) =
-  join (split-l (split-r split-e))
-       (fork (split-r (split-r (split-l split-e))) (split-r (split-l split-e))
-             (make-link s₂ s₁ (dual-symm d₁))
-             (make-link s₄ s₃ (dual-symm d₂)))
-make-link (sub-⊗ s₁ s₃) sub-⊤ (d-⊗-⅋ d d₁) = fail (split-r (split-l split-e))
-make-link (sub-⊗ s₁ s₃) (sub-⅋ s₂ s₄) (d-⊗-⅋ d₁ d₂) =
-  join (split-r (split-l split-e))
-       (fork (split-r (split-r (split-l split-e))) (split-r (split-l split-e))
-             (make-link s₁ s₂ d₁)
-             (make-link s₃ s₄ d₂))
-```
-
 Next we have two expected results relating subtyping (for typing
 contexts) and splitting.
 
@@ -166,41 +128,41 @@ split<= s p with split<=⁺ s p
 ```
 
 We can now prove the soundness of subtyping as the following
-**subsumption** result. Any process that is well typed in `Γ` can be
-subsumed to a process that is well typed in `Δ` whenever `Γ` is a
-subtyping context of `Δ`. The `sub-link` is just a special case of
-this result that is better proved in isolation.
+**subsumption** result. Any process that is well typed in Γ can be
+subsumed to a process that is well typed in Δ whenever Γ is a
+subtyping context of Δ. Note that, in order to prove this result, we
+use the property that every process can be rewritten into an
+"equivalent one" that uses no links.
 
 ```agda
-sub-link : ∀{Γ Δ A B} -> Γ <=⁺ Δ -> Dual A B -> Γ ≃ [ A ] + [ B ] -> Process Δ
-sub-link (succ s₁ (succ s₂ zero)) d (split-l (split-r split-e)) = make-link s₁ s₂ d
-sub-link (succ s₁ (succ s₂ zero)) d (split-r (split-l split-e)) = make-link s₁ s₂ (dual-symm d)
-
-sub : ∀{Γ Δ} -> Γ <=⁺ Δ -> Process Γ -> Process Δ
-sub s (link d p) = sub-link s d p
-sub s (fail p) with split<= s p
-... | _ , _ , p' , sub-⊤ , _ = fail p'
-sub (succ sub-⊤ zero) close = fail (split-l split-e)
-sub (succ sub-1 zero) close = close
-sub s (wait p P) with split<= s p
-... | .⊤ , Δ' , p' , sub-⊤ , s₂ = fail p'
-... | .⊥ , Δ' , p' , sub-⊥ , s₂ = wait p' (sub s₂ P)
-sub s (select false p P) with split<= s p
-... | _ , _ , p' , sub-⊤ , s₂ = fail p'
-... | _ , _ , p' , sub-⊕ s₁ s₂ , s₃ = select false p' (sub (succ s₂ s₃) P)
-sub s (select true p P) with split<= s p
-... | _ , _ , p' , sub-⊤ , s₂ = fail p'
-... | _ , _ , p' , sub-⊕ s₁ s₂ , s₃ = select true p' (sub (succ s₁ s₃) P)
-sub s (case p P Q) with split<= s p
-... | _ , _ , p' , sub-⊤ , s₃ = fail p'
-... | _ , _ , p' , sub-& s₁ s₂ , s₃ = case p' (sub (succ s₁ s₃) P) (sub (succ s₂ s₃) Q)
-sub s (fork p q P Q) with split<= s p
-... | _ , _ , p' , sub-⊤ , s₃ = fail p'
-... | _ , _ , p' , sub-⊗ s₁ s₂ , s₃ with split<=⁺ s₃ q
-... | _ , _ , q' , s₄ , s₅ = fork p' q' (sub (succ s₁ s₄) P) (sub (succ s₂ s₅) Q)
-sub s (join p P) with split<= s p
-... | _ , _ , p' , sub-⊤ , s₂ = fail p'
-... | _ , _ , p' , sub-⅋ s₁ s₂ , s₃ = join p' (sub (succ s₂ (succ s₁ s₃)) P)
-sub s (cut d p P Q) with split<=⁺ s p
-... | _ , _ , p' , s₁ , s₂ = cut d p' (sub (succ <=-refl s₁) P) (sub (succ <=-refl s₂) Q)
+sub' : ∀{Γ Δ} -> Γ <=⁺ Δ -> Process Γ -> Process Δ
+sub' s P with link-elimination P
+... | _ , Plf = aux s Plf
+  where
+    aux : ∀{Γ Δ} {P : Process Γ} -> Γ <=⁺ Δ -> LinkFree P -> Process Δ
+    aux s (fail p) with split<= s p
+    ... | _ , _ , p' , sub-⊤ , _ = fail p'
+    aux s (wait p Plf) with split<= s p
+    ... | .⊤ , Δ' , p' , sub-⊤ , s₂ = fail p'
+    ... | .⊥ , Δ' , p' , sub-⊥ , s₂ = wait p' (aux s₂ Plf)
+    aux s (case p Plf Qlf)  with split<= s p
+    ... | _ , _ , p' , sub-⊤ , s₃ = fail p'
+    ... | _ , _ , p' , sub-& s₁ s₂ , s₃ = case p' (aux (succ s₁ s₃) Plf) (aux (succ s₂ s₃) Qlf)
+    aux s (join p Plf)  with split<= s p
+    ... | _ , _ , p' , sub-⊤ , s₂ = fail p'
+    ... | _ , _ , p' , sub-⅋ s₁ s₂ , s₃ = join p' (aux (succ s₂ (succ s₁ s₃)) Plf)
+    aux (succ sub-⊤ zero) close = fail (split-l split-e)
+    aux (succ sub-1 zero) close = close
+    aux s (select false p Plf)  with split<= s p
+    ... | _ , _ , p' , sub-⊤ , s₂ = fail p'
+    ... | _ , _ , p' , sub-⊕ s₁ s₂ , s₃ = select false p' (aux (succ s₂ s₃) Plf)
+    aux s (select true p Plf)  with split<= s p
+    ... | _ , _ , p' , sub-⊤ , s₂ = fail p'
+    ... | _ , _ , p' , sub-⊕ s₁ s₂ , s₃ = select true p' (aux (succ s₁ s₃) Plf)
+    aux s (fork p q Plf Qlf) with split<= s p
+    ... | _ , _ , p' , sub-⊤ , s₃ = fail p'
+    ... | _ , _ , p' , sub-⊗ s₁ s₂ , s₃ with split<=⁺ s₃ q
+    ... | _ , _ , q' , s₄ , s₅ = fork p' q' (aux (succ s₁ s₄) Plf) (aux (succ s₂ s₅) Qlf)
+    aux s (cut d p Plf Qlf)  with split<=⁺ s p
+    ... | _ , _ , p' , s₁ , s₂ = cut d p' (aux (succ <=-refl s₁) Plf) (aux (succ <=-refl s₂) Qlf)
 ```

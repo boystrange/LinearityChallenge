@@ -53,13 +53,17 @@ Below is a summary of the main features of the formalization:
   as is the case in other Agda formalizations of session calculi and
   languages[^3][^4].
 
-In addition to the [safety property](Safety.lagda.md) mentioned in the
-challenge, the solution also proves two [deadlock freedom
-results](DeadlockFreedom.lagda.md) as well as the soundness of
-[subsumption](Subtyping.lagda.md) for the **logical subtyping** of session
-types[^2]. In particular, the deadlock freedom results witness the completeness
-of the given operational semantics, which is a strict subset of the one usually
-adopted for other session calculi based on linear logic.
+In addition to the [safety property](Safety.lagda.md) mentioned in
+the challenge, the solution also includes:
+
+* two [deadlock freedom results](DeadlockFreedom.lagda.md),
+  witnessing the completeness of the given operational semantics,
+  which is a strict subset of the one usually adopted for other
+  session calculi based on linear logic;
+* the [link elimination result](LinkElimination.lagda.md), namely
+  the admissability of the axiom of linear logic;
+* the soundness of [subsumption](Subtyping.lagda.md) for the
+  **logical subtyping** of session types[^2].
 
 [^1]: Luca Ciccone and Luca Padovani, [An Infinitary Proof Theory of Linear
     Logic Ensuring Fair Termination in the Linear
