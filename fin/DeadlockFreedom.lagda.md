@@ -36,21 +36,21 @@ data Thread : ∀{Γ} -> Process Γ -> Set where
     (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> Thread (link d p)
   fail :
     ∀{Γ Δ}
-    (p : Γ ≃ [ ⊤ ] + Δ) -> Thread (fail p)
+    (p : Γ ≃ ⊤ , Δ) -> Thread (fail p)
   wait :
-    ∀{Γ Δ} (p : Γ ≃ [ ⊥ ] + Δ) {P : Process Δ} -> Thread (wait p P)
+    ∀{Γ Δ} (p : Γ ≃ ⊥ , Δ) {P : Process Δ} -> Thread (wait p P)
   case :
-    ∀{Γ Δ A B} (p : Γ ≃ [ A & B ] + Δ) {P : Process (A :: Δ)} {Q : Process (B :: Δ)} ->
+    ∀{Γ Δ A B} (p : Γ ≃ A & B , Δ) {P : Process (A :: Δ)} {Q : Process (B :: Δ)} ->
     Thread (case p P Q)
   join :
-    ∀{Γ Δ A B} (p : Γ ≃ [ A ⅋ B ] + Δ) {P : Process (B :: A :: Δ)} ->
+    ∀{Γ Δ A B} (p : Γ ≃ A ⅋ B , Δ) {P : Process (B :: A :: Δ)} ->
     Thread (join p P)
   close : Thread close
   select :
-    ∀{Γ Δ A B} (x : Bool) (p : Γ ≃ [ A ⊕ B ] + Δ) {P : Process ((if x then A else B) :: Δ)} ->
+    ∀{Γ Δ A B} (x : Bool) (p : Γ ≃ A ⊕ B , Δ) {P : Process ((if x then A else B) :: Δ)} ->
     Thread (select x p P)
   fork :
-    ∀{Γ Δ Δ₁ Δ₂ A B} (p : Γ ≃ [ A ⊗ B ] + Δ) (q : Δ ≃ Δ₁ + Δ₂)
+    ∀{Γ Δ Δ₁ Δ₂ A B} (p : Γ ≃ A ⊗ B , Δ) (q : Δ ≃ Δ₁ + Δ₂)
     {P : Process (A :: Δ₁)} {Q : Process (B :: Δ₂)} ->
     Thread (fork p q P Q)
 
@@ -91,24 +91,24 @@ data Link {Γ} : Process Γ -> Set where
 data Delayed : ∀{Γ} -> Process Γ -> Set where
   fail :
     ∀{A Γ Δ}
-    (p : Γ ≃ [ ⊤ ] + Δ) -> Delayed (fail (split-r {A} p))
+    (p : Γ ≃ ⊤ , Δ) -> Delayed (fail (split-r {A} p))
   wait :
-    ∀{C Γ Δ} (p : Γ ≃ [ ⊥ ] + Δ) {P : Process (C :: Δ)} -> Delayed (wait (split-r p) P)
+    ∀{C Γ Δ} (p : Γ ≃ ⊥ , Δ) {P : Process (C :: Δ)} -> Delayed (wait (split-r p) P)
   case :
-    ∀{Γ Δ C A B} (p : Γ ≃ [ A & B ] + Δ) {P : Process (A :: C :: Δ)} {Q : Process (B :: C :: Δ)} ->
+    ∀{Γ Δ C A B} (p : Γ ≃ A & B , Δ) {P : Process (A :: C :: Δ)} {Q : Process (B :: C :: Δ)} ->
     Delayed (case (split-r p) P Q)
   join :
-    ∀{Γ Δ C A B} (p : Γ ≃ [ A ⅋ B ] + Δ) {P : Process (B :: A :: C :: Δ)} ->
+    ∀{Γ Δ C A B} (p : Γ ≃ A ⅋ B , Δ) {P : Process (B :: A :: C :: Δ)} ->
     Delayed (join (split-r p) P)
   select :
-    ∀{Γ Δ C A B} (x : Bool) (p : Γ ≃ [ A ⊕ B ] + Δ) {P : Process ((if x then A else B) :: C :: Δ)} ->
+    ∀{Γ Δ C A B} (x : Bool) (p : Γ ≃ A ⊕ B , Δ) {P : Process ((if x then A else B) :: C :: Δ)} ->
     Delayed (select x (split-r p) P)
   fork-l :
-    ∀{Γ Δ Δ₁ Δ₂ C A B} (p : Γ ≃ [ A ⊗ B ] + Δ) (q : Δ ≃ Δ₁ + Δ₂)
+    ∀{Γ Δ Δ₁ Δ₂ C A B} (p : Γ ≃ A ⊗ B , Δ) (q : Δ ≃ Δ₁ + Δ₂)
     {P : Process (A :: C :: Δ₁)} {Q : Process (B :: Δ₂)} ->
     Delayed (fork (split-r p) (split-l q) P Q)
   fork-r :
-    ∀{Γ Δ Δ₁ Δ₂ C A B} (p : Γ ≃ [ A ⊗ B ] + Δ) (q : Δ ≃ Δ₁ + Δ₂)
+    ∀{Γ Δ Δ₁ Δ₂ C A B} (p : Γ ≃ A ⊗ B , Δ) (q : Δ ≃ Δ₁ + Δ₂)
     {P : Process (A :: Δ₁)} {Q : Process (B :: C :: Δ₂)} ->
     Delayed (fork (split-r p) (split-r q) P Q)
 ```
@@ -289,7 +289,7 @@ data Close : ∀{Γ} -> Process Γ -> Set where
 ```
 
 It is easy to prove that the only thread that is well typed in the
-singleton context `[ One ]` is `Close`.
+singleton context `[ 𝟙 ]` is `Close`.
 
 ```agda
 thread-closed : {P : Process [ 𝟙 ]} -> Thread P -> Close P
