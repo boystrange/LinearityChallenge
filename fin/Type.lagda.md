@@ -9,16 +9,13 @@ import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; cong₂)
 ```
 
-Types are propositions of multiplicative additive linear logic. The constructors
-`Zero`, `One`, `Bot` and `Top` respectively represent the constants
-$\mathbb{0}$, $\mathbb{1}$, $⊥$ and $⊤$. The remaining constructors represent
-the binary connectives.
+Types are propositions of multiplicative additive linear logic.
 
 ## Definition
 
 ```agda
 data Type : Set where
-  Zero One Bot Top : Type
+  𝟘 𝟙 ⊥ ⊤ : Type
   _&_ _⊕_ _⊗_ _⅋_ : Type -> Type -> Type
 ```
 
@@ -29,10 +26,10 @@ the complementary protocol. A relation `Dual A B` means that $A = B^⊥$.
 
 ```agda
 data Dual : Type -> Type -> Set where
-  d-0-⊤ : Dual Zero Top
-  d-⊤-0 : Dual Top Zero
-  d-1-⊥ : Dual One Bot
-  d-⊥-1 : Dual Bot One
+  d-𝟘-⊤ : Dual 𝟘 ⊤
+  d-⊤-𝟘 : Dual ⊤ 𝟘
+  d-𝟙-⊥ : Dual 𝟙 ⊥
+  d-⊥-𝟙 : Dual ⊥ 𝟙
   d-&-⊕ : ∀{A B A' B'} -> Dual A A' -> Dual B B' -> Dual (A & B) (A' ⊕ B')
   d-⊕-& : ∀{A B A' B'} -> Dual A A' -> Dual B B' -> Dual (A ⊕ B) (A' & B')
   d-⊗-⅋ : ∀{A B A' B'} -> Dual A A' -> Dual B B' -> Dual (A ⊗ B) (A' ⅋ B')
@@ -43,10 +40,10 @@ It is straightforward to prove that duality is a symmetric relation.
 
 ```agda
 dual-symm : ∀{A B} -> Dual A B -> Dual B A
-dual-symm d-0-⊤ = d-⊤-0
-dual-symm d-⊤-0 = d-0-⊤
-dual-symm d-1-⊥ = d-⊥-1
-dual-symm d-⊥-1 = d-1-⊥
+dual-symm d-𝟘-⊤ = d-⊤-𝟘
+dual-symm d-⊤-𝟘 = d-𝟘-⊤
+dual-symm d-𝟙-⊥ = d-⊥-𝟙
+dual-symm d-⊥-𝟙 = d-𝟙-⊥
 dual-symm (d-&-⊕ p q) = d-⊕-& (dual-symm p) (dual-symm q)
 dual-symm (d-⊕-& p q) = d-&-⊕ (dual-symm p) (dual-symm q)
 dual-symm (d-⊗-⅋ p q) = d-⅋-⊗ (dual-symm p) (dual-symm q)
@@ -57,10 +54,10 @@ It is also easy to prove that duality is an **involution**.
 
 ```agda
 dual-inv : ∀{A B C} -> Dual A B -> Dual B C -> A ≡ C
-dual-inv d-0-⊤ d-⊤-0 = refl
-dual-inv d-⊤-0 d-0-⊤ = refl
-dual-inv d-1-⊥ d-⊥-1 = refl
-dual-inv d-⊥-1 d-1-⊥ = refl
+dual-inv d-𝟘-⊤ d-⊤-𝟘 = refl
+dual-inv d-⊤-𝟘 d-𝟘-⊤ = refl
+dual-inv d-𝟙-⊥ d-⊥-𝟙 = refl
+dual-inv d-⊥-𝟙 d-𝟙-⊥ = refl
 dual-inv (d-&-⊕ p q) (d-⊕-& r s) = cong₂ _&_ (dual-inv p r) (dual-inv q s)
 dual-inv (d-⊕-& p q) (d-&-⊕ r s) = cong₂ _⊕_ (dual-inv p r) (dual-inv q s)
 dual-inv (d-⊗-⅋ p q) (d-⅋-⊗ r s) = cong₂ _⊗_ (dual-inv p r) (dual-inv q s)

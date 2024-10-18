@@ -32,10 +32,10 @@ respect to every connective.
 infix 4 _<=_
 
 data _<=_ : Type -> Type -> Set where
-  sub-0 : ∀{A} -> Zero <= A
-  sub-⊤ : ∀{A} -> A <= Top
-  sub-1 : One <= One
-  sub-⊥ : Bot <= Bot
+  sub-0 : ∀{A} -> 𝟘 <= A
+  sub-⊤ : ∀{A} -> A <= ⊤
+  sub-1 : 𝟙 <= 𝟙
+  sub-⊥ : ⊥ <= ⊥
   sub-& : ∀{A B A' B'} -> A <= A' -> B <= B' -> A & B <= A' & B'
   sub-⊕ : ∀{A B A' B'} -> A <= A' -> B <= B' -> A ⊕ B <= A' ⊕ B'
   sub-⅋ : ∀{A B A' B'} -> A <= A' -> B <= B' -> A ⅋ B <= A' ⅋ B'
@@ -49,10 +49,10 @@ antisymmetric is proved below.
 
 ```agda
 <=-refl : ∀{A} -> A <= A
-<=-refl {Zero} = sub-0
-<=-refl {One} = sub-1
-<=-refl {Bot} = sub-⊥
-<=-refl {Top} = sub-⊤
+<=-refl {𝟘} = sub-0
+<=-refl {𝟙} = sub-1
+<=-refl {⊥} = sub-⊥
+<=-refl {⊤} = sub-⊤
 <=-refl {A & B} = sub-& <=-refl <=-refl
 <=-refl {A ⊕ B} = sub-⊕ <=-refl <=-refl
 <=-refl {A ⊗ B} = sub-⊗ <=-refl <=-refl
@@ -85,10 +85,10 @@ A^\bot$. This is proved below.
 
 ```agda
 dual<= : ∀{A A' B B'} -> Dual A A' -> Dual B B' -> A <= B -> B' <= A'
-dual<= d-0-⊤ e sub-0 = sub-⊤
-dual<= d d-⊤-0 sub-⊤ = sub-0
-dual<= d-1-⊥ d-1-⊥ sub-1 = sub-⊥
-dual<= d-⊥-1 d-⊥-1 sub-⊥ = sub-1
+dual<= d-𝟘-⊤ e sub-0 = sub-⊤
+dual<= d d-⊤-𝟘 sub-⊤ = sub-0
+dual<= d-𝟙-⊥ d-𝟙-⊥ sub-1 = sub-⊥
+dual<= d-⊥-𝟙 d-⊥-𝟙 sub-⊥ = sub-1
 dual<= (d-&-⊕ d₁ d₂) (d-&-⊕ e₁ e₂) (sub-& s₁ s₂) = sub-⊕ (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
 dual<= (d-⊕-& d₁ d₂) (d-⊕-& e₁ e₂) (sub-⊕ s₁ s₂) = sub-& (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
 dual<= (d-⅋-⊗ d₁ d₂) (d-⅋-⊗ e₁ e₂) (sub-⅋ s₁ s₂) = sub-⊗ (dual<= d₁ e₁ s₁) (dual<= d₂ e₂ s₂)
@@ -183,8 +183,8 @@ sub s (fail p) with split<= s p
 sub (succ sub-⊤ zero) close = fail (split-l split-e)
 sub (succ sub-1 zero) close = close
 sub s (wait p P) with split<= s p
-... | .Top , Δ' , p' , sub-⊤ , s₂ = fail p'
-... | .Bot , Δ' , p' , sub-⊥ , s₂ = wait p' (sub s₂ P)
+... | .⊤ , Δ' , p' , sub-⊤ , s₂ = fail p'
+... | .⊥ , Δ' , p' , sub-⊥ , s₂ = wait p' (sub s₂ P)
 sub s (select false p P) with split<= s p
 ... | _ , _ , p' , sub-⊤ , s₂ = fail p'
 ... | _ , _ , p' , sub-⊕ s₁ s₂ , s₃ = select false p' (sub (succ s₂ s₃) P)

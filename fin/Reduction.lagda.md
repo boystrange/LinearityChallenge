@@ -30,7 +30,7 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
   r-close :
     ∀{P : Process Γ}
     (p₀ : Γ ≃ [] + Γ) (q₀ : Γ ≃ [] + Γ) ->
-    cut d-1-⊥ p₀ close (wait (split-l q₀) P) ~> P
+    cut d-𝟙-⊥ p₀ close (wait (split-l q₀) P) ~> P
 
   r-select-l :
     ∀{Γ₁ Γ₂ A A' B B'}

@@ -36,9 +36,9 @@ data Thread : ∀{Γ} -> Process Γ -> Set where
     (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> Thread (link d p)
   fail :
     ∀{Γ Δ}
-    (p : Γ ≃ [ Top ] + Δ) -> Thread (fail p)
+    (p : Γ ≃ [ ⊤ ] + Δ) -> Thread (fail p)
   wait :
-    ∀{Γ Δ} (p : Γ ≃ [ Bot ] + Δ) {P : Process Δ} -> Thread (wait p P)
+    ∀{Γ Δ} (p : Γ ≃ [ ⊥ ] + Δ) {P : Process Δ} -> Thread (wait p P)
   case :
     ∀{Γ Δ A B} (p : Γ ≃ [ A & B ] + Δ) {P : Process (A :: Δ)} {Q : Process (B :: Δ)} ->
     Thread (case p P Q)
@@ -91,9 +91,9 @@ data Link {Γ} : Process Γ -> Set where
 data Delayed : ∀{Γ} -> Process Γ -> Set where
   fail :
     ∀{A Γ Δ}
-    (p : Γ ≃ [ Top ] + Δ) -> Delayed (fail (split-r {A} p))
+    (p : Γ ≃ [ ⊤ ] + Δ) -> Delayed (fail (split-r {A} p))
   wait :
-    ∀{C Γ Δ} (p : Γ ≃ [ Bot ] + Δ) {P : Process (C :: Δ)} -> Delayed (wait (split-r p) P)
+    ∀{C Γ Δ} (p : Γ ≃ [ ⊥ ] + Δ) {P : Process (C :: Δ)} -> Delayed (wait (split-r p) P)
   case :
     ∀{Γ Δ C A B} (p : Γ ≃ [ A & B ] + Δ) {P : Process (A :: C :: Δ)} {Q : Process (B :: C :: Δ)} ->
     Delayed (case (split-r p) P Q)
@@ -221,7 +221,7 @@ live-cut (cc-link d p (link e (split-l (split-r split-e)))) with dual-fun-r e d
 ... | refl = inj₂ (_ , r-link d e p)
 live-cut (cc-link d p (link e (split-r (split-l split-e)))) with dual-fun-l e (dual-symm d)
 ... | refl = inj₂ (_ , r-cong (s-cong-l d p (s-link e (split-r (split-l split-e)))) (r-link d (dual-symm e) p))
-live-cut (cc-redex d-1-⊥ p close (wait q)) with +-empty-l q | +-empty-l p
+live-cut (cc-redex d-𝟙-⊥ p close (wait q)) with +-empty-l q | +-empty-l p
 ... | refl | refl = inj₂ (_ , r-close p q)
 live-cut (cc-redex (d-⊕-& d e) p (select false q) (case r)) with +-empty-l q | +-empty-l r
 ... | refl | refl = inj₂ (_ , r-select-r d e p q r)
@@ -292,7 +292,7 @@ It is easy to prove that the only thread that is well typed in the
 singleton context `[ One ]` is `Close`.
 
 ```agda
-thread-closed : {P : Process [ One ]} -> Thread P -> Close P
+thread-closed : {P : Process [ 𝟙 ]} -> Thread P -> Close P
 thread-closed (link d (split-l ()))
 thread-closed (link d (split-r ()))
 thread-closed (fail (split-r ()))
@@ -307,7 +307,7 @@ thread-closed (fork (split-r ()) q)
 Further, `Close` is backward preserved by structural precongruence.
 
 ```agda
-⊒Close : {P Q : Process [ One ]} -> P ⊒ Q -> Close Q -> Close P
+⊒Close : {P Q : Process [ 𝟙 ]} -> P ⊒ Q -> Close Q -> Close P
 ⊒Close s-refl Qc = Qc
 ⊒Close (s-tran pcong₁ pcong₂) Qc = ⊒Close pcong₁ (⊒Close pcong₂ Qc)
 ```
@@ -324,15 +324,15 @@ DeadlockFree' : ∀{Γ} -> Process Γ -> Set
 DeadlockFree' {Γ} P = ∀(Q : Process Γ) -> P => Q -> Live' Q
 ```
 
-Every process that is well typed in the singleton context `[ One ]`
+Every process that is well typed in the singleton context `[ 𝟙 ]`
 is also `Live'` and therefore `DeadlockFree'`.
 
 ```agda
-live' : (P : Process [ One ]) -> Live' P
+live' : (P : Process [ 𝟙 ]) -> Live' P
 live' P with live P
 ... | inj₂ x = inj₂ x
 ... | inj₁ (Q , pcong , Qt) = inj₁ (⊒Close pcong (thread-closed Qt))
 
-deadlock-freedom' : (P : Process [ One ]) -> DeadlockFree' P
+deadlock-freedom' : (P : Process [ 𝟙 ]) -> DeadlockFree' P
 deadlock-freedom' P Q reds = live' Q
 ```

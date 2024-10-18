@@ -27,10 +27,10 @@ data Process : Context -> Set where
    link :
      ∀{Γ A B} (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> Process Γ
    fail :
-     ∀{Γ Δ} (p : Γ ≃ Top , Δ) -> Process Γ
-   close : Process (One :: [])
+     ∀{Γ Δ} (p : Γ ≃ ⊤ , Δ) -> Process Γ
+   close : Process (𝟙 :: [])
    wait :
-     ∀{Γ Δ} (p : Γ ≃ Bot , Δ) -> Process Δ -> Process Γ
+     ∀{Γ Δ} (p : Γ ≃ ⊥ , Δ) -> Process Δ -> Process Γ
    select :
      ∀{Γ Δ A B} (x : Bool) (p : Γ ≃ A ⊕ B , Δ) ->
      Process ((if x then A else B) :: Δ) -> Process Γ
@@ -51,28 +51,27 @@ The `link d p` process forwards a single message from a channel of
 type $A^⊥$ to a channel of type $A$. It is well typed in a context
 that contains exactly two types, which must be related by duality.
 The `fail p` process indicates a runtime error on some channel of
-type $⊤$. There is no process constructor corresponding to the dual
-constant $\mathbb{0}$. The `close p` process sends a termination
-signal on a session and is well typed in a singleton context where
-the only type is $\mathbb{1}$.  The `wait p P` process waits for a
-termination signal from a channel and then continues according to
-the continuation `P`. It is well typed in a context of the form $⊥,
-Δ$ where $⊥$ (which is the dual of $\mathbb{1}$ is the type of the
-channel. The continuation `P` must be well typed in the residual
-context $Δ$.  The `select x p P` process sends a boolean value `x`
-along with a fresh channel on a channel of type `A ⊕ B` and
-continues as a process `P` that uses the fresh channel as either `A`
-or `B` depending on the value of `x`.  The `case p P Q` process
-receives a boolean value `x` along with a fresh channel from a
-channel of type `A & B` and continues as either `P` or `Q` depending
-to the the value of `x`.  The `fork p q P Q` process sends a pair of
-new channels on another channel of type `A ⊗ B`. It has *two*
-continuations, each using one endpoint of the new channels created.
-The `join p P` process receives a pair of channels from a channel of
-type `A ⅋ B`.  Finally, the `cut d p P Q` process represents the
-parallel composition of two sub-processes `P` and `Q` connected by a
-new linear channel. `P` and `Q` use the new channel according to
-dual types.
+type ⊤. There is no process constructor corresponding to the dual
+constant 𝟘. The `close p` process sends a termination signal on a
+session and is well typed in a singleton context where the only type
+is 𝟙.  The `wait p P` process waits for a termination signal from a
+channel and then continues according to the continuation `P`. It is
+well typed in a context of the form ⊥, Δ where ⊥ (which is the dual
+of 𝟙 is the type of the channel. The continuation `P` must be well
+typed in the residual context Δ.  The `select x p P` process sends a
+boolean value `x` along with a fresh channel on a channel of type `A
+⊕ B` and continues as a process `P` that uses the fresh channel as
+either `A` or `B` depending on the value of `x`.  The `case p P Q`
+process receives a boolean value `x` along with a fresh channel from
+a channel of type `A & B` and continues as either `P` or `Q`
+depending to the the value of `x`.  The `fork p q P Q` process sends
+a pair of new channels on another channel of type `A ⊗ B`. It has
+*two* continuations, each using one endpoint of the new channels
+created.  The `join p P` process receives a pair of channels from a
+channel of type `A ⅋ B`.  Finally, the `cut d p P Q` process
+represents the parallel composition of two sub-processes `P` and `Q`
+connected by a new linear channel. `P` and `Q` use the new channel
+according to dual types.
 
 ## Renaming
 
@@ -154,15 +153,15 @@ processes. This is key to prove [safety](Safety.lagda.md) and
 input-input :
   ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
   Dual A B -> ¬ (Input P × Input Q)
-input-input d-⊤-0 (fail p , ())
-input-input d-⊥-1 (wait p , ())
+input-input d-⊤-𝟘 (fail p , ())
+input-input d-⊥-𝟙 (wait p , ())
 input-input (d-&-⊕ d d₁) (case p , ())
 input-input (d-⅋-⊗ d d₁) (join p , ())
 
 output-output :
   ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
   Dual A B -> ¬ (Output P × Output Q)
-output-output d-1-⊥ (close , ())
+output-output d-𝟙-⊥ (close , ())
 output-output (d-⊕-& d d₁) (select x p , ())
 output-output (d-⊗-⅋ d d₁) (fork p q , ())
 ```

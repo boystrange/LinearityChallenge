@@ -42,14 +42,14 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
 
   s-fail :
     ∀{Γ Γ₁ Γ₂ Δ A B P} (d : Dual A B)
-    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ Top , Δ) ->
+    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ ⊤ , Δ) ->
     let _ , _ , q' = +-assoc-l p q in
     cut d p (fail (split-r q)) P ⊒ fail q'
 
   s-wait :
     ∀{Γ Γ₁ Γ₂ Δ A B}
     {P : Process (A :: Δ)} {Q : Process (B :: Γ₂)}
-    (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ Bot , Δ) ->
+    (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ ⊥ , Δ) ->
     let _ , p' , q' = +-assoc-l p q in
     cut d p (wait (split-r q) P) Q ⊒ wait q' (cut d p' P Q)
 
