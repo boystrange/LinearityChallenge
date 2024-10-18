@@ -23,10 +23,10 @@ open import Process
 We start by defining the subtyping relation `<=` for (finite)
 session types as described in the paper by [Horne and
 Padovani](http://dx.doi.org/10.1016/j.jlamp.2024.100986). Basically,
-`Zero` is the least session type and `Top` is the greatest
-one. Every other relation follows from the expected properties of
-`<=`: it should be reflexive on constants and *covariant* with
-respect to every connective.
+𝟘 is the least session type and ⊤ is the greatest one. Every other
+relation follows from the expected properties of `<=`: it should be
+reflexive on constants and *covariant* with respect to every
+connective.
 
 ```agda
 infix 4 _<=_
