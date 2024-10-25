@@ -27,6 +27,12 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
     (p : Γ ≃ B , Δ) ->
     cut d p (link e (split-l (split-r split-e))) P ~> #process (#cons p) P
 
+  r-fail :
+    ∀{Γ₁ Γ₂ Δ A B P} (d : Dual A B)
+    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ ⊤ , Δ) ->
+    let _ , _ , q' = +-assoc-l p q in
+    cut d p (fail (split-r q)) P ~> fail q'
+
   r-close :
     ∀{P : Process Γ}
     (p₀ : Γ ≃ [] + Γ) (q₀ : Γ ≃ [] + Γ) ->

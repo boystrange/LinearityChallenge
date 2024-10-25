@@ -229,9 +229,7 @@ live-cut (cc-redex (d-⊕-& d e) p (select true q) (case r)) with +-empty-l q | 
 ... | refl | refl = inj₂ (_ , r-select-l d e p q r)
 live-cut (cc-redex (d-⊗-⅋ d e) p (fork q r) (join s)) with +-empty-l q | +-empty-l s
 ... | refl | refl = inj₂ (_ , r-fork d e p s r q)
-live-cut (cc-delayed d p (fail q)) =
-  let _ , _ , q' = +-assoc-l p q in
-  inj₁ (_ , s-fail d p q , fail q')
+live-cut (cc-delayed d p (fail q)) = inj₂ (_ , r-fail d p q)
 live-cut (cc-delayed d p (wait q)) =
   let _ , _ , q' = +-assoc-l p q in
   inj₁ (_ , s-wait d p q , wait q')

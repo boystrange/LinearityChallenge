@@ -28,20 +28,20 @@ data LinkFree : ∀{Γ} -> Process Γ -> Set where
     ∀{Γ Δ} (p : Γ ≃ ⊥ , Δ) {P : Process Δ} ->
     LinkFree P -> LinkFree (wait p P)
   case :
-    ∀{Γ Δ A B} (p : Γ ≃ [ A & B ] + Δ)
+    ∀{Γ Δ A B} (p : Γ ≃ A & B , Δ)
     {P : Process (A :: Δ)} {Q : Process (B :: Δ)} ->
     LinkFree P -> LinkFree Q -> LinkFree (case p P Q)
   join :
-    ∀{Γ Δ A B} (p : Γ ≃ [ A ⅋ B ] + Δ)
+    ∀{Γ Δ A B} (p : Γ ≃ A ⅋ B , Δ)
     {P : Process (B :: A :: Δ)} ->
     LinkFree P -> LinkFree (join p P)
   close : LinkFree close
   select :
-    ∀{Γ Δ A B} (x : Bool) (p : Γ ≃ [ A ⊕ B ] + Δ)
+    ∀{Γ Δ A B} (x : Bool) (p : Γ ≃ A ⊕ B , Δ)
     {P : Process ((if x then A else B) :: Δ)} ->
     LinkFree P -> LinkFree (select x p P)
   fork :
-    ∀{Γ Δ Δ₁ Δ₂ A B} (p : Γ ≃ [ A ⊗ B ] + Δ) (q : Δ ≃ Δ₁ + Δ₂)
+    ∀{Γ Δ Δ₁ Δ₂ A B} (p : Γ ≃ A ⊗ B , Δ) (q : Δ ≃ Δ₁ + Δ₂)
     {P : Process (A :: Δ₁)} {Q : Process (B :: Δ₂)} ->
     LinkFree P -> LinkFree Q -> LinkFree (fork p q P Q)
   cut :
@@ -70,7 +70,7 @@ make-link (d-&-⊕ d e) with make-link (dual-symm d) | make-link (dual-symm e)
 make-link (d-⊕-& d e) with make-link d | make-link e
 ... | _ , Plf | _ , Qlf = _ , case (split-r (split-l split-e))
                                    (select true (split-r (split-l split-e)) Plf)
-                                     (select false (split-r (split-l split-e)) Qlf)
+                                   (select false (split-r (split-l split-e)) Qlf)
 make-link (d-⊗-⅋ d e) with make-link d | make-link e
 ... | _ , Plf | _ , Qlf = _ , join (split-r (split-l split-e))
                                    (fork (split-r (split-r (split-l split-e)))

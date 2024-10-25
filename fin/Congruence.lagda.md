@@ -40,11 +40,11 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
     (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) ->
     link d p ⊒ link (dual-symm d) (+-comm p)
 
-  s-fail :
-    ∀{Γ Γ₁ Γ₂ Δ A B P} (d : Dual A B)
-    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ ⊤ , Δ) ->
-    let _ , _ , q' = +-assoc-l p q in
-    cut d p (fail (split-r q)) P ⊒ fail q'
+  -- s-fail :
+  --   ∀{Γ Γ₁ Γ₂ Δ A B P} (d : Dual A B)
+  --   (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ ⊤ , Δ) ->
+  --   let _ , _ , q' = +-assoc-l p q in
+  --   cut d p (fail (split-r q)) P ⊒ fail q'
 
   s-wait :
     ∀{Γ Γ₁ Γ₂ Δ A B}
