@@ -8,24 +8,27 @@ formalization of a calculus of binary sessions, of its type system and of a
 **πLIN**[^1] and differs from the calculus described in the challenge[^5] for
 two main reasons:
 
-* πLIN is based on **multiplicative additive linear logic (MALL)** in the sense
-  that its [types](Type.lagda.md) are MALL propositions and its typing rules are
-  MALL proof rules. This property of πLIN simplifies its formalization: there is
-  no need to name the two endpoints of a session differently (as is the case in
-  the calculus in the challenge description[^5]) because the typing rules
-  guarantee that no *thread* (i.e. sequential process) can ever own both
-  endpoints at the same time.
-* πLIN channels are **linear** in a strong sense: every channel must be used
-  **exactly once** and structured communications are modeled by the explicit
-  creation and exchange of **continuation channels**. It is a known fact that
-  binary sessions can be encoded in the linear π-calculus[^6], hence this choice
-  does not limit the expressiveness of πLIN insofar binary sessions are
-  concerned. In fact, and somewhat surprisingly, working with encoded sessions
-  helps taming the complexity of the formalization because there is no need to
-  "update" the type of a channel after each use: when a channel is used it is
-  **consumed** and therefore removed from the typing context. The type of the
-  continuation channel, being fresh, is simply **added** at the beginning of the
-  residual typing context, which is a straightforward operation when [typing
+* πLIN is based on **multiplicative additive linear logic (MALL)**
+  in the sense that its [types](Type.lagda.md) are MALL propositions
+  and its typing rules are MALL proof rules. This property of πLIN
+  simplifies its formalization: there is no need to name the two
+  endpoints of a session differently (as is the case in the calculus
+  in the challenge description[^5]) because the typing rules
+  guarantee that no *thread* (i.e. sequential process) can ever own
+  both endpoints at the same time.
+* πLIN channels are **linear** in a strong sense: every channel must
+  be used **exactly once** and structured communications are modeled
+  by the explicit creation and exchange of **continuation
+  channels**. It is a known fact that binary sessions can be encoded
+  in the linear π-calculus[^6], hence this choice does not limit the
+  expressiveness of πLIN insofar binary sessions are concerned. In
+  fact, and somewhat surprisingly, working with encoded sessions
+  helps taming the complexity of the formalization because there is
+  no need to "update" the type of a channel after each use: when a
+  channel is used it is **consumed** and therefore removed from the
+  typing context. The type of the continuation channel, being fresh,
+  is simply **added** at the beginning of the residual typing
+  context, which is a straightforward operation when [typing
   contexts are represented as lists](Context.lagda.md).
 
 Below is a summary of the main features of the formalization:
@@ -59,9 +62,13 @@ the challenge, the solution also includes:
 * two [deadlock freedom results](DeadlockFreedom.lagda.md),
   witnessing the completeness of the given operational semantics,
   which is a strict subset of the one usually adopted for other
-  session calculi based on linear logic;
+  session calculi based on MALL;
+* weak and strong [termination results](Termination.lagda.md),
+  witnessing the fact that well-typed processes terminate;
 * the [link elimination result](LinkElimination.lagda.md), namely
-  the admissability of the axiom of linear logic;
+  the admissability of the axiom in MALL;
+* the [cut elimination result](CutElimination.lagda.md), namely the
+  admissability of the cut rule in MALL;
 * the soundness of [subsumption](Subtyping.lagda.md) for the
   **logical subtyping** of session types[^2].
 

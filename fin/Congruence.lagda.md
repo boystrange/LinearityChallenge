@@ -24,17 +24,6 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
     (p : Γ ≃ Γ₁ + Γ₂) (p' : Γ ≃ Γ₂ + Γ₁) ->
     cut d p P Q ⊒ cut d' p' Q P
 
-  s-assoc-r :
-    ∀{Γ Γ₁ Γ₂ Δ Δ₁ Δ₂ A A' B B'}
-    {P : Process (A :: Γ₁)}
-    {Q : Process (B :: A' :: Δ₁)}
-    {R : Process (B' :: Δ₂)}
-    (d : Dual A A') (e : Dual B B')
-    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₂ ≃ Δ₁ + Δ₂)
-    (p' : Δ ≃ Γ₁ + Δ₁) (q' : Γ ≃ Δ + Δ₂) ->
-    cut d p P (cut e (split-l q) Q R) ⊒
-    cut e q' (cut d (split-r p') P (#process #here Q)) R
-
   s-link :
     ∀{Γ A B}
     (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) ->
@@ -150,33 +139,7 @@ module ⊒-Reasoning where
 
 ## Properties
 
-We prove a few properties about `⊒`. First, that associativity of
-cuts also works in the opposite direction.
-
-```agda
-s-assoc-l : ∀{Γ Γ₁ Γ₂ Δ Δ₁ Δ₂ A A' B B'}
-            {P : Process (B :: Δ₁)}
-            {Q : Process (B' :: A :: Δ₂)}
-            {R : Process (A' :: Γ₂)}
-            (d : Dual A A') (e : Dual B B')
-            (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ Δ₁ + Δ₂)
-            (p' : Δ ≃ Δ₂ + Γ₂) (q' : Γ ≃ Δ₁ + Δ) ->
-            cut d p (cut e (split-r q) P Q) R ⊒
-            cut e q' P (cut d (split-l p') (#process #here Q) R)
-s-assoc-l {P = P} {Q = Q} {R = R} d e p q p' q' = begin
-  cut d p (cut e (split-r q) P Q) R ⊒⟨ s-cong-l d p
-                                        (s-comm e (dual-symm e) (split-r q) (split-l (+-comm q))) ⟩
-  cut d p (cut (dual-symm e) (split-l (+-comm q)) Q P) R ⊒⟨ s-comm d (dual-symm d) p (+-comm p) ⟩
-  cut (dual-symm d) (+-comm p) R (cut (dual-symm e) (split-l (+-comm q)) Q P) ⊒⟨ s-assoc-r (dual-symm d) (dual-symm e) (+-comm p) (+-comm q)
-                                                                                  (+-comm p') (+-comm q') ⟩
-  cut (dual-symm e) (+-comm q') (cut (dual-symm d) (split-r (+-comm p')) R (#process #here Q)) P ⊒⟨ s-cong-l (dual-symm e) (+-comm q')
-                                                                                                     (s-comm (dual-symm d) d (split-r (+-comm p')) (split-l p')) ⟩
-  cut (dual-symm e) (+-comm q') (cut d (split-l p') (#process #here Q) R) P ⊒⟨ s-comm (dual-symm e) e (+-comm q') q' ⟩
-  cut e q' P (cut d (split-l p') (#process #here Q) R) ∎
-  where open ⊒-Reasoning
-```
-
-Then we prove that `⊒` is a congruence on the *right* of cuts and,
+We prove that `⊒` is a congruence on the *right* of cuts and,
 therefore, that can be applied to both processes in a cut
 simultaneously.
 
