@@ -17,6 +17,8 @@ open import Safety
 
 ```agda
 open import DeadlockFreedom
+open import Termination
 open import LinkElimination
+open import CutElimination
 open import Subtyping
 ```
