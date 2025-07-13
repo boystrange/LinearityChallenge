@@ -1,11 +1,3 @@
-# Structural precongruence
-
-In this module we define a structural precongruence relation for
-processes.
-
-## Imports
-
-```agda
 open import Data.Bool using (Bool; if_then_else_)
 open Bool using (true; false)
 open import Data.Product using (Σ; _,_; ∃; Σ-syntax; ∃-syntax)
@@ -13,11 +5,7 @@ open import Data.Product using (Σ; _,_; ∃; Σ-syntax; ∃-syntax)
 open import Type
 open import Context
 open import Process
-```
 
-## Definition
-
-```agda
 data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
   s-comm :
     ∀{Γ Γ₁ Γ₂ A B P Q} (d : Dual A B) (d' : Dual B A)
@@ -106,6 +94,43 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
     cut d p (join (split-r q) P) Q ⊒
     join q' (cut d (split-l (split-l p')) (#process #rot P) Q)
 
+  s-server :
+    ∀{Γ A B C Γ₁ Γ₂ Δ₁}
+    {P : Process (C :: ¿ A :: Δ₁)}
+    {Q : Process (B :: Γ₂)}
+    (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ ¡ C , Δ₁) (r : Γ₂ ≃ [] + Γ₂)
+    (un₁ : Un Δ₁) (un₂ : Un Γ₂) ->
+    let _ , p' , q' = +-assoc-l p q in
+    cut (d-?-! d) p (server (split-r q) (un-:: un₁) P) (server (split-l r) un₂ Q) ⊒
+    server q' (#un+ p' un₁ un₂) (cut (d-?-! d) (split-l p') (#process #here P) (server (split-l r) un₂ Q))
+
+  s-client :
+    ∀{Γ A B C Γ₁ Γ₂ Δ}
+    {P : Process (C :: A :: Δ)}
+    {Q : Process (B :: Γ₂)}
+    (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ ¿ C , Δ) ->
+    let _ , p' , q' = +-assoc-l p q in
+    cut d p (client (split-r q) P) Q ⊒
+    client q' (cut d (split-l p') (#process #here P) Q)
+
+  s-weaken :
+    ∀{Γ A B C Γ₁ Γ₂ Δ}
+    {P : Process (A :: Δ)}
+    {Q : Process (B :: Γ₂)}
+    (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ ¿ C , Δ) ->
+    let _ , p' , q' = +-assoc-l p q in
+    cut d p (weaken (split-r q) P) Q ⊒
+    weaken q' (cut d p' P Q)
+
+  s-contract :
+    ∀{Γ A B C Γ₁ Γ₂ Δ}
+    {P : Process (¿ C :: ¿ C :: A :: Δ)}
+    {Q : Process (B :: Γ₂)}
+    (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ ¿ C , Δ) ->
+    let _ , p' , q' = +-assoc-l p q in
+    cut d p (contract (split-r q) P) Q ⊒
+    contract q' (cut d (split-l (split-l p')) (#process #rot P) Q)
+
   s-refl : ∀{Γ} {P : Process Γ} -> P ⊒ P
   s-tran : ∀{Γ} {P Q R : Process Γ} -> P ⊒ Q -> Q ⊒ R -> P ⊒ R
   s-cong-l :
@@ -114,11 +139,7 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
     {R : Process (A' :: Γ₂)}
     (d : Dual A A')
     (p : Γ ≃ Γ₁ + Γ₂) -> P ⊒ Q -> cut d p P R ⊒ cut d p Q R
-```
 
-## Equational reasoning for ⊒
-
-```agda
 module ⊒-Reasoning where
   infix  1 begin_
   infixr 2 _≡⟨⟩_ _⊒⟨_⟩_
@@ -135,15 +156,7 @@ module ⊒-Reasoning where
 
   _≡⟨⟩_ : {Γ : Context} (P : Process Γ) {Q : Process Γ} -> P ⊒ Q -> P ⊒ Q
   _ ≡⟨⟩ p = p
-```
 
-## Properties
-
-We prove that `⊒` is a congruence on the *right* of cuts and,
-therefore, that can be applied to both processes in a cut
-simultaneously.
-
-```agda
 s-cong-r :
   ∀{Γ Γ₁ Γ₂ A B}
   {P : Process (A :: Γ₁)}
@@ -170,4 +183,3 @@ s-cong-2 {P = P} {P'} {Q} {Q'} d p Pc Qc = begin
   cut d p P' Q  ⊒⟨ s-cong-r d p Qc ⟩
   cut d p P' Q' ∎
   where open ⊒-Reasoning
-```

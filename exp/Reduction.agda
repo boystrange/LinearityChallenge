@@ -1,24 +1,31 @@
-# Reduction
-
-This module defines the reduction relation for processes.
-
-## Imports
-
-```agda
 open import Data.Bool using (Bool; if_then_else_)
 open import Data.Nat using (ℕ; zero; suc)
 open Bool using (true; false)
 open import Data.Product using (Σ; _,_; ∃; Σ-syntax; ∃-syntax)
+import Relation.Binary.PropositionalEquality as Eq
 
 open import Type
 open import Context
 open import Process
 open import Congruence
-```
 
-## Definition
+weakening : ∀{Γ Γ₁ Γ₂} (un : Un Γ₁) -> Γ ≃ Γ₁ + Γ₂ -> Process Γ₂ -> Process Γ
+weakening un p P = #process (+++# p) (aux un P)
+  where
+    aux : ∀{Γ₁ Γ₂} (un : Un Γ₁) -> Process Γ₂ -> Process (Γ₁ ++ Γ₂)
+    aux un-[] P = P
+    aux(un-:: un) P = weaken (split-l +-unit-l) (aux un P)
 
-```agda
+contraction : ∀{Γ Γ₁ Γ₂} (un : Un Γ₁) -> Γ ≃ Γ₁ + Γ₂ -> Process (Γ₁ ++ Γ) -> Process Γ
+contraction un p P = #process (+++# p) (aux un (#process (++#r (#sym (+++# p))) P))
+  where
+    aux : ∀{Γ₁ Γ₂} -> Un Γ₁ -> Process (Γ₁ ++ Γ₁ ++ Γ₂) -> Process (Γ₁ ++ Γ₂)
+    aux un-[] P = P
+    aux {¿ A :: Γ₁} {Γ₂} (un-:: un) P with contract (split-l +-unit-l) (#process (#push {¿ A :: Γ₁} {¿ A} {Γ₁ ++ Γ₂}) P)
+    ... | P₁ rewrite ++-assoc (¿ A :: Γ₁) Γ₁ Γ₂ with #process (#sym (#push {Γ₁ ++ Γ₁} {¿ A} {Γ₂})) P₁
+    ... | P₂ rewrite Eq.sym (++-assoc Γ₁ Γ₁ (¿ A :: Γ₂)) with aux un P₂
+    ... | P₃ = #process #push P₃
+
 data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
   r-link :
     ∀{Δ A B}
@@ -73,6 +80,43 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
         (fork (split-l q₀) q P Q)
         (join (split-l p₀) R) ~> cut d q' P (cut e (split-r p') Q R)
 
+  r-client :
+    ∀{Γ₁ Γ₂ A A'}
+    {P : Process (A :: Γ₁)}
+    {Q : Process (A' :: Γ₂)}
+    (d : Dual A A')
+    (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂)
+    (un : Un Γ₁) ->
+    cut (d-!-? d) p
+      (server (split-l p₀) un P)
+      (client (split-l q₀) Q) ~> cut d p P Q
+
+  r-weaken :
+    ∀{Γ₁ Γ₂ A A'}
+    {P : Process (A :: Γ₁)}
+    {Q : Process Γ₂}
+    (d : Dual A A')
+    (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂)
+    (un : Un Γ₁) ->
+    cut (d-!-? d) p
+        (server (split-l p₀) un P)
+        (weaken (split-l q₀) Q) ~> weakening un p Q
+
+  r-contract :
+    ∀{Γ₁ Γ₂ A A'}
+    {P : Process (A :: Γ₁)}
+    {Q : Process (¿ A' :: ¿ A' :: Γ₂)}
+    (d : Dual A A')
+    (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂)
+    (un : Un Γ₁) ->
+    cut (d-!-? d) p
+      (server (split-l p₀) un P)
+      (contract (split-l q₀) Q) ~>
+      contraction un p
+        (cut (d-!-? d) ++≃+
+             (server (split-l p₀) un P)
+             (cut (d-!-? d) (split-r p) (server (split-l p₀) un P) Q))
+
   r-cut :
     ∀{Γ₁ Γ₂ A B}
     {P Q : Process (A :: Γ₁)}
@@ -85,30 +129,14 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
   r-cong :
     {P R Q : Process Γ}
     (p : P ⊒ R) (q : R ~> Q) -> P ~> Q
-```
 
-A process `P` is **reducible** if `P ~> Q` for some `Q`.
-
-```agda
 Reducible : ∀{Γ} -> Process Γ -> Set
 Reducible P = ∃[ Q ] P ~> Q
-```
 
-We also define the reflexive, transitive closure of reduction which
-is useful e.g. for stating and proving [deadlock
-freedom](DeadlockFreedom.lagda.md).
-
-```agda
 data _=>_ {Γ} : Process Γ -> Process Γ -> Set where
   refl : ∀{P : Process Γ} -> P => P
   tran : ∀{P Q R : Process Γ} -> P ~> Q -> Q => R -> P => R
-```
 
-The *length* of a sequence of reductions is computed by the
-following function:
-
-```
 run-length : ∀{Γ} {P Q : Process Γ} -> P => Q -> ℕ
 run-length refl = 0
 run-length (tran _ reds) = suc (run-length reds)
-```
