@@ -1,9 +1,7 @@
 open import Data.Bool using (Bool; if_then_else_)
-import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl)
-open import Data.Sum
+open import Relation.Binary.PropositionalEquality using (refl)
 open import Data.Product using (Σ; _×_; _,_; ∃; Σ-syntax; ∃-syntax)
-open import Relation.Nullary using (¬_)
+open import Data.List.Base using ([]; _∷_; [_])
 
 open import Type
 open import Context
@@ -13,31 +11,31 @@ data Process : Context -> Set where
      ∀{Γ A B} (d : Dual A B) (p : Γ ≃ [ A ] + [ B ]) -> Process Γ
    fail :
      ∀{Γ Δ} (p : Γ ≃ ⊤ , Δ) -> Process Γ
-   close : Process (𝟙 :: [])
+   close : Process [ 𝟙 ]
    wait :
      ∀{Γ Δ} (p : Γ ≃ ⊥ , Δ) -> Process Δ -> Process Γ
    select :
      ∀{Γ Δ A B} (x : Bool) (p : Γ ≃ A ⊕ B , Δ) ->
-     Process ((if x then A else B) :: Δ) -> Process Γ
+     Process ((if x then A else B) ∷ Δ) -> Process Γ
    case :
      ∀{Γ Δ A B} (p : Γ ≃ A & B , Δ) ->
-     Process (A :: Δ) -> Process (B :: Δ) -> Process Γ
+     Process (A ∷ Δ) -> Process (B ∷ Δ) -> Process Γ
    fork :
      ∀{Γ Δ Γ₁ Γ₂ A B} (p : Γ ≃ A ⊗ B , Δ) (q : Δ ≃ Γ₁ + Γ₂) ->
-     Process (A :: Γ₁) -> Process (B :: Γ₂) -> Process Γ
+     Process (A ∷ Γ₁) -> Process (B ∷ Γ₂) -> Process Γ
    join :
-     ∀{Γ Δ A B} (p : Γ ≃ A ⅋ B , Δ) -> Process (B :: A :: Δ) -> Process Γ
+     ∀{Γ Δ A B} (p : Γ ≃ A ⅋ B , Δ) -> Process (B ∷ A ∷ Δ) -> Process Γ
    server :
-     ∀{Γ Δ A} (p : Γ ≃ ¡ A , Δ) (un : Un Δ) -> Process (A :: Δ) -> Process Γ
+     ∀{Γ Δ A} (p : Γ ≃ ¡ A , Δ) (un : Un Δ) -> Process (A ∷ Δ) -> Process Γ
    client :
-     ∀{Γ Δ A} (p : Γ ≃ ¿ A , Δ) -> Process (A :: Δ) -> Process Γ
+     ∀{Γ Δ A} (p : Γ ≃ ¿ A , Δ) -> Process (A ∷ Δ) -> Process Γ
    weaken :
      ∀{Γ Δ A} (p : Γ ≃ ¿ A , Δ) -> Process Δ -> Process Γ
    contract :
-     ∀{Γ Δ A} (p : Γ ≃ ¿ A , Δ) -> Process (¿ A :: ¿ A :: Δ) -> Process Γ
+     ∀{Γ Δ A} (p : Γ ≃ ¿ A , Δ) -> Process (¿ A ∷ ¿ A ∷ Δ) -> Process Γ
    cut :
      ∀{Γ Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) ->
-     Process (A :: Γ₁) -> Process (B :: Γ₂) -> Process Γ
+     Process (A ∷ Γ₁) -> Process (B ∷ Γ₂) -> Process Γ
 
 #process : ∀{Γ Δ} -> Γ # Δ -> Process Γ -> Process Δ
 #process π (link d p) with #one+ π p

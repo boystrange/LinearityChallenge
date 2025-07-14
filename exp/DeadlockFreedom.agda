@@ -2,6 +2,7 @@ open import Data.Sum
 open import Data.Product using (Σ; _×_; _,_; ∃; Σ-syntax; ∃-syntax)
 open import Data.Bool using (Bool; if_then_else_)
 open Bool using (true; false)
+open import Data.List.Base using ([]; _∷_; [_])
 
 open import Relation.Nullary using (¬_; contradiction)
 import Relation.Binary.PropositionalEquality as Eq
@@ -16,7 +17,7 @@ open import Congruence
 data Cut {Γ} : Process Γ -> Set where
   cut :
     ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂)
-    {P : Process (A :: Γ₁)} {Q : Process (B :: Γ₂)} ->
+    {P : Process (A ∷ Γ₁)} {Q : Process (B ∷ Γ₂)} ->
     Cut (cut d p P Q)
 
 data Link {Γ} : Process Γ -> Set where
@@ -30,16 +31,16 @@ data Input : ∀{Γ} -> Process Γ -> Set where
   wait :
     ∀{Γ Δ} (p : Γ ≃ [] + Δ) {P : Process Δ} -> Input (wait (split-l p) P)
   case :
-    ∀{Γ Δ A B} (p : Γ ≃ [] + Δ) {P : Process (A :: Δ)} {Q : Process (B :: Δ)} ->
+    ∀{Γ Δ A B} (p : Γ ≃ [] + Δ) {P : Process (A ∷ Δ)} {Q : Process (B ∷ Δ)} ->
     Input (case (split-l p) P Q)
   join :
-    ∀{Γ Δ A B} (p : Γ ≃ [] + Δ) {P : Process (B :: A :: Δ)} ->
+    ∀{Γ Δ A B} (p : Γ ≃ [] + Δ) {P : Process (B ∷ A ∷ Δ)} ->
     Input (join (split-l p) P)
 
 data Client : ∀{Γ} -> Process Γ -> Set where
   client :
     ∀{Γ Δ A} (p : Γ ≃ [] + Δ)
-    {P : Process (A :: Δ)} ->
+    {P : Process (A ∷ Δ)} ->
     Client (client (split-l p) P)
   weaken :
     ∀{Γ Δ A} (p : Γ ≃ [] + Δ)
@@ -47,17 +48,17 @@ data Client : ∀{Γ} -> Process Γ -> Set where
     Client (weaken {A = A} (split-l p) P)
   contract :
     ∀{Γ Δ A} (p : Γ ≃ [] + Δ)
-    {P : Process (¿ A :: ¿ A :: Δ)} ->
+    {P : Process (¿ A ∷ ¿ A ∷ Δ)} ->
     Client (contract (split-l p) P)
 
 data Output : ∀{Γ} -> Process Γ -> Set where
   close : Output close
   select :
-    ∀{Γ Δ A B} (x : Bool) (p : Γ ≃ [] + Δ) {P : Process ((if x then A else B) :: Δ)} ->
+    ∀{Γ Δ A B} (x : Bool) (p : Γ ≃ [] + Δ) {P : Process ((if x then A else B) ∷ Δ)} ->
     Output (select x (split-l p) P)
   fork :
     ∀{Γ Δ Δ₁ Δ₂ A B} (p : Γ ≃ [] + Δ) (q : Δ ≃ Δ₁ + Δ₂)
-    {P : Process (A :: Δ₁)} {Q : Process (B :: Δ₂)} ->
+    {P : Process (A ∷ Δ₁)} {Q : Process (B ∷ Δ₂)} ->
     Output (fork (split-l p) q P Q)
 
 data Delayed : ∀{Γ} -> Process Γ -> Set where
@@ -65,43 +66,43 @@ data Delayed : ∀{Γ} -> Process Γ -> Set where
     ∀{A Γ Δ}
     (p : Γ ≃ ⊤ , Δ) -> Delayed (fail (split-r {A} p))
   wait :
-    ∀{C Γ Δ} (p : Γ ≃ ⊥ , Δ) {P : Process (C :: Δ)} -> Delayed (wait (split-r p) P)
+    ∀{C Γ Δ} (p : Γ ≃ ⊥ , Δ) {P : Process (C ∷ Δ)} -> Delayed (wait (split-r p) P)
   case :
-    ∀{Γ Δ C A B} (p : Γ ≃ A & B , Δ) {P : Process (A :: C :: Δ)} {Q : Process (B :: C :: Δ)} ->
+    ∀{Γ Δ C A B} (p : Γ ≃ A & B , Δ) {P : Process (A ∷ C ∷ Δ)} {Q : Process (B ∷ C ∷ Δ)} ->
     Delayed (case (split-r p) P Q)
   join :
-    ∀{Γ Δ C A B} (p : Γ ≃ A ⅋ B , Δ) {P : Process (B :: A :: C :: Δ)} ->
+    ∀{Γ Δ C A B} (p : Γ ≃ A ⅋ B , Δ) {P : Process (B ∷ A ∷ C ∷ Δ)} ->
     Delayed (join (split-r p) P)
   select :
-    ∀{Γ Δ C A B} (x : Bool) (p : Γ ≃ A ⊕ B , Δ) {P : Process ((if x then A else B) :: C :: Δ)} ->
+    ∀{Γ Δ C A B} (x : Bool) (p : Γ ≃ A ⊕ B , Δ) {P : Process ((if x then A else B) ∷ C ∷ Δ)} ->
     Delayed (select x (split-r p) P)
   fork-l :
     ∀{Γ Δ Δ₁ Δ₂ C A B} (p : Γ ≃ A ⊗ B , Δ) (q : Δ ≃ Δ₁ + Δ₂)
-    {P : Process (A :: C :: Δ₁)} {Q : Process (B :: Δ₂)} ->
+    {P : Process (A ∷ C ∷ Δ₁)} {Q : Process (B ∷ Δ₂)} ->
     Delayed (fork (split-r p) (split-l q) P Q)
   fork-r :
     ∀{Γ Δ Δ₁ Δ₂ C A B} (p : Γ ≃ A ⊗ B , Δ) (q : Δ ≃ Δ₁ + Δ₂)
-    {P : Process (A :: Δ₁)} {Q : Process (B :: C :: Δ₂)} ->
+    {P : Process (A ∷ Δ₁)} {Q : Process (B ∷ C ∷ Δ₂)} ->
     Delayed (fork (split-r p) (split-r q) P Q)
   client :
-    ∀{Γ Δ A C} (p : Γ ≃ ¿ A , Δ) {P : Process (A :: C :: Δ)} ->
+    ∀{Γ Δ A C} (p : Γ ≃ ¿ A , Δ) {P : Process (A ∷ C ∷ Δ)} ->
     Delayed (client (split-r p) P)
   weaken :
-    ∀{Γ Δ A C} (p : Γ ≃ ¿ A , Δ) {P : Process (C :: Δ)} ->
+    ∀{Γ Δ A C} (p : Γ ≃ ¿ A , Δ) {P : Process (C ∷ Δ)} ->
     Delayed (weaken (split-r p) P)
   contract :
-    ∀{Γ Δ A C} (p : Γ ≃ ¿ A , Δ) {P : Process (¿ A :: ¿ A :: C :: Δ)} ->
+    ∀{Γ Δ A C} (p : Γ ≃ ¿ A , Δ) {P : Process (¿ A ∷ ¿ A ∷ C ∷ Δ)} ->
     Delayed (contract (split-r p) P)
 
 data Server : ∀{Γ} -> Process Γ -> Set where
   server :
-    ∀{Γ Δ A} (p : Γ ≃ [] + Δ) (un : Un Δ) {P : Process (A :: Δ)} ->
+    ∀{Γ Δ A} (p : Γ ≃ [] + Δ) (un : Un Δ) {P : Process (A ∷ Δ)} ->
     Server (server (split-l p) un P)
 
 data DelayedServer : ∀{Γ} -> Process Γ -> Set where
   server :
-    ∀{Γ Δ A C} (p : Γ ≃ ¡ A , Δ) (un : Un Δ) {P : Process (A :: ¿ C :: Δ)} ->
-    DelayedServer (server (split-r p) (un-:: un) P)
+    ∀{Γ Δ A C} (p : Γ ≃ ¡ A , Δ) (un : Un Δ) {P : Process (A ∷ ¿ C ∷ Δ)} ->
+    DelayedServer (server (split-r p) (un-∷ un) P)
 
 Thread : ∀{Γ} -> Process Γ -> Set
 Thread P = Link P ⊎ Delayed P ⊎ Output P ⊎ Input P ⊎ Client P ⊎ Server P ⊎ DelayedServer P
@@ -121,26 +122,26 @@ fail-thread (split-l p) = inj₂ (inj₂ (inj₂ (inj₁ (fail p))))
 fail-thread (split-r p) = inj₂ (inj₁ (fail p))
 
 case-thread :
-  ∀{Γ Δ A B} (p : Γ ≃ [ A & B ] + Δ) {P : Process (A :: Δ)} {Q : Process (B :: Δ)} ->
+  ∀{Γ Δ A B} (p : Γ ≃ [ A & B ] + Δ) {P : Process (A ∷ Δ)} {Q : Process (B ∷ Δ)} ->
   Thread (case p P Q)
 case-thread (split-l p) = inj₂ (inj₂ (inj₂ (inj₁ (case p))))
 case-thread (split-r p) = inj₂ (inj₁ (case p))
 
 join-thread :
-  ∀{Γ Δ A B} (p : Γ ≃ [ A ⅋ B ] + Δ) {P : Process (B :: A :: Δ)} ->
+  ∀{Γ Δ A B} (p : Γ ≃ [ A ⅋ B ] + Δ) {P : Process (B ∷ A ∷ Δ)} ->
   Thread (join p P)
 join-thread (split-l p) = inj₂ (inj₂ (inj₂ (inj₁ (join p))))
 join-thread (split-r p) = inj₂ (inj₁ (join p))
 
 select-thread :
-  ∀{Γ Δ A B} (x : Bool) (p : Γ ≃ A ⊕ B , Δ) {P : Process ((if x then A else B) :: Δ)} ->
+  ∀{Γ Δ A B} (x : Bool) (p : Γ ≃ A ⊕ B , Δ) {P : Process ((if x then A else B) ∷ Δ)} ->
   Thread (select x p P)
 select-thread x (split-l p) = inj₂ (inj₂ (inj₁ (select x p)))
 select-thread x (split-r p) = inj₂ (inj₁ (select x p))
 
 fork-thread :
   ∀{Γ Δ Δ₁ Δ₂ A B} (p : Γ ≃ [ A ⊗ B ] + Δ) (q : Δ ≃ Δ₁ + Δ₂)
-  {P : Process (A :: Δ₁)} {Q : Process (B :: Δ₂)} ->
+  {P : Process (A ∷ Δ₁)} {Q : Process (B ∷ Δ₂)} ->
   Thread (fork p q P Q)
 fork-thread (split-l p) q = inj₂ (inj₂ (inj₁ (fork p q)))
 fork-thread (split-r p) (split-l q) = inj₂ (inj₁ (fork-l p q))
@@ -148,7 +149,7 @@ fork-thread (split-r p) (split-r q) = inj₂ (inj₁ (fork-r p q))
 
 client-thread :
   ∀{Γ Δ A} (p : Γ ≃ [ ¿ A ] + Δ)
-  {P : Process (A :: Δ)} ->
+  {P : Process (A ∷ Δ)} ->
   Thread (client p P)
 client-thread (split-l p) = inj₂ (inj₂ (inj₂ (inj₂ (inj₁ (client p)))))
 client-thread (split-r p) = inj₂ (inj₁ (client p))
@@ -162,102 +163,102 @@ weaken-thread (split-r p) = inj₂ (inj₁ (weaken p))
 
 contract-thread :
   ∀{Γ Δ A} (p : Γ ≃ [ ¿ A ] + Δ)
-  {P : Process (¿ A :: ¿ A :: Δ)} ->
+  {P : Process (¿ A ∷ ¿ A ∷ Δ)} ->
   Thread (contract p P)
 contract-thread (split-l p) = inj₂ (inj₂ (inj₂ (inj₂ (inj₁ (contract p)))))
 contract-thread (split-r p) = inj₂ (inj₁ (contract p))
 
 server-thread :
-  ∀{Γ Δ A} (p : Γ ≃ [ ¡ A ] + Δ) (un : Un Δ) {P : Process (A :: Δ)} ->
+  ∀{Γ Δ A} (p : Γ ≃ [ ¡ A ] + Δ) (un : Un Δ) {P : Process (A ∷ Δ)} ->
   Thread (server p un P)
 server-thread (split-l p) un = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₁ (server p un))))))
-server-thread (split-r p) (un-:: un) = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (server p un))))))
+server-thread (split-r p) (un-∷ un) = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (server p un))))))
 
 data CanonicalCut {Γ} : Process Γ -> Set where
   cc-link :
     ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂)
-    {P : Process (A :: Γ₁)} {Q : Process (B :: Γ₂)} ->
+    {P : Process (A ∷ Γ₁)} {Q : Process (B ∷ Γ₂)} ->
     Link P -> CanonicalCut (cut d p P Q)
   cc-delayed :
     ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂)
-    {P : Process (A :: Γ₁)} {Q : Process (B :: Γ₂)} ->
+    {P : Process (A ∷ Γ₁)} {Q : Process (B ∷ Γ₂)} ->
     Delayed P -> CanonicalCut (cut d p P Q)
   cc-delayed-server :
     ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂)
-    {P : Process (A :: Γ₁)} {Q : Process (B :: Γ₂)} ->
+    {P : Process (A ∷ Γ₁)} {Q : Process (B ∷ Γ₂)} ->
     DelayedServer P -> Server Q -> CanonicalCut (cut d p P Q)
   cc-redex :
     ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂)
-    {P : Process (A :: Γ₁)} {Q : Process (B :: Γ₂)} ->
+    {P : Process (A ∷ Γ₁)} {Q : Process (B ∷ Γ₂)} ->
     Output P -> Input Q -> CanonicalCut (cut d p P Q)
   cc-connect :
     ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂)
-    {P : Process (A :: Γ₁)} {Q : Process (B :: Γ₂)} ->
+    {P : Process (A ∷ Γ₁)} {Q : Process (B ∷ Γ₂)} ->
     Server P -> Client Q -> CanonicalCut (cut d p P Q)
 
 output-output :
-  ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
   Dual A B -> ¬ (Output P × Output Q)
 output-output d-𝟙-⊥ (close , ())
 
 output-client :
-  ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
   Dual A B -> ¬ (Output P × Client Q)
 output-client () (close , client p)
 
 output-server :
-  ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
   Dual A B -> ¬ (Output P × Server Q)
 output-server () (close , server p un)
 
 output-delayed-server :
-  ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
   Dual A B -> ¬ (Output P × DelayedServer Q)
 output-delayed-server () (close , server p un)
 
 input-input :
-  ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
   Dual A B -> ¬ (Input P × Input Q)
 input-input d-⊤-𝟘 (fail p , ())
 
 input-client :
-  ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
   Dual A B -> ¬ (Input P × Client Q)
 input-client () (fail p₁ , client p)
 
 input-server :
-  ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
   Dual A B -> ¬ (Input P × Server Q)
 input-server () (fail p₁ , server p un)
 
 input-delayed-server :
-  ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
   Dual A B -> ¬ (Input P × DelayedServer Q)
 input-delayed-server () (fail p₁ , server p un)
 
 client-client :
-  ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
   Dual A B -> ¬ (Client P × Client Q)
 client-client () (client p , client p₁)
 
 client-delayed-server :
-  ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
   Dual A B -> ¬ (Client P × DelayedServer Q)
 client-delayed-server () (client p₁ , server p un)
 
 server-server :
-  ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
   Dual A B -> ¬ (Server P × Server Q)
 server-server () (server p un , server p₁ un₁)
 
 delayed-server-delayed-served :
-  ∀{Γ Δ A B} {P : Process (A :: Γ)} {Q : Process (B :: Δ)} ->
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
   Dual A B -> ¬ (DelayedServer P × DelayedServer Q)
 delayed-server-delayed-served () (server p un , server p₁ un₁)
 
 canonical-cut :
   ∀{Γ Γ₁ Γ₂ A B}
-  {P : Process (A :: Γ₁)} {Q : Process (B :: Γ₂)}
+  {P : Process (A ∷ Γ₁)} {Q : Process (B ∷ Γ₂)}
   (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) ->
   Thread P -> Thread Q ->
   ∃[ R ] CanonicalCut R × cut d p P Q ⊒ R

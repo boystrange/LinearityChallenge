@@ -1,5 +1,4 @@
-import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl; cong; cong₂)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong₂)
 
 data Type : Set where
   𝟘 𝟙 ⊥ ⊤ : Type

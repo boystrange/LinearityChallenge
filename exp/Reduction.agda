@@ -1,8 +1,8 @@
-open import Data.Bool using (Bool; if_then_else_)
-open import Data.Nat using (ℕ; zero; suc)
-open Bool using (true; false)
-open import Data.Product using (Σ; _,_; ∃; Σ-syntax; ∃-syntax)
+open import Data.Bool using (Bool; true; false)
+open import Data.Product using (_,_; ∃; ∃-syntax)
 import Relation.Binary.PropositionalEquality as Eq
+open import Data.List.Base using ([]; _∷_; [_]; _++_)
+open import Data.List.Properties using (++-assoc)
 
 open import Type
 open import Context
@@ -14,31 +14,25 @@ weakening un p P = #process (+++# p) (aux un P)
   where
     aux : ∀{Γ₁ Γ₂} (un : Un Γ₁) -> Process Γ₂ -> Process (Γ₁ ++ Γ₂)
     aux un-[] P = P
-    aux(un-:: un) P = weaken (split-l +-unit-l) (aux un P)
+    aux(un-∷ un) P = weaken (split-l +-unit-l) (aux un P)
 
 contraction : ∀{Γ Γ₁ Γ₂} (un : Un Γ₁) -> Γ ≃ Γ₁ + Γ₂ -> Process (Γ₁ ++ Γ) -> Process Γ
 contraction un p P = #process (+++# p) (aux un (#process (++#r (#sym (+++# p))) P))
   where
     aux : ∀{Γ₁ Γ₂} -> Un Γ₁ -> Process (Γ₁ ++ Γ₁ ++ Γ₂) -> Process (Γ₁ ++ Γ₂)
     aux un-[] P = P
-    aux {¿ A :: Γ₁} {Γ₂} (un-:: un) P with contract (split-l +-unit-l) (#process (#push {¿ A :: Γ₁} {¿ A} {Γ₁ ++ Γ₂}) P)
-    ... | P₁ rewrite ++-assoc (¿ A :: Γ₁) Γ₁ Γ₂ with #process (#sym (#push {Γ₁ ++ Γ₁} {¿ A} {Γ₂})) P₁
-    ... | P₂ rewrite Eq.sym (++-assoc Γ₁ Γ₁ (¿ A :: Γ₂)) with aux un P₂
+    aux {¿ A ∷ Γ₁} {Γ₂} (un-∷ un) P with contract (split-l +-unit-l) (#process (#push {¿ A ∷ Γ₁} {¿ A} {Γ₁ ++ Γ₂}) P)
+    ... | P₁ rewrite Eq.sym (++-assoc (¿ A ∷ Γ₁) Γ₁ Γ₂) with #process (#sym (#push {Γ₁ ++ Γ₁} {¿ A} {Γ₂})) P₁
+    ... | P₂ rewrite ++-assoc Γ₁ Γ₁ (¿ A ∷ Γ₂) with aux un P₂
     ... | P₃ = #process #push P₃
 
 data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
   r-link :
     ∀{Δ A B}
-    {P : Process (B :: Δ)}
+    {P : Process (B ∷ Δ)}
     (d : Dual A B) (e : Dual A B)
     (p : Γ ≃ B , Δ) ->
     cut d p (link e (split-l (split-r split-e))) P ~> #process (#cons p) P
-
-  -- r-fail :
-  --   ∀{Γ₁ Γ₂ Δ A B P} (d : Dual A B)
-  --   (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ ⊤ , Δ) ->
-  --   let _ , _ , q' = +-assoc-l p q in
-  --   cut d p (fail (split-r q)) P ~> fail q'
 
   r-close :
     ∀{P : Process Γ}
@@ -47,9 +41,9 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
 
   r-select-l :
     ∀{Γ₁ Γ₂ A A' B B'}
-    {P : Process (A :: Γ₁)}
-    {Q : Process (A' :: Γ₂)}
-    {R : Process (B' :: Γ₂)}
+    {P : Process (A ∷ Γ₁)}
+    {Q : Process (A' ∷ Γ₂)}
+    {R : Process (B' ∷ Γ₂)}
     (d : Dual A A') (e : Dual B B')
     (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) ->
     cut (d-⊕-& d e) p
@@ -58,9 +52,9 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
 
   r-select-r :
     ∀{Γ₁ Γ₂ A A' B B'}
-    {P : Process (B :: Γ₁)}
-    {Q : Process (A' :: Γ₂)}
-    {R : Process (B' :: Γ₂)}
+    {P : Process (B ∷ Γ₁)}
+    {Q : Process (A' ∷ Γ₂)}
+    {R : Process (B' ∷ Γ₂)}
     (d : Dual A A') (e : Dual B B')
     (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) ->
     cut (d-⊕-& d e) p
@@ -69,9 +63,9 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
 
   r-fork :
     ∀{Γ₁ Γ₂ Γ₃ Δ A B A' B'}
-    {P : Process (A :: Γ₁)}
-    {Q : Process (B :: Γ₂)}
-    {R : Process (B' :: A' :: Γ₃)}
+    {P : Process (A ∷ Γ₁)}
+    {Q : Process (B ∷ Γ₂)}
+    {R : Process (B' ∷ A' ∷ Γ₃)}
     (d : Dual A A') (e : Dual B B')
     (p : Γ ≃ Δ + Γ₃) (p₀ : Γ₃ ≃ [] + Γ₃)
     (q : Δ ≃ Γ₁ + Γ₂) (q₀ : Δ ≃ [] + Δ) ->
@@ -82,8 +76,8 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
 
   r-client :
     ∀{Γ₁ Γ₂ A A'}
-    {P : Process (A :: Γ₁)}
-    {Q : Process (A' :: Γ₂)}
+    {P : Process (A ∷ Γ₁)}
+    {Q : Process (A' ∷ Γ₂)}
     (d : Dual A A')
     (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂)
     (un : Un Γ₁) ->
@@ -93,7 +87,7 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
 
   r-weaken :
     ∀{Γ₁ Γ₂ A A'}
-    {P : Process (A :: Γ₁)}
+    {P : Process (A ∷ Γ₁)}
     {Q : Process Γ₂}
     (d : Dual A A')
     (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂)
@@ -104,8 +98,8 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
 
   r-contract :
     ∀{Γ₁ Γ₂ A A'}
-    {P : Process (A :: Γ₁)}
-    {Q : Process (¿ A' :: ¿ A' :: Γ₂)}
+    {P : Process (A ∷ Γ₁)}
+    {Q : Process (¿ A' ∷ ¿ A' ∷ Γ₂)}
     (d : Dual A A')
     (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂)
     (un : Un Γ₁) ->
@@ -119,8 +113,8 @@ data _~>_ {Γ} : Process Γ -> Process Γ -> Set where
 
   r-cut :
     ∀{Γ₁ Γ₂ A B}
-    {P Q : Process (A :: Γ₁)}
-    {R : Process (B :: Γ₂)}
+    {P Q : Process (A ∷ Γ₁)}
+    {R : Process (B ∷ Γ₂)}
     (d : Dual A B)
     (q : Γ ≃ Γ₁ + Γ₂)
     (r : P ~> Q) ->
@@ -136,7 +130,3 @@ Reducible P = ∃[ Q ] P ~> Q
 data _=>_ {Γ} : Process Γ -> Process Γ -> Set where
   refl : ∀{P : Process Γ} -> P => P
   tran : ∀{P Q R : Process Γ} -> P ~> Q -> Q => R -> P => R
-
-run-length : ∀{Γ} {P Q : Process Γ} -> P => Q -> ℕ
-run-length refl = 0
-run-length (tran _ reds) = suc (run-length reds)

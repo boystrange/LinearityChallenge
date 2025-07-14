@@ -1,7 +1,7 @@
 open import Data.Sum
-open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
-open import Relation.Nullary using (contradiction)
+open import Data.Product using (_,_)
 open import Relation.Nullary using (¬_; contradiction)
+open import Data.List.Base using ([]; _∷_; [_])
 
 open import Type
 open import Context
@@ -16,22 +16,16 @@ Action P = Input P ⊎ Output P ⊎ Client P ⊎ Server P
 data ActionCut {Γ} : Process Γ -> Set where
   action-cut :
     ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂)
-    {P : Process (A :: Γ₁)} {Q : Process (B :: Γ₂)} ->
+    {P : Process (A ∷ Γ₁)} {Q : Process (B ∷ Γ₂)} ->
     Action P -> Action Q -> ActionCut (cut d p P Q)
-
-data SafeCut {Γ} : Process Γ -> Set where
-  safe-cut :
-    ∀{Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂)
-    {P : Process (A :: Γ₁)} {Q : Process (B :: Γ₂)} ->
-    Output P -> Input Q -> SafeCut (cut d p P Q)
 
 data ReductionContext (Δ : Context) : Context -> Set where
   hole  : ReductionContext Δ Δ
   cut-l : ∀{Γ Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) ->
-          ReductionContext Δ (A :: Γ₁) -> Process (B :: Γ₂) ->
+          ReductionContext Δ (A ∷ Γ₁) -> Process (B ∷ Γ₂) ->
           ReductionContext Δ Γ
   cut-r : ∀{Γ Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) ->
-          Process (A :: Γ₁) -> ReductionContext Δ (B :: Γ₂) ->
+          Process (A ∷ Γ₁) -> ReductionContext Δ (B ∷ Γ₂) ->
           ReductionContext Δ Γ
 
 _⟦_⟧ : ∀{Γ Δ} -> ReductionContext Δ Γ -> Process Δ -> Process Γ

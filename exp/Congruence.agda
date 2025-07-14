@@ -1,6 +1,7 @@
 open import Data.Bool using (Bool; if_then_else_)
 open Bool using (true; false)
-open import Data.Product using (Σ; _,_; ∃; Σ-syntax; ∃-syntax)
+open import Data.Product using (_,_; ∃; ∃-syntax)
+open import Data.List.Base using ([]; _∷_; [_])
 
 open import Type
 open import Context
@@ -25,15 +26,15 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
 
   s-wait :
     ∀{Γ Γ₁ Γ₂ Δ A B}
-    {P : Process (A :: Δ)} {Q : Process (B :: Γ₂)}
+    {P : Process (A ∷ Δ)} {Q : Process (B ∷ Γ₂)}
     (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ ⊥ , Δ) ->
     let _ , p' , q' = +-assoc-l p q in
     cut d p (wait (split-r q) P) Q ⊒ wait q' (cut d p' P Q)
 
   s-select-l :
     ∀{Γ Γ₁ Γ₂ Δ A B C D}
-    {P : Process (C :: A :: Δ)}
-    {Q : Process (B :: Γ₂)}
+    {P : Process (C ∷ A ∷ Δ)}
+    {Q : Process (B ∷ Γ₂)}
     (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ C ⊕ D , Δ) ->
     let _ , p' , q' = +-assoc-l p q in
     cut d p (select true (split-r q) P) Q ⊒
@@ -41,8 +42,8 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
 
   s-select-r :
     ∀{Γ Γ₁ Γ₂ Δ A B C D}
-    {P : Process (D :: A :: Δ)}
-    {Q : Process (B :: Γ₂)}
+    {P : Process (D ∷ A ∷ Δ)}
+    {Q : Process (B ∷ Γ₂)}
     (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ C ⊕ D , Δ) ->
     let _ , p' , q' = +-assoc-l p q in
     cut d p (select false (split-r q) P) Q ⊒
@@ -50,9 +51,9 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
 
   s-case :
     ∀{Γ A B A₁ A₂ Γ₁ Γ₂ Δ}
-    {P : Process (A₁ :: A :: Δ)}
-    {Q : Process (A₂ :: A :: Δ)}
-    {R : Process (B :: Γ₂)}
+    {P : Process (A₁ ∷ A ∷ Δ)}
+    {Q : Process (A₂ ∷ A ∷ Δ)}
+    {R : Process (B ∷ Γ₂)}
     (d : Dual A B)
     (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ A₁ & A₂ , Δ) ->
     let _ , p' , q' = +-assoc-l p q in
@@ -62,9 +63,9 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
 
   s-fork-l :
     ∀{Γ Γ₁ Γ₂ Δ Δ₁ Δ₂ A B C D}
-    {P : Process (C :: A :: Δ₁)}
-    {Q : Process (D :: Δ₂)}
-    {R : Process (B :: Γ₂)}
+    {P : Process (C ∷ A ∷ Δ₁)}
+    {Q : Process (D ∷ Δ₂)}
+    {R : Process (B ∷ Γ₂)}
     (d : Dual A B)
     (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ C ⊗ D , Δ) (r : Δ ≃ Δ₁ + Δ₂) ->
     let _ , p' , q' = +-assoc-l p q in
@@ -75,9 +76,9 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
 
   s-fork-r :
     ∀{Γ Γ₁ Γ₂ Δ Δ₁ Δ₂ A B C D}
-    {P : Process (C :: Δ₁)}
-    {Q : Process (D :: A :: Δ₂)}
-    {R : Process (B :: Γ₂)}
+    {P : Process (C ∷ Δ₁)}
+    {Q : Process (D ∷ A ∷ Δ₂)}
+    {R : Process (B ∷ Γ₂)}
     (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ C ⊗ D , Δ)
     (r : Δ ≃ Δ₁ + Δ₂) ->
     let _ , p' , q' = +-assoc-l p q in
@@ -87,8 +88,8 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
 
   s-join :
     ∀{Γ Γ₁ Γ₂ Δ A B C D}
-    {P : Process (D :: C :: A :: Δ)}
-    {Q : Process (B :: Γ₂)}
+    {P : Process (D ∷ C ∷ A ∷ Δ)}
+    {Q : Process (B ∷ Γ₂)}
     (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ C ⅋ D , Δ) ->
     let _ , p' , q' = +-assoc-l p q in
     cut d p (join (split-r q) P) Q ⊒
@@ -96,18 +97,18 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
 
   s-server :
     ∀{Γ A B C Γ₁ Γ₂ Δ₁}
-    {P : Process (C :: ¿ A :: Δ₁)}
-    {Q : Process (B :: Γ₂)}
+    {P : Process (C ∷ ¿ A ∷ Δ₁)}
+    {Q : Process (B ∷ Γ₂)}
     (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ ¡ C , Δ₁) (r : Γ₂ ≃ [] + Γ₂)
     (un₁ : Un Δ₁) (un₂ : Un Γ₂) ->
     let _ , p' , q' = +-assoc-l p q in
-    cut (d-?-! d) p (server (split-r q) (un-:: un₁) P) (server (split-l r) un₂ Q) ⊒
+    cut (d-?-! d) p (server (split-r q) (un-∷ un₁) P) (server (split-l r) un₂ Q) ⊒
     server q' (#un+ p' un₁ un₂) (cut (d-?-! d) (split-l p') (#process #here P) (server (split-l r) un₂ Q))
 
   s-client :
     ∀{Γ A B C Γ₁ Γ₂ Δ}
-    {P : Process (C :: A :: Δ)}
-    {Q : Process (B :: Γ₂)}
+    {P : Process (C ∷ A ∷ Δ)}
+    {Q : Process (B ∷ Γ₂)}
     (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ ¿ C , Δ) ->
     let _ , p' , q' = +-assoc-l p q in
     cut d p (client (split-r q) P) Q ⊒
@@ -115,8 +116,8 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
 
   s-weaken :
     ∀{Γ A B C Γ₁ Γ₂ Δ}
-    {P : Process (A :: Δ)}
-    {Q : Process (B :: Γ₂)}
+    {P : Process (A ∷ Δ)}
+    {Q : Process (B ∷ Γ₂)}
     (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ ¿ C , Δ) ->
     let _ , p' , q' = +-assoc-l p q in
     cut d p (weaken (split-r q) P) Q ⊒
@@ -124,8 +125,8 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
 
   s-contract :
     ∀{Γ A B C Γ₁ Γ₂ Δ}
-    {P : Process (¿ C :: ¿ C :: A :: Δ)}
-    {Q : Process (B :: Γ₂)}
+    {P : Process (¿ C ∷ ¿ C ∷ A ∷ Δ)}
+    {Q : Process (B ∷ Γ₂)}
     (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ ¿ C , Δ) ->
     let _ , p' , q' = +-assoc-l p q in
     cut d p (contract (split-r q) P) Q ⊒
@@ -135,8 +136,8 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
   s-tran : ∀{Γ} {P Q R : Process Γ} -> P ⊒ Q -> Q ⊒ R -> P ⊒ R
   s-cong-l :
     ∀{Γ Γ₁ Γ₂ A A'}
-    {P Q : Process (A :: Γ₁)}
-    {R : Process (A' :: Γ₂)}
+    {P Q : Process (A ∷ Γ₁)}
+    {R : Process (A' ∷ Γ₂)}
     (d : Dual A A')
     (p : Γ ≃ Γ₁ + Γ₂) -> P ⊒ Q -> cut d p P R ⊒ cut d p Q R
 
@@ -159,8 +160,8 @@ module ⊒-Reasoning where
 
 s-cong-r :
   ∀{Γ Γ₁ Γ₂ A B}
-  {P : Process (A :: Γ₁)}
-  {Q Q' : Process (B :: Γ₂)}
+  {P : Process (A ∷ Γ₁)}
+  {Q Q' : Process (B ∷ Γ₂)}
   (d : Dual A B)
   (p : Γ ≃ Γ₁ + Γ₂) ->
   Q ⊒ Q' -> cut d p P Q ⊒ cut d p P Q'
@@ -173,8 +174,8 @@ s-cong-r {P = P} {Q} {Q'} d p pcong = begin
 
 s-cong-2 :
   ∀{Γ Γ₁ Γ₂ A B}
-  {P P' : Process (A :: Γ₁)}
-  {Q Q' : Process (B :: Γ₂)}
+  {P P' : Process (A ∷ Γ₁)}
+  {Q Q' : Process (B ∷ Γ₂)}
   (d : Dual A B)
   (p : Γ ≃ Γ₁ + Γ₂) ->
   P ⊒ P' -> Q ⊒ Q' -> cut d p P Q ⊒ cut d p P' Q'
