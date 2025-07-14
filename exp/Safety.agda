@@ -11,7 +11,7 @@ open import Reduction
 open import DeadlockFreedom
 
 Action : ∀{Γ} -> Process Γ -> Set
-Action P = Input P ⊎ Output P
+Action P = Input P ⊎ Output P ⊎ Client P ⊎ Server P
 
 data ActionCut {Γ} : Process Γ -> Set where
   action-cut :
@@ -45,12 +45,12 @@ TypeSafe {Γ} P =
   ActionCut Q -> P ⊒ (C ⟦ Q ⟧) -> Reducible Q
 
 action-⊒ : ∀{Γ} {P Q : Process Γ} -> P ⊒ Q -> Action P -> Action Q
-action-⊒ (s-comm d d' p p') (inj₁ ())
+action-⊒ (s-comm d d' p p') (inj₂ (inj₂ (inj₁ ())))
 action-⊒ s-refl Pa = Pa
 action-⊒ (s-tran pc pc') Pa = action-⊒ pc' (action-⊒ pc Pa)
 
 action-cut-⊒ : ∀{Γ} {P Q : Process Γ} -> P ⊒ Q -> ActionCut P -> ActionCut Q
-action-cut-⊒ (s-fail .d .p q)    (action-cut d p (inj₁ ()) Qa)
+action-cut-⊒ (s-fail .d .p q)    (action-cut d p (inj₂ (inj₂ (inj₁ ()))) Qa)
 action-cut-⊒ (s-comm .d d' .p q) (action-cut d p Pa Qa) = action-cut d' q Qa Pa
 action-cut-⊒ s-refl ac = ac
 action-cut-⊒ (s-tran pc pc') ac = action-cut-⊒ pc' (action-cut-⊒ pc ac)
