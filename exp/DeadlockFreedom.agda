@@ -410,39 +410,3 @@ live (cut d p P Q) with live P
 
 deadlock-freedom : ∀{Γ} (P : Process Γ) -> DeadlockFree P
 deadlock-freedom P Q reds = live Q
-
--- data Close : ∀{Γ} -> Process Γ -> Set where
---   close : Close close
-
--- thread-closed : {P : Process [ 𝟙 ]} -> Thread P -> Close P
--- thread-closed (link d (split-l ()))
--- thread-closed (link d (split-r ()))
--- thread-closed (fail (split-r ()))
--- thread-closed (wait (split-r ()))
--- thread-closed (case (split-r ()))
--- thread-closed (join (split-r ()))
--- thread-closed close = close
--- thread-closed (select x (split-r ()))
--- thread-closed (fork (split-r ()) q)
--- thread-closed (server (split-r ()) un)
--- thread-closed (client (split-r ()))
--- thread-closed (weaken (split-r ()))
--- thread-closed (contract (split-r ()))
-
--- ⊒Close : {P Q : Process [ 𝟙 ]} -> P ⊒ Q -> Close Q -> Close P
--- ⊒Close s-refl Qc = Qc
--- ⊒Close (s-tran pcong₁ pcong₂) Qc = ⊒Close pcong₁ (⊒Close pcong₂ Qc)
-
--- Live' : ∀{Γ} -> Process Γ -> Set
--- Live' P = Close P ⊎ Reducible P
-
--- DeadlockFree' : ∀{Γ} -> Process Γ -> Set
--- DeadlockFree' {Γ} P = ∀(Q : Process Γ) -> P => Q -> Live' Q
-
--- live' : (P : Process [ 𝟙 ]) -> Live' P
--- live' P with live P
--- ... | inj₂ x = inj₂ x
--- ... | inj₁ (Q , pcong , Qt) = inj₁ (⊒Close pcong (thread-closed Qt))
-
--- deadlock-freedom' : (P : Process [ 𝟙 ]) -> DeadlockFree' P
--- deadlock-freedom' P Q reds = live' Q

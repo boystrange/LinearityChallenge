@@ -1,24 +1,7 @@
-# Main module
-
-This module imports *everything*.
-
-## Linearity challenge
-
-```agda
 open import Type
 open import Context
 open import Process
 open import Congruence
 open import Reduction
-open import Safety
-```
-
-## Extensions
-
-```agda
 open import DeadlockFreedom
-open import Termination
-open import LinkElimination
-open import CutElimination
-open import Subtyping
-```
+open import Safety
