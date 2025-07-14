@@ -3,6 +3,7 @@ open import Data.Product using (Σ; _×_; _,_; ∃; Σ-syntax; ∃-syntax)
 open import Data.Bool using (Bool; if_then_else_)
 open Bool using (true; false)
 open import Data.List.Base using ([]; _∷_; [_])
+open import Data.List.Relation.Unary.All using (All; []; _∷_)
 
 open import Relation.Nullary using (¬_; contradiction)
 import Relation.Binary.PropositionalEquality as Eq
@@ -102,7 +103,7 @@ data Server : ∀{Γ} -> Process Γ -> Set where
 data DelayedServer : ∀{Γ} -> Process Γ -> Set where
   server :
     ∀{Γ Δ A C} (p : Γ ≃ ¡ A , Δ) (un : Un Δ) {P : Process (A ∷ ¿ C ∷ Δ)} ->
-    DelayedServer (server (split-r p) (un-∷ un) P)
+    DelayedServer (server (split-r p) (un-? ∷ un) P)
 
 Thread : ∀{Γ} -> Process Γ -> Set
 Thread P = Link P ⊎ Delayed P ⊎ Output P ⊎ Input P ⊎ Client P ⊎ Server P ⊎ DelayedServer P
@@ -172,7 +173,7 @@ server-thread :
   ∀{Γ Δ A} (p : Γ ≃ [ ¡ A ] + Δ) (un : Un Δ) {P : Process (A ∷ Δ)} ->
   Thread (server p un P)
 server-thread (split-l p) un = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₁ (server p un))))))
-server-thread (split-r p) (un-∷ un) = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (server p un))))))
+server-thread (split-r p) (un-? ∷ un) = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (server p un))))))
 
 data CanonicalCut {Γ} : Process Γ -> Set where
   cc-link :

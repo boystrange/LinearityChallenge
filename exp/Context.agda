@@ -2,8 +2,10 @@ open import Data.Product using (_×_; Σ; _,_; ∃; Σ-syntax; ∃-syntax)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
 open import Data.List.Base using (List; []; _∷_; [_]; _++_)
+open import Data.List.Relation.Unary.All using (All)
+open import Data.List.Relation.Unary.All.Properties using (++⁺)
 open import Data.List.Relation.Binary.Permutation.Propositional using (_↭_; prep; refl; trans; swap; ↭-sym)
-open import Data.List.Relation.Binary.Permutation.Propositional.Properties
+open import Data.List.Relation.Binary.Permutation.Propositional.Properties using (shift; ↭-empty-inv; ↭-singleton-inv; All-resp-↭)
 
 open import Type
 
@@ -60,107 +62,59 @@ _≃_,_ : Context -> Type -> Context -> Set
 +-sing-l : ∀{A B Γ} -> [ A ] ≃ B , Γ -> A ≡ B × Γ ≡ []
 +-sing-l (split-l split-e) = refl , refl
 
--- data _#_ : Context -> Context -> Set where
---   #refl : ∀{Γ} -> Γ # Γ
---   #tran : ∀{Γ Δ Θ} -> Γ # Δ -> Δ # Θ -> Γ # Θ
---   #next : ∀{Γ Δ A} -> Γ # Δ -> (A ∷ Γ) # (A ∷ Δ)
---   #here : ∀{Γ A B} -> (A ∷ B ∷ Γ) # (B ∷ A ∷ Γ)
-
 _#_ : Context -> Context -> Set
 _#_ = _↭_
 
--- #nil : ∀{Γ} -> [] # Γ -> Γ ≡ []
--- #nil #refl = refl
--- #nil {Γ} (#tran π π') rewrite #nil π = #nil π'
+#here : ∀{A B Γ} -> (A ∷ B ∷ Γ) # (B ∷ A ∷ Γ)
+#here = swap _ _ refl
 
-#nil : ∀{Γ} -> Γ # [] -> Γ ≡ []
-#nil = ↭-empty-inv
+#next : ∀{A Γ Δ} -> Γ # Δ -> (A ∷ Γ) # (A ∷ Δ)
+#next = prep _
 
--- #one : ∀{A Γ} -> [ A ] # Γ -> Γ ≡ [ A ]
--- #one #refl = refl
--- #one (#tran π π') rewrite #one π | #one π' = refl
--- #one (#next π) rewrite #nil π = refl
-
-#one : ∀{A Γ} -> Γ # [ A ] -> Γ ≡ [ A ]
-#one = ↭-singleton-inv
-
--- #rot : ∀{A B C Γ} -> (A ∷ B ∷ C ∷ Γ) # (C ∷ A ∷ B ∷ Γ)
--- #rot = #tran (#next #here) #here
+#rot : ∀{A B C Γ} -> (A ∷ B ∷ C ∷ Γ) # (C ∷ A ∷ B ∷ Γ)
+#rot = trans (#next (swap _ _ refl)) (swap _ _ refl)
 
 #cons : ∀{A Γ Δ} -> Γ ≃ A , Δ -> (A ∷ Δ) # Γ
 #cons (split-l p) with +-empty-l p
 ... | refl = refl
 #cons (split-r p) = trans (swap _ _ refl) (prep _ (#cons p))
 
--- #split : ∀{Γ Γ₁ Γ₂ Δ} -> Γ # Δ -> Γ ≃ Γ₁ + Γ₂ -> ∃[ Δ₁ ] ∃[ Δ₂ ] (Δ ≃ Δ₁ + Δ₂ × Γ₁ # Δ₁ × Γ₂ # Δ₂)
--- #split #refl p = _ , _ , p , #refl , #refl
--- #split (#tran π π') p with #split π p
--- ... | Θ₁ , Θ₂ , p' , π₁ , π₂ with #split π' p'
--- ... | Δ₁ , Δ₂ , q , π₁' , π₂' = Δ₁ , Δ₂ , q , #tran π₁ π₁' , #tran π₂ π₂'
--- #split (#next π) (split-l p) with #split π p
--- ... | Δ₁ , Δ₂ , q , π₁ , π₂  = _ ∷ Δ₁ , Δ₂ , split-l q , #next π₁ , π₂
--- #split (#next π) (split-r p) with #split π p
--- ... | Δ₁ , Δ₂ , q , π₁ , π₂ = Δ₁ , _ ∷ Δ₂ , split-r q , π₁ , #next π₂
--- #split #here (split-l (split-l p)) = _ , _ , split-l (split-l p) , #here , #refl
--- #split #here (split-l (split-r p)) = _ , _ , split-r (split-l p) , #refl , #refl
--- #split #here (split-r (split-l p)) = _ , _ , split-l (split-r p) , #refl , #refl
--- #split #here (split-r (split-r p)) = _ , _ , split-r (split-r p) , #refl , #here
+#split : ∀{Γ Γ₁ Γ₂ Δ} -> Γ # Δ -> Γ ≃ Γ₁ + Γ₂ -> ∃[ Δ₁ ] ∃[ Δ₂ ] (Δ ≃ Δ₁ + Δ₂ × Γ₁ # Δ₁ × Γ₂ # Δ₂)
+#split refl p = _ , _ , p , refl , refl
+#split (prep x π) (split-l p) with #split π p
+... | Δ₁ , Δ₂ , q , π₁ , π₂ = x ∷ Δ₁ , Δ₂ , split-l q , prep x π₁ , π₂
+#split (prep x π) (split-r p) with #split π p
+... | Δ₁ , Δ₂ , q , π₁ , π₂ = Δ₁ , x ∷ Δ₂ , split-r q , π₁ , prep x π₂
+#split (swap x y π) (split-l (split-l p)) with #split π p
+... | Δ₁ , Δ₂ , q , π₁ , π₂ = y ∷ x ∷ Δ₁ , Δ₂ , split-l (split-l q) , swap x y π₁ , π₂
+#split (swap x y π) (split-l (split-r p)) with #split π p
+... | Δ₁ , Δ₂ , q , π₁ , π₂ = x ∷ Δ₁ , y ∷ Δ₂ , split-r (split-l q) , prep x π₁ , prep y π₂
+#split (swap x y π) (split-r (split-l p)) with #split π p
+... | Δ₁ , Δ₂ , q , π₁ , π₂ = y ∷ Δ₁ , x ∷ Δ₂ , split-l (split-r q) , prep y π₁ , prep x π₂
+#split (swap x y π) (split-r (split-r p)) with #split π p
+... | Δ₁ , Δ₂ , q , π₁ , π₂ = Δ₁ , y ∷ x ∷ Δ₂ , split-r (split-r q) , π₁ , swap x y π₂
+#split (trans π π') p with #split π p
+... | Θ₁ , Θ₂ , p' , π₁ , π₂ with #split π' p'
+... | Δ₁ , Δ₂ , q , π₁' , π₂' = Δ₁ , Δ₂ , q , trans π₁ π₁' , trans π₂ π₂'
 
--- #one+ : ∀{A Γ Γ' Δ} ->
---         Γ # Δ -> Γ ≃ A , Γ' -> ∃[ Δ' ] (Δ ≃ A , Δ' × Γ' # Δ')
--- #one+ π p with #split π p
--- ... | Θ , Δ' , q , π₁ , π₂ rewrite #one π₁ = Δ' , q , π₂
-
--- #push : ∀{Γ A Δ} -> (Γ ++ A ∷ Δ) # (A ∷ Γ ++ Δ)
--- #push {[]} = #refl
--- #push {_ ∷ _} = #tran (#next #push) #here
+#one+ : ∀{A Γ Γ' Δ} ->
+        Γ # Δ -> Γ ≃ A , Γ' -> ∃[ Δ' ] (Δ ≃ A , Δ' × Γ' # Δ')
+#one+ π p with #split π p
+... | Θ , Δ' , q , π₁ , π₂ rewrite ↭-singleton-inv (↭-sym π₁) = Δ' , q , π₂
 
 #push : ∀{Γ A Δ} -> (Γ ++ A ∷ Δ) # (A ∷ Γ ++ Δ)
 #push {Γ} {A} {Δ} = shift A Γ Δ
-
--- +++# : ∀{Γ Γ₁ Γ₂} -> Γ ≃ Γ₁ + Γ₂ -> (Γ₁ ++ Γ₂) # Γ
--- +++# split-e = #refl
--- +++# (split-l p) = #next (+++# p)
--- +++# (split-r p) = #tran #push (#next (+++# p))
 
 +++# : ∀{Γ Γ₁ Γ₂} -> Γ ≃ Γ₁ + Γ₂ -> (Γ₁ ++ Γ₂) # Γ
 +++# split-e = refl
 +++# (split-l p) = prep _ (+++# p)
 +++# (split-r p) = trans #push (prep _ (+++# p))
 
--- #sym : ∀{Γ Δ} -> Γ # Δ -> Δ # Γ
--- #sym #refl = #refl
--- #sym (#tran π₁ π₂) = #tran (#sym π₂) (#sym π₁)
--- #sym (#next π) = #next (#sym π)
--- #sym #here = #here
-
-#sym : ∀{Γ Δ} -> Γ # Δ -> Δ # Γ
-#sym = ↭-sym
-
--- ++#r : ∀{Γ Δ Θ} -> Δ # Θ -> (Γ ++ Δ) # (Γ ++ Θ)
--- ++#r {[]} π = π
--- ++#r {_ ∷ Γ} π = #next (++#r π)
-
-++#r : ∀{Γ Δ Θ} -> Δ # Θ -> (Γ ++ Δ) # (Γ ++ Θ)
-++#r {Γ} = ++⁺ˡ Γ
-
-data Un : Context -> Set where
-  un-[] : Un []
-  un-∷ : ∀{Γ A} -> Un Γ -> Un (¿ A ∷ Γ)
-
--- #un : ∀{Γ Δ} -> Γ # Δ -> Un Γ -> Un Δ
--- #un #refl un = un
--- #un (#tran π π') un = #un π' (#un π un)
--- #un (#next π) (un-∷ un) = un-∷ (#un π un)
--- #un #here (un-∷ (un-∷ un)) = un-∷ (un-∷ un)
+Un : Context -> Set
+Un = All UnT
 
 #un : ∀{Γ Δ} -> Γ # Δ -> Un Γ -> Un Δ
-#un refl un = un
-#un (prep _ π) (un-∷ un) = un-∷ (#un π un)
-#un (swap x y π) (un-∷ (un-∷ un)) = un-∷ (un-∷ (#un π un))
-#un (trans π π') un = #un π' (#un π un)
+#un = All-resp-↭
 
 #un+ : ∀{Γ Γ₁ Γ₂} -> Γ ≃ Γ₁ + Γ₂ -> Un Γ₁ -> Un Γ₂ -> Un Γ
-#un+ split-e un-[] un-[] = un-[]
-#un+ (split-l p) (un-∷ un₁) un₂ = un-∷ (#un+ p un₁ un₂)
-#un+ (split-r p) un₁ (un-∷ un₂) = un-∷ (#un+ p un₁ un₂)
+#un+ pc un₁ un₂ = All-resp-↭ (+++# pc) (++⁺ un₁ un₂)

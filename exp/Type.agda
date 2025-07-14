@@ -46,3 +46,6 @@ dual-fun-r d e = dual-inv (dual-symm d) e
 
 dual-fun-l : ∀{A B C} -> Dual B A -> Dual C A -> B ≡ C
 dual-fun-l d e = dual-inv d (dual-symm e)
+
+data UnT : Type -> Set where
+  un-? : ∀{A} -> UnT (¿ A)

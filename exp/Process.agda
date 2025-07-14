@@ -2,6 +2,8 @@ open import Data.Bool using (Bool; if_then_else_)
 open import Relation.Binary.PropositionalEquality using (refl)
 open import Data.Product using (Σ; _×_; _,_; ∃; Σ-syntax; ∃-syntax)
 open import Data.List.Base using ([]; _∷_; [_])
+open import Data.List.Relation.Binary.Permutation.Propositional using (_↭_; prep; ↭-sym)
+open import Data.List.Relation.Binary.Permutation.Propositional.Properties using (++⁺ˡ; shift; ↭-empty-inv; ↭-singleton-inv)
 
 open import Type
 open import Context
@@ -39,9 +41,9 @@ data Process : Context -> Set where
 
 #process : ∀{Γ Δ} -> Γ # Δ -> Process Γ -> Process Δ
 #process π (link d p) with #one+ π p
-... | Δ' , q , π' with #one π'
+... | Δ' , q , π' with ↭-singleton-inv (↭-sym π')
 ... | refl = link d q
-#process π close with #one π
+#process π close with ↭-singleton-inv (↭-sym π)
 ... | refl = close
 #process π (fail p) with #one+ π p
 ... | Δ' , q , π' = fail q
@@ -66,4 +68,3 @@ data Process : Context -> Set where
 ... | Δ' , q , π' = weaken q (#process π' P)
 #process π (contract p P) with #one+ π p
 ... | Δ' , q , π' = contract q (#process (#next (#next π')) P)
-
