@@ -109,8 +109,5 @@ _#_ = _↭_
 Un : Context -> Set
 Un = All UnT
 
-#un : ∀{Γ Δ} -> Γ ↭ Δ -> Un Γ -> Un Δ
-#un = All-resp-↭
-
 #un+ : ∀{Γ Γ₁ Γ₂} -> Γ ≃ Γ₁ + Γ₂ -> Un Γ₁ -> Un Γ₂ -> Un Γ
 #un+ pc un₁ un₂ = All-resp-↭ (+++# pc) (++⁺ un₁ un₂)

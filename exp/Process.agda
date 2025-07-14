@@ -3,7 +3,7 @@ open import Relation.Binary.PropositionalEquality using (refl)
 open import Data.Product using (Σ; _×_; _,_; ∃; Σ-syntax; ∃-syntax)
 open import Data.List.Base using ([]; _∷_; [_])
 open import Data.List.Relation.Binary.Permutation.Propositional using (_↭_; prep; ↭-sym)
-open import Data.List.Relation.Binary.Permutation.Propositional.Properties using (++⁺ˡ; shift; ↭-empty-inv; ↭-singleton-inv)
+open import Data.List.Relation.Binary.Permutation.Propositional.Properties using (++⁺ˡ; shift; ↭-empty-inv; ↭-singleton-inv; All-resp-↭)
 
 open import Type
 open import Context
@@ -61,7 +61,7 @@ data Process : Context -> Set where
 #process π (cut d p P Q) with #split π p
 ... | Δ₁ , Δ₂ , q , π₁ , π₂ = cut d q (#process (#next π₁) P) (#process (#next π₂) Q)
 #process π (server p un P) with #one+ π p
-... | Δ' , q , π' = server q (#un π' un) (#process (#next π') P)
+... | Δ' , q , π' = server q (All-resp-↭ π' un) (#process (#next π') P)
 #process π (client p P) with #one+ π p
 ... | Δ' , q , π' = client q (#process (#next π') P)
 #process π (weaken p P) with #one+ π p
