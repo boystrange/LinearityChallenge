@@ -39,7 +39,7 @@ data Process : Context -> Set where
      ∀{Γ Γ₁ Γ₂ A B} (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) ->
      Process (A ∷ Γ₁) -> Process (B ∷ Γ₂) -> Process Γ
 
-#process : ∀{Γ Δ} -> Γ # Δ -> Process Γ -> Process Δ
+#process : ∀{Γ Δ} -> Γ ↭ Δ -> Process Γ -> Process Δ
 #process π (link d p) with #one+ π p
 ... | Δ' , q , π' with ↭-singleton-inv (↭-sym π')
 ... | refl = link d q

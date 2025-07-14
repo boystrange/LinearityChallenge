@@ -62,16 +62,13 @@ _≃_,_ : Context -> Type -> Context -> Set
 +-sing-l : ∀{A B Γ} -> [ A ] ≃ B , Γ -> A ≡ B × Γ ≡ []
 +-sing-l (split-l split-e) = refl , refl
 
-_#_ : Context -> Context -> Set
-_#_ = _↭_
-
-#here : ∀{A B Γ} -> (A ∷ B ∷ Γ) # (B ∷ A ∷ Γ)
+#here : ∀{A B : Type} {Γ} -> (A ∷ B ∷ Γ) ↭ (B ∷ A ∷ Γ)
 #here = swap _ _ refl
 
-#next : ∀{A Γ Δ} -> Γ # Δ -> (A ∷ Γ) # (A ∷ Δ)
+#next : ∀{A : Type} {Γ Δ} -> Γ ↭ Δ -> (A ∷ Γ) ↭ (A ∷ Δ)
 #next = prep _
 
-#rot : ∀{A B C Γ} -> (A ∷ B ∷ C ∷ Γ) # (C ∷ A ∷ B ∷ Γ)
+#rot : ∀{A B C : Type} {Γ} -> (A ∷ B ∷ C ∷ Γ) ↭ (C ∷ A ∷ B ∷ Γ)
 #rot = trans (#next (swap _ _ refl)) (swap _ _ refl)
 
 #cons : ∀{A Γ Δ} -> Γ ≃ A , Δ -> (A ∷ Δ) ↭ Γ
@@ -79,7 +76,7 @@ _#_ = _↭_
 ... | refl = refl
 #cons (split-r p) = trans (swap _ _ refl) (prep _ (#cons p))
 
-#split : ∀{Γ Γ₁ Γ₂ Δ} -> Γ # Δ -> Γ ≃ Γ₁ + Γ₂ -> ∃[ Δ₁ ] ∃[ Δ₂ ] (Δ ≃ Δ₁ + Δ₂ × Γ₁ # Δ₁ × Γ₂ # Δ₂)
+#split : ∀{Γ Γ₁ Γ₂ Δ} -> Γ ↭ Δ -> Γ ≃ Γ₁ + Γ₂ -> ∃[ Δ₁ ] ∃[ Δ₂ ] (Δ ≃ Δ₁ + Δ₂ × Γ₁ ↭ Δ₁ × Γ₂ ↭ Δ₂)
 #split refl p = _ , _ , p , refl , refl
 #split (prep x π) (split-l p) with #split π p
 ... | Δ₁ , Δ₂ , q , π₁ , π₂ = x ∷ Δ₁ , Δ₂ , split-l q , prep x π₁ , π₂
