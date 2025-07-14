@@ -5,7 +5,7 @@ open import Data.List.Base using (List; []; _∷_; [_]; _++_)
 open import Data.List.Relation.Unary.All using (All)
 open import Data.List.Relation.Unary.All.Properties using (++⁺)
 open import Data.List.Relation.Binary.Permutation.Propositional using (_↭_; prep; refl; trans; swap; ↭-sym)
-open import Data.List.Relation.Binary.Permutation.Propositional.Properties using (shift; ↭-empty-inv; ↭-singleton-inv; All-resp-↭)
+open import Data.List.Relation.Binary.Permutation.Propositional.Properties using (shift; ↭-singleton-inv; All-resp-↭)
 
 open import Type
 
@@ -74,7 +74,7 @@ _#_ = _↭_
 #rot : ∀{A B C Γ} -> (A ∷ B ∷ C ∷ Γ) # (C ∷ A ∷ B ∷ Γ)
 #rot = trans (#next (swap _ _ refl)) (swap _ _ refl)
 
-#cons : ∀{A Γ Δ} -> Γ ≃ A , Δ -> (A ∷ Δ) # Γ
+#cons : ∀{A Γ Δ} -> Γ ≃ A , Δ -> (A ∷ Δ) ↭ Γ
 #cons (split-l p) with +-empty-l p
 ... | refl = refl
 #cons (split-r p) = trans (swap _ _ refl) (prep _ (#cons p))
@@ -97,23 +97,19 @@ _#_ = _↭_
 ... | Θ₁ , Θ₂ , p' , π₁ , π₂ with #split π' p'
 ... | Δ₁ , Δ₂ , q , π₁' , π₂' = Δ₁ , Δ₂ , q , trans π₁ π₁' , trans π₂ π₂'
 
-#one+ : ∀{A Γ Γ' Δ} ->
-        Γ # Δ -> Γ ≃ A , Γ' -> ∃[ Δ' ] (Δ ≃ A , Δ' × Γ' # Δ')
+#one+ : ∀{A Γ Γ' Δ} -> Γ ↭ Δ -> Γ ≃ A , Γ' -> ∃[ Δ' ] (Δ ≃ A , Δ' × Γ' ↭ Δ')
 #one+ π p with #split π p
 ... | Θ , Δ' , q , π₁ , π₂ rewrite ↭-singleton-inv (↭-sym π₁) = Δ' , q , π₂
 
-#push : ∀{Γ A Δ} -> (Γ ++ A ∷ Δ) # (A ∷ Γ ++ Δ)
-#push {Γ} {A} {Δ} = shift A Γ Δ
-
-+++# : ∀{Γ Γ₁ Γ₂} -> Γ ≃ Γ₁ + Γ₂ -> (Γ₁ ++ Γ₂) # Γ
++++# : ∀{Γ Γ₁ Γ₂} -> Γ ≃ Γ₁ + Γ₂ -> (Γ₁ ++ Γ₂) ↭ Γ
 +++# split-e = refl
 +++# (split-l p) = prep _ (+++# p)
-+++# (split-r p) = trans #push (prep _ (+++# p))
++++# (split-r p) = trans (shift _ _ _) (prep _ (+++# p))
 
 Un : Context -> Set
 Un = All UnT
 
-#un : ∀{Γ Δ} -> Γ # Δ -> Un Γ -> Un Δ
+#un : ∀{Γ Δ} -> Γ ↭ Δ -> Un Γ -> Un Δ
 #un = All-resp-↭
 
 #un+ : ∀{Γ Γ₁ Γ₂} -> Γ ≃ Γ₁ + Γ₂ -> Un Γ₁ -> Un Γ₂ -> Un Γ

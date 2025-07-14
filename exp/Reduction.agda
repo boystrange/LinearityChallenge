@@ -5,7 +5,7 @@ open import Data.List.Base using ([]; _∷_; [_]; _++_)
 open import Data.List.Properties using (++-assoc)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
 open import Data.List.Relation.Binary.Permutation.Propositional using (↭-sym)
-open import Data.List.Relation.Binary.Permutation.Propositional.Properties using (++⁺ˡ)
+open import Data.List.Relation.Binary.Permutation.Propositional.Properties using (shift; ++⁺ˡ)
 
 open import Type
 open import Context
@@ -24,10 +24,10 @@ contraction un p P = #process (+++# p) (aux un (#process (++⁺ˡ _ (↭-sym (++
   where
     aux : ∀{Γ₁ Γ₂} -> Un Γ₁ -> Process (Γ₁ ++ Γ₁ ++ Γ₂) -> Process (Γ₁ ++ Γ₂)
     aux [] P = P
-    aux {¿ A ∷ Γ₁} {Γ₂} (un-? ∷ un) P with contract (split-l +-unit-l) (#process (#push {¿ A ∷ Γ₁} {¿ A} {Γ₁ ++ Γ₂}) P)
-    ... | P₁ rewrite Eq.sym (++-assoc (¿ A ∷ Γ₁) Γ₁ Γ₂) with #process (↭-sym (#push {Γ₁ ++ Γ₁} {¿ A} {Γ₂})) P₁
+    aux {¿ A ∷ Γ₁} {Γ₂} (un-? ∷ un) P with contract (split-l +-unit-l) (#process (shift (¿ A) (¿ A ∷ Γ₁) (Γ₁ ++ Γ₂)) P)
+    ... | P₁ rewrite Eq.sym (++-assoc (¿ A ∷ Γ₁) Γ₁ Γ₂) with #process (↭-sym (shift (¿ A) (Γ₁ ++ Γ₁) Γ₂)) P₁
     ... | P₂ rewrite ++-assoc Γ₁ Γ₁ (¿ A ∷ Γ₂) with aux un P₂
-    ... | P₃ = #process #push P₃
+    ... | P₃ = #process (shift _ _ _) P₃
 
 data _↝_ {Γ} : Process Γ -> Process Γ -> Set where
   r-link :
