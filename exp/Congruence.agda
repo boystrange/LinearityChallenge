@@ -3,7 +3,6 @@ open Bool using (true; false)
 open import Data.Product using (_,_; ∃; ∃-syntax)
 open import Data.List.Base using ([]; _∷_; [_])
 open import Data.List.Relation.Unary.All using (All; _∷_)
-open import Data.List.Relation.Binary.Permutation.Propositional using (_↭_; swap; prep; ↭-sym)
 
 open import Type
 open import Context
@@ -104,7 +103,7 @@ data _⊒_ : ∀{Γ} -> Process Γ -> Process Γ -> Set where
     (d : Dual A B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ ¡ C , Δ₁) (r : Γ₂ ≃ [] + Γ₂)
     (un₁ : Un Δ₁) (un₂ : Un Γ₂) ->
     let _ , p' , q' = +-assoc-l p q in
-    cut (d-?-! d) p (server (split-r q) (un-? ∷ un₁) P) (server (split-l r) un₂ Q) ⊒
+    cut (d-?-! d) p (server (split-r q) (un-∷ un₁) P) (server (split-l r) un₂ Q) ⊒
     server q' (#un+ p' un₁ un₂) (cut (d-?-! d) (split-l p') (#process #here P) (server (split-l r) un₂ Q))
 
   s-client :
