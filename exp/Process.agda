@@ -1,9 +1,7 @@
 open import Data.Bool using (Bool; if_then_else_)
 open import Relation.Binary.PropositionalEquality using (refl)
-open import Data.Product using (Σ; _×_; _,_; ∃; Σ-syntax; ∃-syntax)
+open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
 open import Data.List.Base using ([]; _∷_; [_])
-open import Data.List.Relation.Binary.Permutation.Propositional using (_↭_; prep; ↭-sym)
-open import Data.List.Relation.Binary.Permutation.Propositional.Properties using (++⁺ˡ; shift; ↭-empty-inv; ↭-singleton-inv)
 
 open import Type
 open import Context

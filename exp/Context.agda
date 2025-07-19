@@ -1,6 +1,5 @@
-open import Data.Product using (_×_; Σ; _,_; ∃; Σ-syntax; ∃-syntax)
-import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl)
+open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 open import Data.List.Base using (List; []; _∷_; [_]; _++_)
 
 open import Type
@@ -51,7 +50,7 @@ _≃_,_ : Context -> Type -> Context -> Set
 
 +-empty-l : ∀{Γ Δ} -> Γ ≃ [] + Δ -> Γ ≡ Δ
 +-empty-l split-e = refl
-+-empty-l (split-r p) = Eq.cong (_ ∷_) (+-empty-l p)
++-empty-l (split-r p) = cong (_ ∷_) (+-empty-l p)
 
 +-sing-l : ∀{A B Γ} -> [ A ] ≃ B , Γ -> A ≡ B × Γ ≡ []
 +-sing-l (split-l split-e) = refl , refl

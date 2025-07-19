@@ -1,8 +1,6 @@
-open import Data.Bool using (Bool; if_then_else_)
-open Bool using (true; false)
+open import Data.Bool using (Bool; true; false; if_then_else_)
 open import Data.Product using (_,_; ∃; ∃-syntax)
 open import Data.List.Base using ([]; _∷_; [_])
-open import Data.List.Relation.Unary.All using (All; _∷_)
 
 open import Type
 open import Context

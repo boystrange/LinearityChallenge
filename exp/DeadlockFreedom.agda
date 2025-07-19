@@ -1,12 +1,9 @@
 open import Data.Sum
-open import Data.Product using (Σ; _×_; _,_; ∃; Σ-syntax; ∃-syntax)
-open import Data.Bool using (Bool; if_then_else_)
-open Bool using (true; false)
+open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
+open import Data.Bool using (Bool; true; false; if_then_else_)
 open import Data.List.Base using ([]; _∷_; [_])
-
 open import Relation.Nullary using (¬_; contradiction)
-import Relation.Binary.PropositionalEquality as Eq
-open Eq using (refl)
+open import Relation.Binary.PropositionalEquality using (refl)
 
 open import Type
 open import Context
@@ -197,63 +194,51 @@ data CanonicalCut {Γ} : Process Γ -> Set where
     Server P -> Client Q -> CanonicalCut (cut d p P Q)
 
 output-output :
-  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
-  Dual A B -> ¬ (Output P × Output Q)
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} -> Dual A B -> ¬ (Output P × Output Q)
 output-output d-𝟙-⊥ (close , ())
 
 output-client :
-  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
-  Dual A B -> ¬ (Output P × Client Q)
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} -> Dual A B -> ¬ (Output P × Client Q)
 output-client () (close , client p)
 
 output-server :
-  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
-  Dual A B -> ¬ (Output P × Server Q)
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} -> Dual A B -> ¬ (Output P × Server Q)
 output-server () (close , server p un)
 
 output-delayed-server :
-  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
-  Dual A B -> ¬ (Output P × DelayedServer Q)
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} -> Dual A B -> ¬ (Output P × DelayedServer Q)
 output-delayed-server () (close , server p un)
 
 input-input :
-  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
-  Dual A B -> ¬ (Input P × Input Q)
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} -> Dual A B -> ¬ (Input P × Input Q)
 input-input d-⊤-𝟘 (fail p , ())
 
 input-client :
-  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
-  Dual A B -> ¬ (Input P × Client Q)
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} -> Dual A B -> ¬ (Input P × Client Q)
 input-client () (fail p₁ , client p)
 
 input-server :
-  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
-  Dual A B -> ¬ (Input P × Server Q)
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} -> Dual A B -> ¬ (Input P × Server Q)
 input-server () (fail p₁ , server p un)
 
 input-delayed-server :
-  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
-  Dual A B -> ¬ (Input P × DelayedServer Q)
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} -> Dual A B -> ¬ (Input P × DelayedServer Q)
 input-delayed-server () (fail p₁ , server p un)
 
 client-client :
-  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
-  Dual A B -> ¬ (Client P × Client Q)
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} -> Dual A B -> ¬ (Client P × Client Q)
 client-client () (client p , client p₁)
 
 client-delayed-server :
-  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
-  Dual A B -> ¬ (Client P × DelayedServer Q)
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} -> Dual A B -> ¬ (Client P × DelayedServer Q)
 client-delayed-server () (client p₁ , server p un)
 
 server-server :
-  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
-  Dual A B -> ¬ (Server P × Server Q)
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} -> Dual A B -> ¬ (Server P × Server Q)
 server-server () (server p un , server p₁ un₁)
 
 delayed-server-delayed-served :
-  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} ->
-  Dual A B -> ¬ (DelayedServer P × DelayedServer Q)
+  ∀{Γ Δ A B} {P : Process (A ∷ Γ)} {Q : Process (B ∷ Δ)} -> Dual A B -> ¬ (DelayedServer P × DelayedServer Q)
 delayed-server-delayed-served () (server p un , server p₁ un₁)
 
 canonical-cut :

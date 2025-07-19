@@ -1,6 +1,6 @@
 open import Data.Bool using (Bool; true; false)
 open import Data.Product using (_,_; ∃; ∃-syntax)
-import Relation.Binary.PropositionalEquality as Eq
+open import Relation.Binary.PropositionalEquality using (sym)
 open import Data.List.Base using ([]; _∷_; [_]; _++_)
 open import Data.List.Properties using (++-assoc)
 
@@ -22,7 +22,7 @@ contraction un p P = #process (+++# p) (aux un (#process (#left (#sym (+++# p)))
     aux : ∀{Γ₁ Γ₂} -> Un Γ₁ -> Process (Γ₁ ++ Γ₁ ++ Γ₂) -> Process (Γ₁ ++ Γ₂)
     aux un-[] P = P
     aux {¿ A ∷ Γ₁} {Γ₂} (un-∷ un) P with contract (split-l +-unit-l) (#process (#shift {¿ A ∷ Γ₁} {¿ A} {Γ₁ ++ Γ₂}) P)
-    ... | P₁ rewrite Eq.sym (++-assoc (¿ A ∷ Γ₁) Γ₁ Γ₂) with #process (#sym (#shift {Γ₁ ++ Γ₁} {¿ A})) P₁
+    ... | P₁ rewrite sym (++-assoc (¿ A ∷ Γ₁) Γ₁ Γ₂) with #process (#sym (#shift {Γ₁ ++ Γ₁} {¿ A})) P₁
     ... | P₂ rewrite ++-assoc Γ₁ Γ₁ (¿ A ∷ Γ₂) with aux un P₂
     ... | P₃ = #process #shift P₃
 
