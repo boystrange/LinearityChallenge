@@ -22,57 +22,57 @@ normalize (suc n) P with DF.deadlock-freedom P
 ... | inj₂ (Q , _) = normalize n Q
 
 poly0 : Process [ `∀ (var zero ⅋ rav zero) ]
-poly0 = all (⊲ []) λ X ->
-      join (⊲ [])
-      (link (⊳ ⊲ []))
+poly0 = all (< ≫) λ X ->
+      join (< ≫)
+      (link (> < ≫))
 
 poly1 : Process [ `∀ (`∀ (var (suc zero) ⅋ (var zero ⅋ (rav zero ⊗ rav (suc zero))))) ]
-poly1 = all (⊲ []) λ X ->
-        all (⊲ []) λ Y ->
-        join (⊲ []) $
-        join (⊲ ⊳ []) $
-        fork (⊲ ⊳ ⊳ []) (⊲ ⊳ [])
-             (link (⊳ ⊲ []))
-             (link (⊳ ⊲ []))
+poly1 = all (< ≫) λ X ->
+        all (< ≫) λ Y ->
+        join (< ≫) $
+        join (< ≫) $
+        fork (< ≫) (< ≫)
+             (link (> < ≫))
+             (link (> < ≫))
 
 𝔹 : Type
 𝔹 = 𝟙 ⊕ 𝟙
 
 True : Process [ 𝔹 ]
-True = select true (⊲ []) close
+True = select true (< ≫) close
 
 False : Process [ 𝔹 ]
-False = select false (⊲ []) close
+False = select false (< ≫) close
 
 Not : Process (dual 𝔹 ∷ 𝔹 ∷ [])
-Not = case (⊲ ⊳ [])
-           (wait (⊲ ⊳ []) False)
-           (wait (⊲ ⊳ []) True)
+Not = case (< ≫)
+           (wait (< ≫) False)
+           (wait (< ≫) True)
 
 Copy : Process (dual 𝔹 ∷ 𝔹 ∷ [])
-Copy = cut {𝔹} (⊲ ⊳ []) (#process #here Not) Not
+Copy = cut {𝔹} (< ≫) (#process #here Not) Not
 
 Drop : Process (dual 𝔹 ∷ 𝟙 ∷ [])
-Drop = case (⊲ ⊳ [])
-            (wait (⊲ ⊳ []) close)
-            (wait (⊲ ⊳ []) close)
+Drop = case (< ≫)
+            (wait (< ≫) close)
+            (wait (< ≫) close)
 
 And : Process (dual 𝔹 ∷ dual 𝔹 ∷ 𝔹 ∷ [])
-And = case (⊲ ⊳ ⊳ [])
-           (wait (⊲ ⊳ ⊳ []) Copy)
-           (wait (⊲ ⊳ ⊳ [])
-                 (cut (⊲ ⊳ [])
+And = case (< ≫)
+           (wait (< ≫) Copy)
+           (wait (< ≫)
+                 (cut (< ≫)
                       (#process #here Drop)
-                      (wait (⊲ ⊳ []) False)))
+                      (wait (< ≫) False)))
 
 Or : Process (dual 𝔹 ∷ dual 𝔹 ∷ 𝔹 ∷ [])
-Or = cut (⊲ ⊲ ⊳ [])
-         (cut (⊳ ⊲ ⊳ [])
+Or = cut (< < ≫)
+         (cut (> < ≫)
               (#process #here Not)
-              (cut (⊳ ⊳ ⊲ [])
+              (cut (> > < ≫)
                    (#process #here Not)
                    And))
          Not
 
 ex1 : Process [ 𝔹 ]
-ex1 = cut (⊳ []) True (cut (⊳ ⊳ []) True Or)
+ex1 = cut ≫ True (cut ≫ True Or)
