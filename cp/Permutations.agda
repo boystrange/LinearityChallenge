@@ -31,20 +31,20 @@ data _#_ : Context → Context → Set where
 #rot = #tran (#next #here) #here
 
 #cons : ∀{A Γ Δ} → Γ ≃ A , Δ → (A ∷ Δ) # Γ
-#cons (split-l p) with +-empty-l p
+#cons (⊲ p) with +-empty-l p
 ... | refl = #refl
-#cons (split-r p) = #tran #here (#next (#cons p))
+#cons (⊳ p) = #tran #here (#next (#cons p))
 
 #split : ∀{Γ Γ₁ Γ₂ Δ} → Γ # Δ → Γ ≃ Γ₁ + Γ₂ → ∃[ Δ₁ ] ∃[ Δ₂ ] (Δ ≃ Δ₁ + Δ₂ × Γ₁ # Δ₁ × Γ₂ # Δ₂)
 #split #refl p = _ , _ , p , #refl , #refl
-#split (#next π) (split-l p) with #split π p
-... | Δ₁ , Δ₂ , q , π₁ , π₂ = _ ∷ Δ₁ , Δ₂ , split-l q , #next π₁ , π₂
-#split (#next π) (split-r p) with #split π p
-... | Δ₁ , Δ₂ , q , π₁ , π₂ = Δ₁ , _ ∷ Δ₂ , split-r q , π₁ , #next π₂
-#split #here (split-l (split-l p)) = _ , _ , split-l (split-l p) , #here , #refl
-#split #here (split-l (split-r p)) = _ , _ , split-r (split-l p) , #refl , #refl
-#split #here (split-r (split-l p)) = _ , _ , split-l (split-r p) , #refl , #refl
-#split #here (split-r (split-r p)) = _ , _ , split-r (split-r p) , #refl , #here
+#split (#next π) (⊲ p) with #split π p
+... | Δ₁ , Δ₂ , q , π₁ , π₂ = _ ∷ Δ₁ , Δ₂ , ⊲ q , #next π₁ , π₂
+#split (#next π) (⊳ p) with #split π p
+... | Δ₁ , Δ₂ , q , π₁ , π₂ = Δ₁ , _ ∷ Δ₂ , ⊳ q , π₁ , #next π₂
+#split #here (⊲ ⊲ p) = _ , _ , ⊲ ⊲ p , #here , #refl
+#split #here (⊲ ⊳ p) = _ , _ , ⊳ ⊲ p , #refl , #refl
+#split #here (⊳ ⊲ p) = _ , _ , ⊲ ⊳ p , #refl , #refl
+#split #here (⊳ ⊳ p) = _ , _ , ⊳ ⊳ p , #refl , #here
 #split (#tran π π′) p with #split π p
 ... | Θ₁ , Θ₂ , p′ , π₁ , π₂ with #split π′ p′
 ... | Δ₁ , Δ₂ , q , π₁′ , π₂′ = Δ₁ , Δ₂ , q , #tran π₁ π₁′ , #tran π₂ π₂′
@@ -58,9 +58,9 @@ data _#_ : Context → Context → Set where
 #shift {_} {B ∷ Γ} = #tran (#next #shift) #here
 
 +++# : ∀{Γ Γ₁ Γ₂} → Γ ≃ Γ₁ + Γ₂ → (Γ₁ ++ Γ₂) # Γ
-+++# split-e = #refl
-+++# (split-l p) = #next (+++# p)
-+++# (split-r p) = #tran #shift (#next (+++# p))
++++# [] = #refl
++++# (⊲ p) = #next (+++# p)
++++# (⊳ p) = #tran #shift (#next (+++# p))
 
 #left : ∀{Γ Δ Θ} → Γ # Δ → (Θ ++ Γ) # (Θ ++ Δ)
 #left {Θ = []} π = π
@@ -73,6 +73,6 @@ data _#_ : Context → Context → Set where
 #un (#tran π π′) un = #un π′ (#un π un)
 
 #un+ : ∀{Γ Γ₁ Γ₂} → Γ ≃ Γ₁ + Γ₂ → Un Γ₁ → Un Γ₂ → Un Γ
-#un+ split-e un-[] un-[] = un-[]
-#un+ (split-l p) (un-∷ un₁) un₂ = un-∷ (#un+ p un₁ un₂)
-#un+ (split-r p) un₁ (un-∷ un₂) = un-∷ (#un+ p un₁ un₂)
+#un+ [] un-[] un-[] = un-[]
+#un+ (⊲ p) (un-∷ un₁) un₂ = un-∷ (#un+ p un₁ un₂)
+#un+ (⊳ p) un₁ (un-∷ un₂) = un-∷ (#un+ p un₁ un₂)
