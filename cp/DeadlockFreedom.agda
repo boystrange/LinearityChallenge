@@ -28,7 +28,7 @@ data Input : ∀{Γ} → Process Γ → Set where
   join : ∀{Γ Δ A B} (p : Γ ≃ [] + Δ) {P : Process (B ∷ A ∷ Δ)} →
          Input (join (split-l p) P)
   all  : ∀{A Γ Δ} (p : Γ ≃ [] + Δ)
-         {F : (B : Type) -> Process (subst (make-subst B) A ∷ Δ)} ->
+         {F : (B : Type) -> Process (subst [ B /_] A ∷ Δ)} ->
          Input (all {A = A} (split-l p) F)
 
 data Output : ∀{Γ} → Process Γ → Set where
@@ -39,7 +39,7 @@ data Output : ∀{Γ} → Process Γ → Set where
            {P : Process (A ∷ Δ₁)} {Q : Process (B ∷ Δ₂)} →
            Output (fork (split-l p) q P Q)
   ex     : ∀{A B Γ Δ} (p : Γ ≃ [] + Δ)
-           {P : Process (subst (make-subst B) A ∷ Δ)} ->
+           {P : Process (subst [ B /_] A ∷ Δ)} ->
            Output (ex {A = A} (split-l p) P)
 
 data Delayed : ∀{Γ} → Process Γ → Set where
@@ -65,10 +65,10 @@ data Delayed : ∀{Γ} → Process Γ → Set where
   contract : ∀{Γ Δ A C} (p : Γ ≃ `? A , Δ) {P : Process (`? A ∷ `? A ∷ C ∷ Δ)} →
              Delayed (contract (split-r p) P)
   ex       : ∀{A B C Γ Δ} (p : Γ ≃ `∃ A , Δ)
-             {P : Process (subst (make-subst B) A ∷ C ∷ Δ)} ->
+             {P : Process (subst [ B /_] A ∷ C ∷ Δ)} ->
              Delayed (ex (split-r p) P)
   all      : ∀{A C Γ Δ} (p : Γ ≃ `∀ A , Δ)
-             {F : (B : Type) -> Process (subst (make-subst B) A ∷ C ∷ Δ)} ->
+             {F : (B : Type) -> Process (subst [ B /_] A ∷ C ∷ Δ)} ->
              Delayed (all (split-r p) F)
 
 data Client : ∀{Γ} → Process Γ → Set where
@@ -168,14 +168,14 @@ server-thread (split-r p) (un-∷ un) = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (
 
 ex-thread :
   ∀{A B Γ Δ} (p : Γ ≃ `∃ A , Δ)
-  {P : Process (subst (make-subst B) A ∷ Δ)} ->
+  {P : Process (subst [ B /_] A ∷ Δ)} ->
   Thread (ex p P)
 ex-thread (split-l p) = inj₂ (inj₂ (inj₁ (ex p)))
 ex-thread (split-r p) = inj₂ (inj₁ (ex p))
 
 all-thread :
   ∀{A Γ Δ} (p : Γ ≃ `∀ A , Δ)
-  {F : (B : Type) -> Process (subst (make-subst B) A ∷ Δ)} ->
+  {F : (B : Type) -> Process (subst [ B /_] A ∷ Δ)} ->
   Thread (all p F)
 all-thread (split-l p) = inj₂ (inj₂ (inj₂ (inj₁ (all p))))
 all-thread (split-r p) = inj₂ (inj₁ (all p))

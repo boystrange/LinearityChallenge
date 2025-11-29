@@ -99,14 +99,14 @@ data _⊒_ : ∀{Γ} → Process Γ → Process Γ → Set where
     contract q′ (cut (split-l (split-l p′)) (#process #rot P) Q)
   s-ex :
     ∀{Γ A B C Γ₁ Γ₂ Δ}
-    {P : Process (subst (make-subst C) B ∷ A ∷ Δ)}
+    {P : Process (subst [ C /_] B ∷ A ∷ Δ)}
     {Q : Process (dual A ∷ Γ₂)}
     (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ `∃ B , Δ) ->
     let _ , p' , q' = +-assoc-l p q in
     cut p (ex (split-r q) P) Q ⊒ ex q' (cut (split-l p') (#process #here P) Q)
   s-all :
     ∀{Γ A B Γ₁ Γ₂ Δ}
-    {F : (C : Type) -> Process (subst (make-subst C) B ∷ A ∷ Δ)}
+    {F : (C : Type) -> Process (subst [ C /_] B ∷ A ∷ Δ)}
     {Q : Process (dual A ∷ Γ₂)}
     (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ `∀ B , Δ) ->
     let _ , p' , q' = +-assoc-l p q in

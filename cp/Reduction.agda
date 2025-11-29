@@ -65,8 +65,8 @@ data _↝_ {Γ} : Process Γ → Process Γ → Set where
                     contraction un p
                       (cut ++≃+ (server (split-l p₀) un P)
                       (cut (split-r p) (server (split-l p₀) un P) Q))
-  r-poly       : ∀{A B Γ₁ Γ₂} {P : Process (subst (make-subst B) A ∷ Γ₁)}
-                 {F : (C : Type) -> Process (subst (make-subst C) (dual A) ∷ Γ₂)}
+  r-poly       : ∀{A B Γ₁ Γ₂} {P : Process (subst [ B /_] A ∷ Γ₁)}
+                 {F : (C : Type) -> Process (subst [ C /_] (dual A) ∷ Γ₂)}
                  (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) ->
                  cut p (ex {A = A} (split-l p₀) P) (all (split-l q₀) F) ↝ cut p P (F B)
   r-cut        : ∀{Γ₁ Γ₂ A} {P Q : Process (A ∷ Γ₁)} {R : Process (dual A ∷ Γ₂)}
