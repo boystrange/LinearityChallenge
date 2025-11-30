@@ -30,36 +30,36 @@ data Process : Context → Set where
   cut       : ∀{A Γ Γ₁ Γ₂} → Γ ≃ Γ₁ + Γ₂ →
               Process (A ∷ Γ₁) → Process (dual A ∷ Γ₂) → Process Γ
 
-#process : ∀{Γ Δ} → Γ # Δ → Process Γ → Process Δ
-#process π (link p) with #one+ π p
-... | Δ′ , q , π′ with #singleton-inv π′
+↭process : ∀{Γ Δ} → Γ ↭ Δ → Process Γ → Process Δ
+↭process π (link p) with ↭one+ π p
+... | Δ′ , q , π′ with ↭singleton-inv π′
 ... | refl = link q
-#process π (fail p) with #one+ π p
+↭process π (fail p) with ↭one+ π p
 ... | Δ′ , q , π′ = fail q
-#process π (wait p P) with #one+ π p
-... | Δ′ , q , π′ = wait q (#process π′ P)
-#process π close with #singleton-inv π
+↭process π (wait p P) with ↭one+ π p
+... | Δ′ , q , π′ = wait q (↭process π′ P)
+↭process π close with ↭singleton-inv π
 ... | refl = close
-#process π (case p P Q) with #one+ π p
-... | Δ′ , q , π′ = case q (#process (#next π′) P) (#process (#next π′) Q)
-#process π (select x p P) with #one+ π p
-... | Δ′ , q , π′ = select x q (#process (#next π′) P)
-#process π (join p P) with #one+ π p
-... | Δ′ , q , π′ = join q (#process (#next (#next π′)) P)
-#process π (fork p q P Q) with #one+ π p
-... | Δ′ , p′ , π′ with #split π′ q
-... | Δ₁ , Δ₂ , q′ , π₁ , π₂ = fork p′ q′ (#process (#next π₁) P) (#process (#next π₂) Q)
-#process π (all p P) with #one+ π p
-... | Δ' , q , π' = all q λ B → #process (#next π') (P B)
-#process π (ex p P) with #one+ π p
-... | Δ' , q , π' = ex q (#process (#next π') P)
-#process π (server p un P) with #one+ π p
-... | Δ′ , q , π′ = server q (#un π′ un) (#process (#next π′) P)
-#process π (client p P) with #one+ π p
-... | Δ′ , q , π′ = client q (#process (#next π′) P)
-#process π (weaken p P) with #one+ π p
-... | Δ′ , q , π′ = weaken q (#process π′ P)
-#process π (contract p P) with #one+ π p
-... | Δ′ , q , π′ = contract q (#process (#next (#next π′)) P)
-#process π (cut p P Q) with #split π p
-... | Δ₁ , Δ₂ , q , π₁ , π₂ = cut q (#process (#next π₁) P) (#process (#next π₂) Q)
+↭process π (case p P Q) with ↭one+ π p
+... | Δ′ , q , π′ = case q (↭process (prep π′) P) (↭process (prep π′) Q)
+↭process π (select x p P) with ↭one+ π p
+... | Δ′ , q , π′ = select x q (↭process (prep π′) P)
+↭process π (join p P) with ↭one+ π p
+... | Δ′ , q , π′ = join q (↭process (prep (prep π′)) P)
+↭process π (fork p q P Q) with ↭one+ π p
+... | Δ′ , p′ , π′ with ↭split π′ q
+... | Δ₁ , Δ₂ , q′ , π₁ , π₂ = fork p′ q′ (↭process (prep π₁) P) (↭process (prep π₂) Q)
+↭process π (all p P) with ↭one+ π p
+... | Δ' , q , π' = all q λ B → ↭process (prep π') (P B)
+↭process π (ex p P) with ↭one+ π p
+... | Δ' , q , π' = ex q (↭process (prep π') P)
+↭process π (server p un P) with ↭one+ π p
+... | Δ′ , q , π′ = server q (↭un π′ un) (↭process (prep π′) P)
+↭process π (client p P) with ↭one+ π p
+... | Δ′ , q , π′ = client q (↭process (prep π′) P)
+↭process π (weaken p P) with ↭one+ π p
+... | Δ′ , q , π′ = weaken q (↭process π′ P)
+↭process π (contract p P) with ↭one+ π p
+... | Δ′ , q , π′ = contract q (↭process (prep (prep π′)) P)
+↭process π (cut p P Q) with ↭split π p
+... | Δ₁ , Δ₂ , q , π₁ , π₂ = cut q (↭process (prep π₁) P) (↭process (prep π₂) Q)

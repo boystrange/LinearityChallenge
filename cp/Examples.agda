@@ -1,9 +1,9 @@
 {-# OPTIONS --rewriting #-}
-open import Data.Sum hiding (reduce)
+open import Data.Sum hiding (reduce; swap)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
 open import Data.Bool using (true; false)
 open import Data.Nat using (ℕ; zero; suc)
-open import Data.Fin using (zero; suc)
+open import Data.Fin using (zero; suc; #_)
 open import Data.List.Base using (List; []; _∷_; [_]; _++_)
 open import Function using (_$_)
 open import Data.Maybe
@@ -20,12 +20,12 @@ reduce (suc n) P with DF.deadlock-freedom P
 ... | inj₁ (Q , _ , _) = Q
 ... | inj₂ (Q , _) = reduce n Q
 
-poly0 : Process [ `∀ (var zero ⅋ rav zero) ]
+poly0 : Process [ `∀ (var (# 0) ⅋ rav (# 0)) ]
 poly0 = all (< ≫) λ X ->
         join (< ≫) $
         link (> < ≫)
 
-poly1 : Process [ `∀ (`∀ (var (suc zero) ⅋ (var zero ⅋ (rav zero ⊗ rav (suc zero))))) ]
+poly1 : Process [ `∀ (`∀ (var (# 1) ⅋ (var (# 0) ⅋ (rav (# 0) ⊗ rav (# 1))))) ]
 poly1 = all (< ≫) λ X ->
         all (< ≫) λ Y ->
         join (< ≫) $
@@ -49,7 +49,7 @@ Not = case (< ≫)
            (wait (< ≫) True)
 
 Copy : Process (dual 𝔹 ∷ 𝔹 ∷ [])
-Copy = cut (< ≫) (#process #here Not) Not
+Copy = cut (< ≫) (↭process swap Not) Not
 
 Drop : Process (dual 𝔹 ∷ 𝟙 ∷ [])
 Drop = case (< ≫)
@@ -61,15 +61,15 @@ And = case (< ≫)
            (wait (< ≫) Copy)
            (wait (< ≫)
                  (cut (< ≫)
-                      (#process #here Drop)
+                      (↭process swap Drop)
                       (wait (< ≫) False)))
 
 Or : Process (dual 𝔹 ∷ dual 𝔹 ∷ 𝔹 ∷ [])
 Or = cut (< < ≫)
          (cut (> < ≫)
-              (#process #here Not)
+              (↭process swap Not)
               (cut (> > < ≫)
-                   (#process #here Not)
+                   (↭process swap Not)
                    And))
          Not
 
