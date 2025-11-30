@@ -1,7 +1,6 @@
 {-# OPTIONS --rewriting #-}
-open import Data.Sum
+open import Data.Sum hiding (reduce)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
-open import Data.Unit.Base using (⊤; tt)
 open import Data.Bool using (true; false)
 open import Data.Nat using (ℕ; zero; suc)
 open import Data.Fin using (zero; suc)
@@ -15,16 +14,16 @@ open import Permutations
 open import Process
 import DeadlockFreedom as DF
 
-normalize : ∀{Γ} -> ℕ -> Process Γ -> Data.Unit.Base.⊤ ⊎ Process Γ
-normalize zero P = inj₁ tt
-normalize (suc n) P with DF.deadlock-freedom P
-... | inj₁ (Q , _ , _) = inj₂ Q
-... | inj₂ (Q , _) = normalize n Q
+reduce : ∀{Γ} -> ℕ -> Process Γ -> Process Γ
+reduce zero P = P
+reduce (suc n) P with DF.deadlock-freedom P
+... | inj₁ (Q , _ , _) = Q
+... | inj₂ (Q , _) = reduce n Q
 
 poly0 : Process [ `∀ (var zero ⅋ rav zero) ]
 poly0 = all (< ≫) λ X ->
-      join (< ≫)
-      (link (> < ≫))
+        join (< ≫) $
+        link (> < ≫)
 
 poly1 : Process [ `∀ (`∀ (var (suc zero) ⅋ (var zero ⅋ (rav zero ⊗ rav (suc zero))))) ]
 poly1 = all (< ≫) λ X ->
@@ -50,7 +49,7 @@ Not = case (< ≫)
            (wait (< ≫) True)
 
 Copy : Process (dual 𝔹 ∷ 𝔹 ∷ [])
-Copy = cut {𝔹} (< ≫) (#process #here Not) Not
+Copy = cut (< ≫) (#process #here Not) Not
 
 Drop : Process (dual 𝔹 ∷ 𝟙 ∷ [])
 Drop = case (< ≫)
@@ -75,4 +74,4 @@ Or = cut (< < ≫)
          Not
 
 ex1 : Process [ 𝔹 ]
-ex1 = cut ≫ True (cut ≫ True Or)
+ex1 = cut ≫ False (cut ≫ False Or)

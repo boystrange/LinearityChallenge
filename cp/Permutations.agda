@@ -1,4 +1,5 @@
 {-# OPTIONS --rewriting #-}
+open import Data.Sum
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong₂)
 open import Data.List.Base using (List; []; _∷_; [_]; _++_)
@@ -23,17 +24,12 @@ data _#_ : Context → Context → Set where
 #empty-inv (#tran π π′) rewrite #empty-inv π | #empty-inv π′ = refl
 
 #singleton-inv : ∀{A Γ} → [ A ] # Γ → Γ ≡ [ A ]
-#singleton-inv {Γ = Γ} #refl = refl
-#singleton-inv {Γ = Γ} (#next π) rewrite #empty-inv π = refl
-#singleton-inv {Γ = Γ} (#tran π π′) rewrite #singleton-inv π | #singleton-inv π′ = refl
+#singleton-inv #refl = refl
+#singleton-inv (#next π) rewrite #empty-inv π = refl
+#singleton-inv (#tran π π′) rewrite #singleton-inv π | #singleton-inv π′ = refl
 
 #rot : ∀{A B C Γ} → (A ∷ B ∷ C ∷ Γ) # (C ∷ A ∷ B ∷ Γ)
 #rot = #tran (#next #here) #here
-
-#cons : ∀{A Γ Δ} → Γ ≃ A , Δ → (A ∷ Δ) # Γ
-#cons (< p) with +-empty-l p
-... | refl = #refl
-#cons (> p) = #tran #here (#next (#cons p))
 
 #split : ∀{Γ Γ₁ Γ₂ Δ} → Γ # Δ → Γ ≃ Γ₁ + Γ₂ → ∃[ Δ₁ ] ∃[ Δ₂ ] (Δ ≃ Δ₁ + Δ₂ × Γ₁ # Δ₁ × Γ₂ # Δ₂)
 #split #refl p = _ , _ , p , #refl , #refl
@@ -57,10 +53,10 @@ data _#_ : Context → Context → Set where
 #shift {_} {[]} = #refl
 #shift {_} {B ∷ Γ} = #tran (#next #shift) #here
 
-+++# : ∀{Γ Γ₁ Γ₂} → Γ ≃ Γ₁ + Γ₂ → (Γ₁ ++ Γ₂) # Γ
-+++# • = #refl
-+++# (< p) = #next (+++# p)
-+++# (> p) = #tran #shift (#next (+++# p))
+#concat : ∀{Γ Γ₁ Γ₂} → Γ ≃ Γ₁ + Γ₂ → (Γ₁ ++ Γ₂) # Γ
+#concat • = #refl
+#concat (< p) = #next (#concat p)
+#concat (> p) = #tran #shift (#next (#concat p))
 
 #left : ∀{Γ Δ Θ} → Γ # Δ → (Θ ++ Γ) # (Θ ++ Δ)
 #left {Θ = []} π = π
