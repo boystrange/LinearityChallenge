@@ -1,5 +1,4 @@
 {-# OPTIONS --rewriting #-}
-open import Data.Bool using (Bool; true; false; if_then_else_)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong₂)
 open import Data.List.Base using (List; []; _∷_; [_]; _++_)
@@ -15,8 +14,8 @@ data Process : Context → Set where
   close     : Process [ 𝟙 ]
   case      : ∀{A B Γ Δ} → Γ ≃ A & B , Δ →
               Process (A ∷ Δ) → Process (B ∷ Δ) → Process Γ
-  select    : ∀{A B Γ Δ} (x : Bool) → Γ ≃ A ⊕ B , Δ →
-              Process ((if x then A else B) ∷ Δ) → Process Γ
+  left      : ∀{A B Γ Δ} → Γ ≃ A ⊕ B , Δ → Process (A ∷ Δ) → Process Γ
+  right     : ∀{A B Γ Δ} → Γ ≃ A ⊕ B , Δ → Process (B ∷ Δ) → Process Γ
   join      : ∀{A B Γ Δ} → Γ ≃ A ⅋ B , Δ → Process (B ∷ A ∷ Δ) → Process Γ
   fork      : ∀{A B Γ Δ Γ₁ Γ₂} → Γ ≃ A ⊗ B , Δ → Δ ≃ Γ₁ + Γ₂ →
               Process (A ∷ Γ₁) → Process (B ∷ Γ₂) → Process Γ
@@ -40,8 +39,10 @@ data Process : Context → Set where
 ↭process π close rewrite ↭solo-inv π = close
 ↭process π (case p P Q) with ↭solo π p
 ... | Δ′ , q , π′ = case q (↭process (prep π′) P) (↭process (prep π′) Q)
-↭process π (select x p P) with ↭solo π p
-... | Δ′ , q , π′ = select x q (↭process (prep π′) P)
+↭process π (left p P) with ↭solo π p
+... | Δ′ , q , π′ = left q (↭process (prep π′) P)
+↭process π (right p P) with ↭solo π p
+... | Δ′ , q , π′ = right q (↭process (prep π′) P)
 ↭process π (join p P) with ↭solo π p
 ... | Δ′ , q , π′ = join q (↭process (prep (prep π′)) P)
 ↭process π (fork p q P Q) with ↭solo π p

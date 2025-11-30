@@ -34,15 +34,15 @@ data _↝_ {Γ} : Process Γ → Process Γ → Set where
                 cut {A} p (link (< > •)) P ↝ ↭process (↭concat p) P
   r-close     : ∀{P : Process Γ} (p₀ : Γ ≃ [] + Γ) (q₀ : Γ ≃ [] + Γ) →
                 cut p₀ close (wait (< q₀) P) ↝ P
-  r-select-l  : ∀{Γ₁ Γ₂ A B}
+  r-left      : ∀{Γ₁ Γ₂ A B}
                 {P : Process (A ∷ Γ₁)} {Q : Process (dual A ∷ Γ₂)} {R : Process (dual B ∷ Γ₂)}
                 (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) →
-                cut {A ⊕ B} p (select true (< p₀) P)
+                cut {A ⊕ B} p (left (< p₀) P)
                               (case (< q₀) Q R) ↝ cut p P Q
-  r-select-r  : ∀{Γ₁ Γ₂ A B}
+  r-right     : ∀{Γ₁ Γ₂ A B}
                 {P : Process (B ∷ Γ₁)} {Q : Process (dual A ∷ Γ₂)} {R : Process (dual B ∷ Γ₂)}
                 (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) →
-                cut {A ⊕ B} p (select false (< p₀) P)
+                cut {A ⊕ B} p (right (< p₀) P)
                               (case (< q₀) Q R) ↝ cut p P R
   r-fork      : ∀{Γ₁ Γ₂ Γ₃ Δ A B}
                 {P : Process (A ∷ Γ₁)} {Q : Process (B ∷ Γ₂)} {R : Process (dual B ∷ dual A ∷ Γ₃)}

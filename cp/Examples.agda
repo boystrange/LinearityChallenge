@@ -1,7 +1,6 @@
 {-# OPTIONS --rewriting #-}
 open import Data.Sum hiding (reduce; swap)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
-open import Data.Bool using (true; false)
 open import Data.Nat using (ℕ; zero; suc)
 open import Data.Fin using (zero; suc; #_)
 open import Data.List.Base using (List; []; _∷_; [_]; _++_)
@@ -38,10 +37,10 @@ poly1 = all (< ≫) λ X ->
 𝔹 = 𝟙 ⊕ 𝟙
 
 True : Process [ 𝔹 ]
-True = select true (< ≫) close
+True = left (< ≫) close
 
 False : Process [ 𝔹 ]
-False = select false (< ≫) close
+False = right (< ≫) close
 
 Not : Process (dual 𝔹 ∷ 𝔹 ∷ [])
 Not = case (< ≫)

@@ -27,9 +27,6 @@ data _↭_ : Context → Context → Set where
 ↭solo-inv (prep π) rewrite ↭empty-inv π = refl
 ↭solo-inv (trans π π′) rewrite ↭solo-inv π | ↭solo-inv π′ = refl
 
-↭rot : ∀{A B C Γ} → (A ∷ B ∷ C ∷ Γ) ↭ (C ∷ A ∷ B ∷ Γ)
-↭rot = trans (prep swap) swap
-
 ↭split : ∀{Γ Γ₁ Γ₂ Δ} → Γ ↭ Δ → Γ ≃ Γ₁ + Γ₂ → ∃[ Δ₁ ] ∃[ Δ₂ ] (Δ ≃ Δ₁ + Δ₂ × Γ₁ ↭ Δ₁ × Γ₂ ↭ Δ₂)
 ↭split refl p = _ , _ , p , refl , refl
 ↭split (prep π) (< p) with ↭split π p

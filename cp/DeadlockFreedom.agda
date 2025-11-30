@@ -1,7 +1,6 @@
 {-# OPTIONS --rewriting #-}
 open import Data.Sum
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
-open import Data.Bool using (Bool; true; false; if_then_else_)
 open import Data.List.Base using ([]; _∷_; [_])
 open import Relation.Nullary using (¬_; contradiction)
 open import Relation.Binary.PropositionalEquality using (refl)
@@ -33,8 +32,8 @@ data Input : ∀{Γ} → Process Γ → Set where
 
 data Output : ∀{Γ} → Process Γ → Set where
   close  : Output close
-  select : ∀{Γ Δ A B} (x : Bool) (p : Γ ≃ [] + Δ) {P : Process ((if x then A else B) ∷ Δ)} →
-           Output (select x (< p) P)
+  left   : ∀{Γ Δ A B} (p : Γ ≃ [] + Δ) {P} → Output (left {A} {B} (< p) P)
+  right  : ∀{Γ Δ A B} (p : Γ ≃ [] + Δ) {P} → Output (right {A} {B} (< p) P)
   fork   : ∀{Γ Δ Δ₁ Δ₂ A B} (p : Γ ≃ [] + Δ) (q : Δ ≃ Δ₁ + Δ₂)
            {P : Process (A ∷ Δ₁)} {Q : Process (B ∷ Δ₂)} →
            Output (fork (< p) q P Q)
@@ -50,8 +49,8 @@ data Delayed : ∀{Γ} → Process Γ → Set where
              Delayed (case (> p) P Q)
   join     : ∀{Γ Δ C A B} (p : Γ ≃ A ⅋ B , Δ) {P : Process (B ∷ A ∷ C ∷ Δ)} →
              Delayed (join (> p) P)
-  select   : ∀{Γ Δ C A B} (x : Bool) (p : Γ ≃ A ⊕ B , Δ) {P : Process ((if x then A else B) ∷ C ∷ Δ)} →
-             Delayed (select x (> p) P)
+  left     : ∀{Γ Δ C A B} (p : Γ ≃ A ⊕ B , Δ) {P : Process (A ∷ C ∷ Δ)} → Delayed (left (> p) P)
+  right    : ∀{Γ Δ C A B} (p : Γ ≃ A ⊕ B , Δ) {P : Process (B ∷ C ∷ Δ)} → Delayed (right (> p) P)
   fork-l   : ∀{Γ Δ Δ₁ Δ₂ C A B} (p : Γ ≃ A ⊗ B , Δ) (q : Δ ≃ Δ₁ + Δ₂)
              {P : Process (A ∷ C ∷ Δ₁)} {Q : Process (B ∷ Δ₂)} →
              Delayed (fork (> p) (< q) P Q)
@@ -113,70 +112,56 @@ fail-thread : ∀{Γ Δ} (p : Γ ≃ [ ⊤ ] + Δ) → Thread (fail p)
 fail-thread (< p) = inj₂ (inj₂ (inj₂ (inj₁ (fail p))))
 fail-thread (> p) = inj₂ (inj₁ (fail p))
 
-case-thread :
-  ∀{A B Γ Δ} (p : Γ ≃ [ A & B ] + Δ) {P : Process (A ∷ Δ)} {Q : Process (B ∷ Δ)} →
-  Thread (case p P Q)
+case-thread : ∀{A B Γ Δ} (p : Γ ≃ [ A & B ] + Δ)
+              {P : Process (A ∷ Δ)} {Q : Process (B ∷ Δ)} → Thread (case p P Q)
 case-thread (< p) = inj₂ (inj₂ (inj₂ (inj₁ (case p))))
 case-thread (> p) = inj₂ (inj₁ (case p))
 
-join-thread :
-  ∀{A B Γ Δ} (p : Γ ≃ [ A ⅋ B ] + Δ) {P : Process (B ∷ A ∷ Δ)} →
-  Thread (join p P)
+join-thread : ∀{A B Γ Δ} (p : Γ ≃ [ A ⅋ B ] + Δ) {P : Process (B ∷ A ∷ Δ)} →
+              Thread (join p P)
 join-thread (< p) = inj₂ (inj₂ (inj₂ (inj₁ (join p))))
 join-thread (> p) = inj₂ (inj₁ (join p))
 
-select-thread :
-  ∀{A B Γ Δ} (x : Bool) (p : Γ ≃ A ⊕ B , Δ) {P : Process ((if x then A else B) ∷ Δ)} →
-  Thread (select x p P)
-select-thread x (< p) = inj₂ (inj₂ (inj₁ (select x p)))
-select-thread x (> p) = inj₂ (inj₁ (select x p))
+left-thread : ∀{A B Γ Δ} (p : Γ ≃ A ⊕ B , Δ) {P : Process (A ∷ Δ)} → Thread (left p P)
+left-thread (< p) = inj₂ (inj₂ (inj₁ (left p)))
+left-thread (> p) = inj₂ (inj₁ (left p))
 
-fork-thread :
-  ∀{A B Γ Δ Δ₁ Δ₂} (p : Γ ≃ [ A ⊗ B ] + Δ) (q : Δ ≃ Δ₁ + Δ₂)
-  {P : Process (A ∷ Δ₁)} {Q : Process (B ∷ Δ₂)} →
-  Thread (fork p q P Q)
+right-thread : ∀{A B Γ Δ} (p : Γ ≃ A ⊕ B , Δ) {P : Process (B ∷ Δ)} → Thread (right p P)
+right-thread (< p) = inj₂ (inj₂ (inj₁ (right p)))
+right-thread (> p) = inj₂ (inj₁ (right p))
+
+fork-thread : ∀{A B Γ Δ Δ₁ Δ₂} (p : Γ ≃ [ A ⊗ B ] + Δ) (q : Δ ≃ Δ₁ + Δ₂)
+              {P : Process (A ∷ Δ₁)} {Q : Process (B ∷ Δ₂)} → Thread (fork p q P Q)
 fork-thread (< p) q = inj₂ (inj₂ (inj₁ (fork p q)))
 fork-thread (> p) (< q) = inj₂ (inj₁ (fork-l p q))
 fork-thread (> p) (> q) = inj₂ (inj₁ (fork-r p q))
 
-client-thread :
-  ∀{A Γ Δ} (p : Γ ≃ [ `? A ] + Δ)
-  {P : Process (A ∷ Δ)} →
-  Thread (client p P)
+client-thread : ∀{A Γ Δ} (p : Γ ≃ [ `? A ] + Δ) {P : Process (A ∷ Δ)} → Thread (client p P)
 client-thread (< p) = inj₂ (inj₂ (inj₂ (inj₂ (inj₁ (client p)))))
 client-thread (> p) = inj₂ (inj₁ (client p))
 
-weaken-thread :
-  ∀{A Γ Δ} (p : Γ ≃ [ `? A ] + Δ)
-  {P : Process Δ} →
-  Thread (weaken {A = A} p P)
+weaken-thread : ∀{A Γ Δ} (p : Γ ≃ [ `? A ] + Δ) {P : Process Δ} →
+                Thread (weaken {A = A} p P)
 weaken-thread (< p) = inj₂ (inj₂ (inj₂ (inj₂ (inj₁ (weaken p)))))
 weaken-thread (> p) = inj₂ (inj₁ (weaken p))
 
-contract-thread :
-  ∀{A Γ Δ} (p : Γ ≃ [ `? A ] + Δ)
-  {P : Process (`? A ∷ `? A ∷ Δ)} →
-  Thread (contract p P)
+contract-thread : ∀{A Γ Δ} (p : Γ ≃ [ `? A ] + Δ) {P : Process (`? A ∷ `? A ∷ Δ)} →
+                  Thread (contract p P)
 contract-thread (< p) = inj₂ (inj₂ (inj₂ (inj₂ (inj₁ (contract p)))))
 contract-thread (> p) = inj₂ (inj₁ (contract p))
 
-server-thread :
-  ∀{A Γ Δ} (p : Γ ≃ [ `! A ] + Δ) (un : Un Δ) {P : Process (A ∷ Δ)} →
-  Thread (server p un P)
+server-thread : ∀{A Γ Δ} (p : Γ ≃ [ `! A ] + Δ) (un : Un Δ) {P : Process (A ∷ Δ)} →
+                Thread (server p un P)
 server-thread (< p) un = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₁ (server p un))))))
 server-thread (> p) (un-∷ un) = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (server p un))))))
 
-ex-thread :
-  ∀{A B Γ Δ} (p : Γ ≃ `∃ A , Δ)
-  {P : Process (subst [ B /_] A ∷ Δ)} ->
-  Thread (ex p P)
+ex-thread : ∀{A B Γ Δ} (p : Γ ≃ `∃ A , Δ) {P : Process (subst [ B /_] A ∷ Δ)} ->
+            Thread (ex p P)
 ex-thread (< p) = inj₂ (inj₂ (inj₁ (ex p)))
 ex-thread (> p) = inj₂ (inj₁ (ex p))
 
-all-thread :
-  ∀{A Γ Δ} (p : Γ ≃ `∀ A , Δ)
-  {F : (B : Type) -> Process (subst [ B /_] A ∷ Δ)} ->
-  Thread (all p F)
+all-thread : ∀{A Γ Δ} (p : Γ ≃ `∀ A , Δ)
+             {F : (B : Type) -> Process (subst [ B /_] A ∷ Δ)} -> Thread (all p F)
 all-thread (< p) = inj₂ (inj₂ (inj₂ (inj₁ (all p))))
 all-thread (> p) = inj₂ (inj₁ (all p))
 
@@ -288,10 +273,10 @@ canonical-cut-alive (cc-link p (link (> < •))) =
   inj₂ (_ , r-cong (s-cong p (s-link (> < •)) s-refl) (r-link p))
 canonical-cut-alive (cc-redex p close (wait q)) with +-empty-l p | +-empty-l q
 ... | refl | refl = inj₂ (_ , r-close p q)
-canonical-cut-alive (cc-redex p (select false q) (case r)) with +-empty-l q | +-empty-l r
-... | refl | refl = inj₂ (_ , r-select-r p q r)
-canonical-cut-alive (cc-redex p (select true q) (case r)) with +-empty-l q | +-empty-l r
-... | refl | refl = inj₂ (_ , r-select-l p q r)
+canonical-cut-alive (cc-redex p (right q) (case r)) with +-empty-l q | +-empty-l r
+... | refl | refl = inj₂ (_ , r-right p q r)
+canonical-cut-alive (cc-redex p (left q) (case r)) with +-empty-l q | +-empty-l r
+... | refl | refl = inj₂ (_ , r-left p q r)
 canonical-cut-alive (cc-redex p (fork q r) (join s)) with +-empty-l q | +-empty-l s
 ... | refl | refl = inj₂ (_ , r-fork p s r q)
 canonical-cut-alive (cc-redex p (ex q) (all r)) with +-empty-l q | +-empty-l r
@@ -311,12 +296,12 @@ canonical-cut-alive (cc-delayed p (case q)) =
 canonical-cut-alive (cc-delayed p (join q)) =
   let _ , _ , q′ = +-assoc-l p q in
   inj₁ (_ , s-join p q , join-thread q′)
-canonical-cut-alive (cc-delayed p (select false q)) =
+canonical-cut-alive (cc-delayed p (right q)) =
   let _ , _ , q′ = +-assoc-l p q in
-  inj₁ (_ , s-select-r p q , select-thread false q′)
-canonical-cut-alive (cc-delayed p (select true q)) =
+  inj₁ (_ , s-right p q , right-thread q′)
+canonical-cut-alive (cc-delayed p (left q)) =
   let _ , _ , q′ = +-assoc-l p q in
-  inj₁ (_ , s-select-l p q , select-thread true q′)
+  inj₁ (_ , s-left p q , left-thread q′)
 canonical-cut-alive (cc-delayed p (fork-l q r)) =
   let _ , p′ , q′ = +-assoc-l p q in
   let _ , p′′ , r′ = +-assoc-l p′ r in
@@ -354,7 +339,8 @@ deadlock-freedom (link p) = inj₁ (_ , s-refl , link-thread p)
 deadlock-freedom (fail p) = inj₁ (_ , s-refl , fail-thread p)
 deadlock-freedom close = inj₁ (_ , s-refl , close-thread)
 deadlock-freedom (wait p P) = inj₁ (_ , s-refl , wait-thread p)
-deadlock-freedom (select x p P) = inj₁ (_ , s-refl , select-thread x p)
+deadlock-freedom (left p P) = inj₁ (_ , s-refl , left-thread p)
+deadlock-freedom (right p P) = inj₁ (_ , s-refl , right-thread p)
 deadlock-freedom (case p P Q) = inj₁ (_ , s-refl , case-thread p)
 deadlock-freedom (fork p q P Q) = inj₁ (_ , s-refl , fork-thread p q)
 deadlock-freedom (join p P) = inj₁ (_ , s-refl , join-thread p)
