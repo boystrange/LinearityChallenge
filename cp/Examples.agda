@@ -13,25 +13,27 @@ open import Permutations
 open import Process
 import DeadlockFreedom as DF
 
+_⊸_ : ∀{n} -> PreType n -> PreType n -> PreType n
+A ⊸ B = dual A ⅋ B
+
 reduce : ∀{Γ} -> ℕ -> Process Γ -> Process Γ
 reduce zero P = P
 reduce (suc n) P with DF.deadlock-freedom P
 ... | inj₁ (Q , _ , _) = Q
 ... | inj₂ (Q , _) = reduce n Q
 
-poly0 : Process [ `∀ (var (# 0) ⅋ rav (# 0)) ]
-poly0 = all (< ≫) λ X ->
-        join (< ≫) $
-        link (> < ≫)
+identity : Process [ `∀ (var (# 0) ⊸ var (# 0)) ]
+identity = all (< ≫) λ X -> join (< ≫) $
+                            link (> < ≫)
 
-poly1 : Process [ `∀ (`∀ (var (# 1) ⅋ (var (# 0) ⅋ (rav (# 0) ⊗ rav (# 1))))) ]
-poly1 = all (< ≫) λ X ->
-        all (< ≫) λ Y ->
-        join (< ≫) $
-        join (< ≫) $
-        fork (< ≫) (< ≫)
-             (link (> < ≫))
-             (link (> < ≫))
+⊗-comm : Process [ `∀ (`∀ ((var (# 0) ⊗ var (# 1)) ⊸ (var (# 1) ⊗ var (# 0)))) ]
+⊗-comm = all (< ≫) λ X ->
+         all (< ≫) λ Y ->
+         join (< ≫) $
+         join (> < ≫) $
+         fork (> > < ≫) (< ≫)
+              (link (< ≫))
+              (link (< ≫))
 
 𝔹 : Type
 𝔹 = 𝟙 ⊕ 𝟙
