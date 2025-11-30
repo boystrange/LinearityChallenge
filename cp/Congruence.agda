@@ -77,7 +77,7 @@ data _⊒_ : ∀{Γ} → Process Γ → Process Γ → Set where
     (un₁ : Un Δ₁) (un₂ : Un Γ₂) →
     let _ , p′ , q′ = +-assoc-l p q in
     cut p (server (> q) (un-∷ un₁) P) (server (< r) un₂ Q) ⊒
-    server q′ (↭un+ p′ un₁ un₂) (cut (< p′) (↭process swap P) (server (< r) un₂ Q))
+    server q′ (+-un p′ un₁ un₂) (cut (< p′) (↭process swap P) (server (< r) un₂ Q))
   s-client :
     ∀{Γ A B Γ₁ Γ₂ Δ}
     {P : Process (B ∷ A ∷ Δ)} {Q : Process (dual A ∷ Γ₂)}

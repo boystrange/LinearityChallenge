@@ -22,10 +22,10 @@ data _↭_ : Context → Context → Set where
 ↭empty-inv refl = refl
 ↭empty-inv (trans π π′) rewrite ↭empty-inv π | ↭empty-inv π′ = refl
 
-↭singleton-inv : ∀{A Γ} → [ A ] ↭ Γ → Γ ≡ [ A ]
-↭singleton-inv refl = refl
-↭singleton-inv (prep π) rewrite ↭empty-inv π = refl
-↭singleton-inv (trans π π′) rewrite ↭singleton-inv π | ↭singleton-inv π′ = refl
+↭solo-inv : ∀{A Γ} → [ A ] ↭ Γ → Γ ≡ [ A ]
+↭solo-inv refl = refl
+↭solo-inv (prep π) rewrite ↭empty-inv π = refl
+↭solo-inv (trans π π′) rewrite ↭solo-inv π | ↭solo-inv π′ = refl
 
 ↭rot : ∀{A B C Γ} → (A ∷ B ∷ C ∷ Γ) ↭ (C ∷ A ∷ B ∷ Γ)
 ↭rot = trans (prep swap) swap
@@ -44,13 +44,13 @@ data _↭_ : Context → Context → Set where
 ... | Θ₁ , Θ₂ , p′ , π₁ , π₂ with ↭split π′ p′
 ... | Δ₁ , Δ₂ , q , π₁′ , π₂′ = Δ₁ , Δ₂ , q , trans π₁ π₁′ , trans π₂ π₂′
 
-↭one+ : ∀{A Γ Γ′ Δ} → Γ ↭ Δ → Γ ≃ A , Γ′ → ∃[ Δ′ ] (Δ ≃ A , Δ′ × Γ′ ↭ Δ′)
-↭one+ π p with ↭split π p
-... | _ , _ , q , π₁ , π₂ rewrite ↭singleton-inv π₁ = _ , q , π₂
+↭solo : ∀{A Γ Γ′ Δ} → Γ ↭ Δ → Γ ≃ A , Γ′ → ∃[ Δ′ ] (Δ ≃ A , Δ′ × Γ′ ↭ Δ′)
+↭solo π p with ↭split π p
+... | _ , _ , q , π₁ , π₂ rewrite ↭solo-inv π₁ = _ , q , π₂
 
 ↭shift : ∀{A Γ Δ} → (Γ ++ A ∷ Δ) ↭ (A ∷ Γ ++ Δ)
 ↭shift {_} {[]} = refl
-↭shift {_} {B ∷ Γ} = trans (prep ↭shift) swap
+↭shift {_} {_ ∷ _} = trans (prep ↭shift) swap
 
 ↭concat : ∀{Γ Γ₁ Γ₂} → Γ ≃ Γ₁ + Γ₂ → (Γ₁ ++ Γ₂) ↭ Γ
 ↭concat • = refl
@@ -59,15 +59,10 @@ data _↭_ : Context → Context → Set where
 
 ↭left : ∀{Γ Δ Θ} → Γ ↭ Δ → (Θ ++ Γ) ↭ (Θ ++ Δ)
 ↭left {Θ = []} π = π
-↭left {Θ = _ ∷ Θ} π = prep (↭left π)
+↭left {Θ = _ ∷ _} π = prep (↭left π)
 
 ↭un : ∀{Γ Δ} → Γ ↭ Δ → Un Γ → Un Δ
 ↭un refl un = un
 ↭un (prep π) (un-∷ un) = un-∷ (↭un π un)
 ↭un swap (un-∷ (un-∷ un)) = un-∷ (un-∷ un)
 ↭un (trans π π′) un = ↭un π′ (↭un π un)
-
-↭un+ : ∀{Γ Γ₁ Γ₂} → Γ ≃ Γ₁ + Γ₂ → Un Γ₁ → Un Γ₂ → Un Γ
-↭un+ • un-[] un-[] = un-[]
-↭un+ (< p) (un-∷ un₁) un₂ = un-∷ (↭un+ p un₁ un₂)
-↭un+ (> p) un₁ (un-∷ un₂) = un-∷ (↭un+ p un₁ un₂)

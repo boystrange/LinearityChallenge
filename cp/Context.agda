@@ -53,9 +53,11 @@ _≃_,_ : Context → Type → Context → Set
 +-empty-l • = refl
 +-empty-l (> p) = cong (_ ∷_) (+-empty-l p)
 
-+-sing-l : ∀{A B Γ} → [ A ] ≃ B , Γ → A ≡ B × Γ ≡ []
-+-sing-l (< •) = refl , refl
-
 data Un : Context → Set where
   un-[]  : Un []
   un-∷   : ∀{A Γ} → Un Γ → Un (`? A ∷ Γ)
+
++-un : ∀{Γ Γ₁ Γ₂} → Γ ≃ Γ₁ + Γ₂ → Un Γ₁ → Un Γ₂ → Un Γ
++-un • un-[] un-[] = un-[]
++-un (< p) (un-∷ un₁) un₂ = un-∷ (+-un p un₁ un₂)
++-un (> p) un₁ (un-∷ un₂) = un-∷ (+-un p un₁ un₂)

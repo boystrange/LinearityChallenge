@@ -347,7 +347,7 @@ canonical-cut-alive (cc-delayed p (all q)) =
 canonical-cut-alive (cc-delayed-server p (server q un) (server r un′)) with +-empty-l r
 ... | refl =
   let _ , p′ , q′ = +-assoc-l p q in
-  inj₁ (_ , s-server p q r un un′ , server-thread q′ (↭un+ p′ un un′))
+  inj₁ (_ , s-server p q r un un′ , server-thread q′ (+-un p′ un un′))
 
 deadlock-freedom : ∀{Γ} (P : Process Γ) → Alive P
 deadlock-freedom (link p) = inj₁ (_ , s-refl , link-thread p)

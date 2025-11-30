@@ -9,7 +9,7 @@ open import Context
 open import Permutations
 
 data Process : Context → Set where
-  link      : ∀{A Γ} → Γ ≃ [ A ] + [ dual A ] → Process Γ
+  link      : ∀{A Γ} → Γ ≃ A , [ dual A ] → Process Γ
   fail      : ∀{Γ Δ} → Γ ≃ ⊤ , Δ → Process Γ
   wait      : ∀{Γ Δ} → Γ ≃ ⊥ , Δ → Process Δ → Process Γ
   close     : Process [ 𝟙 ]
@@ -31,35 +31,33 @@ data Process : Context → Set where
               Process (A ∷ Γ₁) → Process (dual A ∷ Γ₂) → Process Γ
 
 ↭process : ∀{Γ Δ} → Γ ↭ Δ → Process Γ → Process Δ
-↭process π (link p) with ↭one+ π p
-... | Δ′ , q , π′ with ↭singleton-inv π′
-... | refl = link q
-↭process π (fail p) with ↭one+ π p
+↭process π (link p) with ↭solo π p
+... | Δ′ , q , π′ rewrite ↭solo-inv π′ = link q
+↭process π (fail p) with ↭solo π p
 ... | Δ′ , q , π′ = fail q
-↭process π (wait p P) with ↭one+ π p
+↭process π (wait p P) with ↭solo π p
 ... | Δ′ , q , π′ = wait q (↭process π′ P)
-↭process π close with ↭singleton-inv π
-... | refl = close
-↭process π (case p P Q) with ↭one+ π p
+↭process π close rewrite ↭solo-inv π = close
+↭process π (case p P Q) with ↭solo π p
 ... | Δ′ , q , π′ = case q (↭process (prep π′) P) (↭process (prep π′) Q)
-↭process π (select x p P) with ↭one+ π p
+↭process π (select x p P) with ↭solo π p
 ... | Δ′ , q , π′ = select x q (↭process (prep π′) P)
-↭process π (join p P) with ↭one+ π p
+↭process π (join p P) with ↭solo π p
 ... | Δ′ , q , π′ = join q (↭process (prep (prep π′)) P)
-↭process π (fork p q P Q) with ↭one+ π p
+↭process π (fork p q P Q) with ↭solo π p
 ... | Δ′ , p′ , π′ with ↭split π′ q
 ... | Δ₁ , Δ₂ , q′ , π₁ , π₂ = fork p′ q′ (↭process (prep π₁) P) (↭process (prep π₂) Q)
-↭process π (all p P) with ↭one+ π p
+↭process π (all p P) with ↭solo π p
 ... | Δ' , q , π' = all q λ B → ↭process (prep π') (P B)
-↭process π (ex p P) with ↭one+ π p
+↭process π (ex p P) with ↭solo π p
 ... | Δ' , q , π' = ex q (↭process (prep π') P)
-↭process π (server p un P) with ↭one+ π p
+↭process π (server p un P) with ↭solo π p
 ... | Δ′ , q , π′ = server q (↭un π′ un) (↭process (prep π′) P)
-↭process π (client p P) with ↭one+ π p
+↭process π (client p P) with ↭solo π p
 ... | Δ′ , q , π′ = client q (↭process (prep π′) P)
-↭process π (weaken p P) with ↭one+ π p
+↭process π (weaken p P) with ↭solo π p
 ... | Δ′ , q , π′ = weaken q (↭process π′ P)
-↭process π (contract p P) with ↭one+ π p
+↭process π (contract p P) with ↭solo π p
 ... | Δ′ , q , π′ = contract q (↭process (prep (prep π′)) P)
 ↭process π (cut p P Q) with ↭split π p
 ... | Δ₁ , Δ₂ , q , π₁ , π₂ = cut q (↭process (prep π₁) P) (↭process (prep π₂) Q)
