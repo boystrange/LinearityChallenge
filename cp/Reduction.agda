@@ -29,46 +29,39 @@ contraction un p P = ↭process (↭concat p) (aux un (↭process (↭left (↭s
     ... | P₃ = ↭process ↭shift P₃
 
 data _↝_ {Γ} : Process Γ → Process Γ → Set where
-  r-link      : ∀{Δ A} {P : Process (dual A ∷ Δ)}
-                (p : Γ ∋ dual A ⊳ Δ) →
+  r-link      : ∀{Δ A P} (p : Γ ∋ dual A ⊳ Δ) →
                 cut {A} p (link (< > •)) P ↝ ↭process (↭concat p) P
-  r-close     : ∀{P : Process Γ} (p₀ : Γ ≃ [] + Γ) (q₀ : Γ ≃ [] + Γ) →
+  r-close     : ∀{P} (p₀ : Γ ≃ [] + Γ) (q₀ : Γ ≃ [] + Γ) →
                 cut p₀ close (wait (< q₀) P) ↝ P
-  r-left      : ∀{Γ₁ Γ₂ A B}
-                {P : Process (A ∷ Γ₁)} {Q : Process (dual A ∷ Γ₂)} {R : Process (dual B ∷ Γ₂)}
+  r-left      : ∀{Γ₁ Γ₂ A B P Q R}
                 (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) →
                 cut {A ⊕ B} p (left (< p₀) P)
                               (case (< q₀) Q R) ↝ cut p P Q
-  r-right     : ∀{Γ₁ Γ₂ A B}
-                {P : Process (B ∷ Γ₁)} {Q : Process (dual A ∷ Γ₂)} {R : Process (dual B ∷ Γ₂)}
+  r-right     : ∀{Γ₁ Γ₂ A B P Q R}
                 (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) →
                 cut {A ⊕ B} p (right (< p₀) P)
                               (case (< q₀) Q R) ↝ cut p P R
-  r-fork      : ∀{Γ₁ Γ₂ Γ₃ Δ A B}
-                {P : Process (A ∷ Γ₁)} {Q : Process (B ∷ Γ₂)} {R : Process (dual B ∷ dual A ∷ Γ₃)}
+  r-fork      : ∀{Γ₁ Γ₂ Γ₃ Δ A B P Q R}
                 (p : Γ ≃ Δ + Γ₃) (p₀ : Γ₃ ≃ [] + Γ₃) (q : Δ ≃ Γ₁ + Γ₂) (q₀ : Δ ≃ [] + Δ) →
                 let _ , p′ , q′ = +-assoc-l p q in
-                cut p (fork (< q₀) q P Q)
-                      (join (< p₀) R) ↝ cut q′ P (cut (> p′) Q R)
-  r-client    : ∀{Γ₁ Γ₂ A} {P : Process (A ∷ Γ₁)} {Q : Process (dual A ∷ Γ₂)}
+                cut {A ⊗ B} p (fork (< q₀) q P Q)
+                              (join (< p₀) R) ↝ cut q′ P (cut (> p′) Q R)
+  r-client    : ∀{Γ₁ Γ₂ A P Q}
                 (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) (un : Un Γ₁) →
-                cut p (server (< p₀) un P) (client (< q₀) Q) ↝ cut p P Q
-  r-weaken    : ∀{Γ₁ Γ₂ A} {P : Process (A ∷ Γ₁)} {Q : Process Γ₂}
+                cut {`! A} p (server (< p₀) un P) (client (< q₀) Q) ↝ cut p P Q
+  r-weaken    : ∀{Γ₁ Γ₂ A P Q}
                 (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) (un : Un Γ₁) →
-                cut p (server (< p₀) un P)
-                      (weaken (< q₀) Q) ↝ weakening un p Q
-  r-contract  : ∀{Γ₁ Γ₂ A}
-                {P : Process (A ∷ Γ₁)} {Q : Process (`? (dual A) ∷ `? (dual A) ∷ Γ₂)}
+                cut {`! A} p (server (< p₀) un P)
+                             (weaken (< q₀) Q) ↝ weakening un p Q
+  r-contract  : ∀{Γ₁ Γ₂ A P Q}
                 (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) (un : Un Γ₁) →
-                cut p (server (< p₀) un P)
-                      (contract (< q₀) Q) ↝
+                cut {`! A} p (server (< p₀) un P)
+                             (contract (< q₀) Q) ↝
                     contraction un p
                       (cut ++≃+ (server (< p₀) un P)
                       (cut (> p) (server (< p₀) un P) Q))
-  r-poly       : ∀{A B Γ₁ Γ₂} {P : Process (subst [ B /_] A ∷ Γ₁)}
-                 {F : (C : Type) -> Process (subst [ C /_] (dual A) ∷ Γ₂)}
-                 (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) ->
-                 cut p (ex {A} (< p₀) P) (all (< q₀) F) ↝ cut p P (F B)
-  r-cut        : ∀{Γ₁ Γ₂ A} {P Q : Process (A ∷ Γ₁)} {R : Process (dual A ∷ Γ₂)}
-                 (q : Γ ≃ Γ₁ + Γ₂) → P ↝ Q → cut q P R ↝ cut q Q R
-  r-cong       : ∀{P R Q : Process Γ} → P ⊒ R → R ↝ Q → P ↝ Q
+  r-poly       : ∀{A B Γ₁ Γ₂ P F} (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) ->
+                 cut {`∃ A} p (ex {_} {B} (< p₀) P) (all (< q₀) F) ↝ cut p P (F B)
+  r-cut        : ∀{Γ₁ Γ₂ A P Q R} (q : Γ ≃ Γ₁ + Γ₂) →
+                 P ↝ Q → cut {A} q P R ↝ cut q Q R
+  r-cong       : ∀{P R Q} → P ⊒ R → R ↝ Q → P ↝ Q
