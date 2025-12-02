@@ -8,24 +8,24 @@ open import Context
 open import Permutations
 
 data Process : Context → Set where
-  link      : ∀{A Γ} → Γ ≃ A , [ dual A ] → Process Γ
-  fail      : ∀{Γ Δ} → Γ ≃ ⊤ , Δ → Process Γ
-  wait      : ∀{Γ Δ} → Γ ≃ ⊥ , Δ → Process Δ → Process Γ
+  link      : ∀{A Γ} → Γ ≃ [ A ] + [ dual A ] → Process Γ
+  fail      : ∀{Γ Δ} → Γ ∋ ⊤ ⊳ Δ → Process Γ
+  wait      : ∀{Γ Δ} → Γ ∋ ⊥ ⊳ Δ → Process Δ → Process Γ
   close     : Process [ 𝟙 ]
-  case      : ∀{A B Γ Δ} → Γ ≃ A & B , Δ →
+  case      : ∀{A B Γ Δ} → Γ ∋ A & B ⊳ Δ →
               Process (A ∷ Δ) → Process (B ∷ Δ) → Process Γ
-  left      : ∀{A B Γ Δ} → Γ ≃ A ⊕ B , Δ → Process (A ∷ Δ) → Process Γ
-  right     : ∀{A B Γ Δ} → Γ ≃ A ⊕ B , Δ → Process (B ∷ Δ) → Process Γ
-  join      : ∀{A B Γ Δ} → Γ ≃ A ⅋ B , Δ → Process (B ∷ A ∷ Δ) → Process Γ
-  fork      : ∀{A B Γ Δ Γ₁ Γ₂} → Γ ≃ A ⊗ B , Δ → Δ ≃ Γ₁ + Γ₂ →
+  left      : ∀{A B Γ Δ} → Γ ∋ A ⊕ B ⊳ Δ → Process (A ∷ Δ) → Process Γ
+  right     : ∀{A B Γ Δ} → Γ ∋ A ⊕ B ⊳ Δ → Process (B ∷ Δ) → Process Γ
+  join      : ∀{A B Γ Δ} → Γ ∋ A ⅋ B ⊳ Δ → Process (B ∷ A ∷ Δ) → Process Γ
+  fork      : ∀{A B Γ Δ Γ₁ Γ₂} → Γ ∋ A ⊗ B ⊳ Δ → Δ ≃ Γ₁ + Γ₂ →
               Process (A ∷ Γ₁) → Process (B ∷ Γ₂) → Process Γ
-  all       : ∀{A Γ Δ} → Γ ≃ `∀ A , Δ →
-              ((B : Type) → Process (subst [ B /_] A ∷ Δ)) → Process Γ
-  ex        : ∀{A B Γ Δ} → Γ ≃ `∃ A , Δ → Process (subst [ B /_] A ∷ Δ) → Process Γ
-  server    : ∀{A Γ Δ} → Γ ≃ `! A , Δ → Un Δ → Process (A ∷ Δ) → Process Γ
-  client    : ∀{A Γ Δ} → Γ ≃ `? A , Δ → Process (A ∷ Δ) → Process Γ
-  weaken    : ∀{A Γ Δ} → Γ ≃ `? A , Δ → Process Δ → Process Γ
-  contract  : ∀{A Γ Δ} → Γ ≃ `? A , Δ → Process (`? A ∷ `? A ∷ Δ) → Process Γ
+  all       : ∀{A Γ Δ} → Γ ∋ `∀ A ⊳ Δ →
+              ((X : Type) → Process (subst [ X /_] A ∷ Δ)) → Process Γ
+  ex        : ∀{A B Γ Δ} → Γ ∋ `∃ A ⊳ Δ → Process (subst [ B /_] A ∷ Δ) → Process Γ
+  server    : ∀{A Γ Δ} → Γ ∋ `! A ⊳ Δ → Un Δ → Process (A ∷ Δ) → Process Γ
+  client    : ∀{A Γ Δ} → Γ ∋ `? A ⊳ Δ → Process (A ∷ Δ) → Process Γ
+  weaken    : ∀{A Γ Δ} → Γ ∋ `? A ⊳ Δ → Process Δ → Process Γ
+  contract  : ∀{A Γ Δ} → Γ ∋ `? A ⊳ Δ → Process (`? A ∷ `? A ∷ Δ) → Process Γ
   cut       : ∀{A Γ Γ₁ Γ₂} → Γ ≃ Γ₁ + Γ₂ →
               Process (A ∷ Γ₁) → Process (dual A ∷ Γ₂) → Process Γ
 

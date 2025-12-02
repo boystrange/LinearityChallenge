@@ -42,31 +42,31 @@ data Output : ∀{Γ} → Process Γ → Set where
            Output (ex {A = A} (< p) P)
 
 data Delayed : ∀{Γ} → Process Γ → Set where
-  fail     : ∀{A Γ Δ} (p : Γ ≃ ⊤ , Δ) → Delayed (fail (>_ {A} p))
-  wait     : ∀{C Γ Δ} (p : Γ ≃ ⊥ , Δ) {P : Process (C ∷ Δ)} →
+  fail     : ∀{A Γ Δ} (p : Γ ∋ ⊤ ⊳ Δ) → Delayed (fail (>_ {A} p))
+  wait     : ∀{C Γ Δ} (p : Γ ∋ ⊥ ⊳ Δ) {P : Process (C ∷ Δ)} →
              Delayed (wait (> p) P)
-  case     : ∀{Γ Δ C A B} (p : Γ ≃ A & B , Δ) {P : Process (A ∷ C ∷ Δ)} {Q : Process (B ∷ C ∷ Δ)} →
+  case     : ∀{Γ Δ C A B} (p : Γ ∋ A & B ⊳ Δ) {P : Process (A ∷ C ∷ Δ)} {Q : Process (B ∷ C ∷ Δ)} →
              Delayed (case (> p) P Q)
-  join     : ∀{Γ Δ C A B} (p : Γ ≃ A ⅋ B , Δ) {P : Process (B ∷ A ∷ C ∷ Δ)} →
+  join     : ∀{Γ Δ C A B} (p : Γ ∋ A ⅋ B ⊳ Δ) {P : Process (B ∷ A ∷ C ∷ Δ)} →
              Delayed (join (> p) P)
-  left     : ∀{Γ Δ C A B} (p : Γ ≃ A ⊕ B , Δ) {P : Process (A ∷ C ∷ Δ)} → Delayed (left (> p) P)
-  right    : ∀{Γ Δ C A B} (p : Γ ≃ A ⊕ B , Δ) {P : Process (B ∷ C ∷ Δ)} → Delayed (right (> p) P)
-  fork-l   : ∀{Γ Δ Δ₁ Δ₂ C A B} (p : Γ ≃ A ⊗ B , Δ) (q : Δ ≃ Δ₁ + Δ₂)
+  left     : ∀{Γ Δ C A B} (p : Γ ∋ A ⊕ B ⊳ Δ) {P : Process (A ∷ C ∷ Δ)} → Delayed (left (> p) P)
+  right    : ∀{Γ Δ C A B} (p : Γ ∋ A ⊕ B ⊳ Δ) {P : Process (B ∷ C ∷ Δ)} → Delayed (right (> p) P)
+  fork-l   : ∀{Γ Δ Δ₁ Δ₂ C A B} (p : Γ ∋ A ⊗ B ⊳ Δ) (q : Δ ≃ Δ₁ + Δ₂)
              {P : Process (A ∷ C ∷ Δ₁)} {Q : Process (B ∷ Δ₂)} →
              Delayed (fork (> p) (< q) P Q)
-  fork-r   : ∀{Γ Δ Δ₁ Δ₂ C A B} (p : Γ ≃ A ⊗ B , Δ) (q : Δ ≃ Δ₁ + Δ₂)
+  fork-r   : ∀{Γ Δ Δ₁ Δ₂ C A B} (p : Γ ∋ A ⊗ B ⊳ Δ) (q : Δ ≃ Δ₁ + Δ₂)
              {P : Process (A ∷ Δ₁)} {Q : Process (B ∷ C ∷ Δ₂)} →
              Delayed (fork (> p) (> q) P Q)
-  client   : ∀{Γ Δ A C} (p : Γ ≃ `? A , Δ) {P : Process (A ∷ C ∷ Δ)} →
+  client   : ∀{Γ Δ A C} (p : Γ ∋ `? A ⊳ Δ) {P : Process (A ∷ C ∷ Δ)} →
              Delayed (client (> p) P)
-  weaken   : ∀{Γ Δ A C} (p : Γ ≃ `? A , Δ) {P : Process (C ∷ Δ)} →
+  weaken   : ∀{Γ Δ A C} (p : Γ ∋ `? A ⊳ Δ) {P : Process (C ∷ Δ)} →
              Delayed (weaken (> p) P)
-  contract : ∀{Γ Δ A C} (p : Γ ≃ `? A , Δ) {P : Process (`? A ∷ `? A ∷ C ∷ Δ)} →
+  contract : ∀{Γ Δ A C} (p : Γ ∋ `? A ⊳ Δ) {P : Process (`? A ∷ `? A ∷ C ∷ Δ)} →
              Delayed (contract (> p) P)
-  ex       : ∀{A B C Γ Δ} (p : Γ ≃ `∃ A , Δ)
+  ex       : ∀{A B C Γ Δ} (p : Γ ∋ `∃ A ⊳ Δ)
              {P : Process (subst [ B /_] A ∷ C ∷ Δ)} ->
              Delayed (ex (> p) P)
-  all      : ∀{A C Γ Δ} (p : Γ ≃ `∀ A , Δ)
+  all      : ∀{A C Γ Δ} (p : Γ ∋ `∀ A ⊳ Δ)
              {F : (B : Type) -> Process (subst [ B /_] A ∷ C ∷ Δ)} ->
              Delayed (all (> p) F)
 
@@ -83,7 +83,7 @@ data Server : ∀{Γ} → Process Γ → Set where
            Server (server (< p) un P)
 
 data DelayedServer : ∀{Γ} → Process Γ → Set where
-  server : ∀{Γ Δ A C} (p : Γ ≃ `! A , Δ) (un : Un Δ) {P : Process (A ∷ `? C ∷ Δ)} →
+  server : ∀{Γ Δ A C} (p : Γ ∋ `! A ⊳ Δ) (un : Un Δ) {P : Process (A ∷ `? C ∷ Δ)} →
            DelayedServer (server (> p) (un-∷ un) P)
 
 Thread : ∀{Γ} → Process Γ → Set
@@ -122,11 +122,11 @@ join-thread : ∀{A B Γ Δ} (p : Γ ≃ [ A ⅋ B ] + Δ) {P : Process (B ∷ A
 join-thread (< p) = inj₂ (inj₂ (inj₂ (inj₁ (join p))))
 join-thread (> p) = inj₂ (inj₁ (join p))
 
-left-thread : ∀{A B Γ Δ} (p : Γ ≃ A ⊕ B , Δ) {P : Process (A ∷ Δ)} → Thread (left p P)
+left-thread : ∀{A B Γ Δ} (p : Γ ∋ A ⊕ B ⊳ Δ) {P : Process (A ∷ Δ)} → Thread (left p P)
 left-thread (< p) = inj₂ (inj₂ (inj₁ (left p)))
 left-thread (> p) = inj₂ (inj₁ (left p))
 
-right-thread : ∀{A B Γ Δ} (p : Γ ≃ A ⊕ B , Δ) {P : Process (B ∷ Δ)} → Thread (right p P)
+right-thread : ∀{A B Γ Δ} (p : Γ ∋ A ⊕ B ⊳ Δ) {P : Process (B ∷ Δ)} → Thread (right p P)
 right-thread (< p) = inj₂ (inj₂ (inj₁ (right p)))
 right-thread (> p) = inj₂ (inj₁ (right p))
 
@@ -155,12 +155,12 @@ server-thread : ∀{A Γ Δ} (p : Γ ≃ [ `! A ] + Δ) (un : Un Δ) {P : Proces
 server-thread (< p) un = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₁ (server p un))))))
 server-thread (> p) (un-∷ un) = inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (server p un))))))
 
-ex-thread : ∀{A B Γ Δ} (p : Γ ≃ `∃ A , Δ) {P : Process (subst [ B /_] A ∷ Δ)} ->
+ex-thread : ∀{A B Γ Δ} (p : Γ ∋ `∃ A ⊳ Δ) {P : Process (subst [ B /_] A ∷ Δ)} ->
             Thread (ex p P)
 ex-thread (< p) = inj₂ (inj₂ (inj₁ (ex p)))
 ex-thread (> p) = inj₂ (inj₁ (ex p))
 
-all-thread : ∀{A Γ Δ} (p : Γ ≃ `∀ A , Δ)
+all-thread : ∀{A Γ Δ} (p : Γ ∋ `∀ A ⊳ Δ)
              {F : (B : Type) -> Process (subst [ B /_] A ∷ Δ)} -> Thread (all p F)
 all-thread (< p) = inj₂ (inj₂ (inj₂ (inj₁ (all p))))
 all-thread (> p) = inj₂ (inj₁ (all p))

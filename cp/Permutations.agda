@@ -41,7 +41,7 @@ data _↭_ : Context → Context → Set where
 ... | Θ₁ , Θ₂ , p′ , π₁ , π₂ with ↭split π′ p′
 ... | Δ₁ , Δ₂ , q , π₁′ , π₂′ = Δ₁ , Δ₂ , q , trans π₁ π₁′ , trans π₂ π₂′
 
-↭solo : ∀{A Γ Γ′ Δ} → Γ ↭ Δ → Γ ≃ A , Γ′ → ∃[ Δ′ ] (Δ ≃ A , Δ′ × Γ′ ↭ Δ′)
+↭solo : ∀{A Γ Γ′ Δ} → Γ ↭ Δ → Γ ∋ A ⊳ Γ′ → ∃[ Δ′ ] (Δ ∋ A ⊳ Δ′ × Γ′ ↭ Δ′)
 ↭solo π p with ↭split π p
 ... | _ , _ , q , π₁ , π₂ rewrite ↭solo-inv π₁ = _ , q , π₂
 

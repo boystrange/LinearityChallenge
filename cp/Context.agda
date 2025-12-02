@@ -8,15 +8,15 @@ open import Type
 Context : Set
 Context = List Type
 
-infix 4 _≃_+_ _≃_,_
+infix 4 _≃_+_ _∋_⊳_
 
 data _≃_+_ : Context → Context → Context → Set where
   •   : [] ≃ [] + []
   <_  : ∀{A Γ Δ Θ} → Γ ≃ Δ + Θ → A ∷ Γ ≃ A ∷ Δ + Θ
   >_  : ∀{A Γ Δ Θ} → Γ ≃ Δ + Θ → A ∷ Γ ≃ Δ + A ∷ Θ
 
-_≃_,_ : Context → Type → Context → Set
-Γ ≃ A , Δ = Γ ≃ [ A ] + Δ
+_∋_⊳_ : Context → Type → Context → Set
+Γ ∋ A ⊳ Δ = Γ ≃ [ A ] + Δ
 
 +-comm : ∀{Γ Δ Θ} → Γ ≃ Δ + Θ → Γ ≃ Θ + Δ
 +-comm • = •

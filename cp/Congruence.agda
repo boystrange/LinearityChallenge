@@ -15,22 +15,22 @@ data _⊒_ : ∀{Γ} → Process Γ → Process Γ → Set where
     ∀{Γ A} (p : Γ ≃ [ A ] + [ dual A ]) →
     link p ⊒ link (+-comm p)
   s-fail :
-    ∀{A Γ Γ₁ Γ₂ Δ P} (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ ⊤ , Δ) →
+    ∀{A Γ Γ₁ Γ₂ Δ P} (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ∋ ⊤ ⊳ Δ) →
     let _ , _ , q′ = +-assoc-l p q in
     cut {A = A} p (fail (> q)) P ⊒ fail q′
   s-wait :
     ∀{Γ Γ₁ Γ₂ Δ A} {P : Process (A ∷ Δ)} {Q : Process (dual A ∷ Γ₂)}
-    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ ⊥ , Δ) →
+    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ∋ ⊥ ⊳ Δ) →
     let _ , p′ , q′ = +-assoc-l p q in
     cut p (wait (> q) P) Q ⊒ wait q′ (cut p′ P Q)
   s-left :
     ∀{Γ Γ₁ Γ₂ Δ A B C} {P : Process (B ∷ A ∷ Δ)} {Q : Process (dual A ∷ Γ₂)}
-    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ B ⊕ C , Δ) →
+    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ∋ B ⊕ C ⊳ Δ) →
     let _ , p′ , q′ = +-assoc-l p q in
     cut p (left (> q) P) Q ⊒ left q′ (cut (< p′) (↭process swap P) Q)
   s-right :
     ∀{Γ Γ₁ Γ₂ Δ A B C} {P : Process (C ∷ A ∷ Δ)} {Q : Process (dual A ∷ Γ₂)}
-    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ B ⊕ C , Δ) →
+    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ∋ B ⊕ C ⊳ Δ) →
     let _ , p′ , q′ = +-assoc-l p q in
     cut p (right (> q) P) Q ⊒ right q′ (cut (< p′) (↭process swap P) Q)
   s-case :
@@ -38,14 +38,14 @@ data _⊒_ : ∀{Γ} → Process Γ → Process Γ → Set where
     {P : Process (B ∷ A ∷ Δ)}
     {Q : Process (C ∷ A ∷ Δ)}
     {R : Process (dual A ∷ Γ₂)}
-    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ B & C , Δ) →
+    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ∋ B & C ⊳ Δ) →
     let _ , p′ , q′ = +-assoc-l p q in
     cut p (case (> q) P Q) R ⊒ case q′ (cut (< p′) (↭process swap P) R)
                                        (cut (< p′) (↭process swap Q) R)
   s-fork-l :
     ∀{Γ Γ₁ Γ₂ Δ Δ₁ Δ₂ A B C}
     {P : Process (B ∷ A ∷ Δ₁)} {Q : Process (C ∷ Δ₂)} {R : Process (dual A ∷ Γ₂)}
-    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ B ⊗ C , Δ) (r : Δ ≃ Δ₁ + Δ₂) →
+    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ∋ B ⊗ C ⊳ Δ) (r : Δ ≃ Δ₁ + Δ₂) →
     let _ , p′ , q′ = +-assoc-l p q in
     let _ , p′′ , r′ = +-assoc-l p′ r in
     let _ , q′′ , r′′ = +-assoc-r r′ (+-comm p′′) in
@@ -54,7 +54,7 @@ data _⊒_ : ∀{Γ} → Process Γ → Process Γ → Set where
   s-fork-r :
     ∀{Γ Γ₁ Γ₂ Δ Δ₁ Δ₂ A B C}
     {P : Process (B ∷ Δ₁)} {Q : Process (C ∷ A ∷ Δ₂)} {R : Process (dual A ∷ Γ₂)}
-    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ B ⊗ C , Δ) (r : Δ ≃ Δ₁ + Δ₂) →
+    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ∋ B ⊗ C ⊳ Δ) (r : Δ ≃ Δ₁ + Δ₂) →
     let _ , p′ , q′ = +-assoc-l p q in
     let _ , p′′ , r′ = +-assoc-l p′ r in
     cut p (fork (> q) (> r) P Q) R ⊒
@@ -62,14 +62,14 @@ data _⊒_ : ∀{Γ} → Process Γ → Process Γ → Set where
   s-join :
     ∀{Γ Γ₁ Γ₂ Δ A B C}
     {P : Process (C ∷ B ∷ A ∷ Δ)} {Q : Process (dual A ∷ Γ₂)}
-    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ B ⅋ C , Δ) →
+    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ∋ B ⅋ C ⊳ Δ) →
     let _ , p′ , q′ = +-assoc-l p q in
     cut p (join (> q) P) Q ⊒
     join q′ (cut (< < p′) (↭process (↭shift {A} {C ∷ B ∷ []}) P) Q)
   s-server :
     ∀{Γ A B Γ₁ Γ₂ Δ₁}
     {P : Process (B ∷ `? A ∷ Δ₁)} {Q : Process (dual A ∷ Γ₂)}
-    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ `! B , Δ₁) (r : Γ₂ ≃ [] + Γ₂)
+    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ∋ `! B ⊳ Δ₁) (r : Γ₂ ≃ [] + Γ₂)
     (un₁ : Un Δ₁) (un₂ : Un Γ₂) →
     let _ , p′ , q′ = +-assoc-l p q in
     cut p (server (> q) (un-∷ un₁) P) (server (< r) un₂ Q) ⊒
@@ -77,19 +77,19 @@ data _⊒_ : ∀{Γ} → Process Γ → Process Γ → Set where
   s-client :
     ∀{Γ A B Γ₁ Γ₂ Δ}
     {P : Process (B ∷ A ∷ Δ)} {Q : Process (dual A ∷ Γ₂)}
-    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ `? B , Δ) →
+    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ∋ `? B ⊳ Δ) →
     let _ , p′ , q′ = +-assoc-l p q in
     cut p (client (> q) P) Q ⊒ client q′ (cut (< p′) (↭process swap P) Q)
   s-weaken :
     ∀{Γ A B Γ₁ Γ₂ Δ}
     {P : Process (A ∷ Δ)} {Q : Process (dual A ∷ Γ₂)}
-    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ `? B , Δ) →
+    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ∋ `? B ⊳ Δ) →
     let _ , p′ , q′ = +-assoc-l p q in
     cut p (weaken (> q) P) Q ⊒ weaken q′ (cut p′ P Q)
   s-contract :
     ∀{Γ A B Γ₁ Γ₂ Δ}
     {P : Process (`? B ∷ `? B ∷ A ∷ Δ)} {Q : Process (dual A ∷ Γ₂)}
-    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ `? B , Δ) →
+    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ∋ `? B ⊳ Δ) →
     let _ , p′ , q′ = +-assoc-l p q in
     cut p (contract (> q) P) Q ⊒
     contract q′ (cut (< < p′) (↭process (↭shift {A} {`? B ∷ `? B ∷ []}) P) Q)
@@ -97,14 +97,14 @@ data _⊒_ : ∀{Γ} → Process Γ → Process Γ → Set where
     ∀{Γ A B C Γ₁ Γ₂ Δ}
     {P : Process (subst [ C /_] B ∷ A ∷ Δ)}
     {Q : Process (dual A ∷ Γ₂)}
-    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ `∃ B , Δ) ->
+    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ∋ `∃ B ⊳ Δ) ->
     let _ , p' , q' = +-assoc-l p q in
     cut p (ex (> q) P) Q ⊒ ex q' (cut (< p') (↭process swap P) Q)
   s-all :
     ∀{Γ A B Γ₁ Γ₂ Δ}
     {F : (C : Type) -> Process (subst [ C /_] B ∷ A ∷ Δ)}
     {Q : Process (dual A ∷ Γ₂)}
-    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ `∀ B , Δ) ->
+    (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ∋ `∀ B ⊳ Δ) ->
     let _ , p' , q' = +-assoc-l p q in
     cut p (all (> q) F) Q ⊒ all q' λ σ → cut (< p') (↭process swap (F σ)) Q
   s-refl  : ∀{Γ} {P : Process Γ} → P ⊒ P
