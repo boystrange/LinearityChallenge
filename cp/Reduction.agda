@@ -31,7 +31,7 @@ contraction un p P = ↭process (↭concat p) (aux un (↭process (↭left (↭s
 data _↝_ {Γ} : Process Γ → Process Γ → Set where
   r-link      : ∀{Δ A P} (p : Γ ∋ dual A ⊳ Δ) →
                 cut {A} p (link (< > •)) P ↝ ↭process (↭concat p) P
-  r-close     : ∀{P} (p₀ : Γ ≃ [] + Γ) (q₀ : Γ ≃ [] + Γ) →
+  r-close     : ∀{P} (p₀ q₀ : Γ ≃ [] + Γ) →
                 cut p₀ close (wait (< q₀) P) ↝ P
   r-left      : ∀{Γ₁ Γ₂ A B P Q R}
                 (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) →
