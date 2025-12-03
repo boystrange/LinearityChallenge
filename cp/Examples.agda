@@ -11,29 +11,7 @@ open import Type
 open import Context
 open import Permutations
 open import Process
-import DeadlockFreedom as DF
-
-_⊸_ : ∀{n} -> PreType n -> PreType n -> PreType n
-A ⊸ B = dual A ⅋ B
-
-reduce : ∀{Γ} -> ℕ -> Process Γ -> Process Γ
-reduce zero P = P
-reduce (suc n) P with DF.deadlock-freedom P
-... | inj₁ (Q , _ , _) = Q
-... | inj₂ (Q , _) = reduce n Q
-
-identity : Process [ `∀ (var (# 0) ⊸ var (# 0)) ]
-identity = all (< ≫) λ X -> join (< ≫) $
-                            link (> < ≫)
-
-⊗-comm : Process [ `∀ (`∀ ((var (# 0) ⊗ var (# 1)) ⊸ (var (# 1) ⊗ var (# 0)))) ]
-⊗-comm = all (< ≫) λ X ->
-         all (< ≫) λ Y ->
-         join (< ≫) $
-         join (> < ≫) $
-         fork (> > < ≫) (< ≫)
-              (link (< ≫))
-              (link (< ≫))
+open import DeadlockFreedom using (deadlock-freedom)
 
 𝔹 : Type
 𝔹 = 𝟙 ⊕ 𝟙
@@ -76,3 +54,29 @@ Or = cut (< < ≫)
 
 ex1 : Process [ 𝔹 ]
 ex1 = cut ≫ False (cut ≫ False Or)
+
+reduce : ∀{Γ} → ℕ → Process Γ → Process Γ
+reduce zero P = P
+reduce (suc n) P with deadlock-freedom P
+... | inj₁ (Q , _ , _) = Q
+... | inj₂ (Q , _) = reduce n Q
+
+_⊸_ : ∀{n} → PreType n → PreType n → PreType n
+A ⊸ B = dual A ⅋ B
+
+echo : let X = var (# 0) in
+       Process [ `! (`∀ (X ⊸ X)) ]
+echo = server (< ≫) un-[] $
+       all (< ≫) λ X → join (< ≫) $
+                        link (> < ≫)
+
+⊗-comm : let X = var (# 1) in
+         let Y = var (# 0) in
+         Process [ `∀ (`∀ ((X ⊗ Y) ⊸ (Y ⊗ X))) ]
+⊗-comm = all (< ≫) λ X →
+         all (< ≫) λ Y →
+         join (< ≫) $
+         join (> < ≫) $
+         fork (> > < ≫) (< ≫)
+              (link (< ≫))
+              (link (< ≫))
