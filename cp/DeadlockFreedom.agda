@@ -12,11 +12,11 @@ open import Process
 open import Reduction
 open import Congruence
 
-data Cut {Γ} : Process Γ → Set where
-  cut : ∀{Γ₁ Γ₂ A P Q} (p : Γ ≃ Γ₁ + Γ₂) -> Cut (cut {A} p P Q)
+data Cut : ∀{Γ} → Process Γ → Set where
+  cut : ∀{Γ Γ₁ Γ₂ A P Q} (p : Γ ≃ Γ₁ + Γ₂) -> Cut (cut {A} p P Q)
 
-data Link {Γ} : Process Γ → Set where
-  link : ∀{A} (p : Γ ≃ [ A ] + [ dual A ]) → Link (link p)
+data Link : ∀{Γ} → Process Γ → Set where
+  link : ∀{Γ A} (p : Γ ≃ [ A ] + [ dual A ]) → Link (link p)
 
 data Input : ∀{Γ} → Process Γ → Set where
   fail : ∀{Γ Δ} (p : Γ ≃ [] + Δ) → Input (fail (< p))
