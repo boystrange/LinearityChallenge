@@ -16,50 +16,30 @@ open import DeadlockFreedom using (deadlock-freedom)
 𝔹 : Type
 𝔹 = 𝟙 ⊕ 𝟙
 
-True : Process [ 𝔹 ]
-True = left (< ≫) close
+true : Process [ 𝔹 ]
+true = left (< ≫) close
 
-False : Process [ 𝔹 ]
-False = right (< ≫) close
+false : Process [ 𝔹 ]
+false = right (< ≫) close
 
-Not : Process (dual 𝔹 ∷ 𝔹 ∷ [])
-Not = case (< ≫)
-           (wait (< ≫) False)
-           (wait (< ≫) True)
+if_else : ∀{Γ} → Process Γ → Process Γ → Process (dual 𝔹 ∷ Γ)
+if P else Q = case (< ≫) (wait (< ≫) P) (wait (< ≫) Q)
 
-Copy : Process (dual 𝔹 ∷ 𝔹 ∷ [])
-Copy = cut (< ≫) (↭process swap Not) Not
+drop : ∀{Γ} → Process Γ → Process (dual 𝔹 ∷ Γ)
+drop P = if P else P
 
-Drop : Process (dual 𝔹 ∷ 𝟙 ∷ [])
-Drop = case (< ≫)
-            (wait (< ≫) close)
-            (wait (< ≫) close)
+!!_ : Process [ 𝔹 ] → Process [ 𝔹 ]
+!!_ B = cut ≫ B (if false else true)
 
-And : Process (dual 𝔹 ∷ dual 𝔹 ∷ 𝔹 ∷ [])
-And = case (< ≫)
-           (wait (< ≫) Copy)
-           (wait (< ≫)
-                 (cut (< ≫)
-                      (↭process swap Drop)
-                      (wait (< ≫) False)))
+_&&_ _||_  : Process [ 𝔹 ] → Process [ 𝔹 ] → Process [ 𝔹 ]
+A && B   = cut ≫ A (cut ≫ B (if (link (< ≫)) else (drop false)))
+A || B   = !! ((!! A) && (!! B))
 
-Or : Process (dual 𝔹 ∷ dual 𝔹 ∷ 𝔹 ∷ [])
-Or = cut (< < ≫)
-         (cut (> < ≫)
-              (↭process swap Not)
-              (cut (> > < ≫)
-                   (↭process swap Not)
-                   And))
-         Not
-
-ex1 : Process [ 𝔹 ]
-ex1 = cut ≫ False (cut ≫ False Or)
-
-reduce : ∀{Γ} → ℕ → Process Γ → Process Γ
-reduce zero P = P
-reduce (suc n) P with deadlock-freedom P
-... | inj₁ (Q , _ , _) = Q
-... | inj₂ (Q , _) = reduce n Q
+{-# TERMINATING #-}
+eval : ∀{Γ} → Process Γ → Process Γ
+eval P with deadlock-freedom P
+... | inj₁ (Q , _ , _)  = Q
+... | inj₂ (Q , _)      = eval Q
 
 _⊸_ : ∀{n} → PreType n → PreType n → PreType n
 A ⊸ B = dual A ⅋ B
@@ -67,8 +47,14 @@ A ⊸ B = dual A ⅋ B
 echo : let X = var (# 0) in
        Process [ `! (`∀ (X ⊸ X)) ]
 echo = server (< ≫) un-[] $
-       all (< ≫) λ X → join (< ≫) $
-                        link (> < ≫)
+       all (< ≫) λ X →
+       join (< ≫) $
+       link (< ≫)
+
+echo-true : Process [ 𝔹 ]
+echo-true = cut ≫ echo (client (< ≫) $
+                       ex (< ≫) $
+                       fork (< ≫) ≫ true (link (< ≫)))
 
 ⊗-comm : let X = var (# 1) in
          let Y = var (# 0) in
