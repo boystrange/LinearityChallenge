@@ -60,7 +60,7 @@ data _↝_ {Γ} : Process Γ → Process Γ → Set where
                     contraction un p
                       (cut ++≃+ (server (< p₀) un P)
                       (cut (> p) (server (< p₀) un P) Q))
-  r-ex         : ∀{A B Γ₁ Γ₂ P F} (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) →
+  r-exists     : ∀{A B Γ₁ Γ₂ P F} (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) →
                  cut {`∃ A} p (ex {_} {B} (< p₀) P) (all (< q₀) F) ↝ cut p P (F B)
   r-cut        : ∀{Γ₁ Γ₂ A P Q R} (q : Γ ≃ Γ₁ + Γ₂) →
                  P ↝ Q → cut {A} q P R ↝ cut q Q R
