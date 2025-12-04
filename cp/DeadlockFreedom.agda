@@ -229,7 +229,7 @@ canonical-cut-alive (cc-redex p (left q) (case r)) with +-empty-l q | +-empty-l 
 canonical-cut-alive (cc-redex p (fork q r) (join s)) with +-empty-l q | +-empty-l s
 ... | refl | refl = inj₂ (_ , r-fork p s r q)
 canonical-cut-alive (cc-redex p (ex q) (all r)) with +-empty-l q | +-empty-l r
-... | refl | refl = inj₂ (_ , r-poly p q r)
+... | refl | refl = inj₂ (_ , r-ex p q r)
 canonical-cut-alive (cc-connect p (server q un) (client r)) with +-empty-l q | +-empty-l r
 ... | refl | refl = inj₂ (_ , r-client p q r un)
 canonical-cut-alive (cc-connect p (server q un) (weaken r)) with +-empty-l q | +-empty-l r
