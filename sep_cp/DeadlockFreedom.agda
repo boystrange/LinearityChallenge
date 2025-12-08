@@ -13,17 +13,17 @@ open import Process
 open import Reduction
 open import Congruence
 
-data Link : ∀{Γ} → Process Γ → Set where
+data Link : ∀{Γ} → Proc Γ → Set where
   link : ∀{Γ A} (p : Γ ≃ [ A ] + [ dual A ]) → Link (link (ch ⟨ p ⟩ ch))
 
-data Input : ∀{Γ} → Process Γ → Set where
+data Input : ∀{Γ} → Proc Γ → Set where
   fail : ∀{Γ Δ} (p : Γ ≃ [] + Δ) → Input (fail (ch ⟨ < p ⟩ tt))
   wait : ∀{Γ Δ P} (p : Γ ≃ [] + Δ) → Input (wait (ch ⟨ < p ⟩ P))
   case : ∀{Γ Δ A B P Q} (p : Γ ≃ [] + Δ) → Input (case {A} {B} (ch ⟨ < p ⟩ (P , Q)))
   join : ∀{Γ Δ A B P} (p : Γ ≃ [] + Δ) → Input (join {A} {B} (ch ⟨ < p ⟩ P))
   all  : ∀{A Γ Δ F} (p : Γ ≃ [] + Δ) → Input (all {A} (ch ⟨ < p ⟩ F))
 
-data Output : ∀{Γ} → Process Γ → Set where
+data Output : ∀{Γ} → Proc Γ → Set where
   close    : Output (close ch)
   select-l : ∀{Γ Δ A B P} (p : Γ ≃ [] + Δ) → Output (select {A} {B} (ch ⟨ < p ⟩ inj₁ P))
   select-r : ∀{Γ Δ A B P} (p : Γ ≃ [] + Δ) → Output (select {A} {B} (ch ⟨ < p ⟩ inj₂ P))
@@ -33,10 +33,10 @@ data Output : ∀{Γ} → Process Γ → Set where
   weaken   : ∀{Γ Δ A P}   (p : Γ ≃ [] + Δ) → Output (weaken {A} (ch ⟨ < p ⟩ P))
   contract : ∀{Γ Δ A P}   (p : Γ ≃ [] + Δ) → Output (contract {A} (ch ⟨ < p ⟩ P))
 
-data Server : ∀{Γ} → Process Γ → Set where
+data Server : ∀{Γ} → Proc Γ → Set where
   server : ∀{Γ Δ A P} (p : Γ ≃ [] + Δ) (un : Un Δ) → Server (server {A} (ch ⟨ < p ⟩ (un , P)))
 
-data Delayed : ∀{Γ} → Process Γ → Set where
+data Delayed : ∀{Γ} → Proc Γ → Set where
   fail     : ∀{C Γ Δ} (p : Γ ∋ ⊤ ⊳ Δ) → Delayed (fail (ch ⟨ >_ {C} p ⟩ tt))
   wait     : ∀{C Γ Δ P} (p : Γ ∋ ⊥ ⊳ Δ) → Delayed (wait (ch ⟨ >_ {C} p ⟩ P))
   case     : ∀{Γ Δ C A B P} (p : Γ ∋ A & B ⊳ Δ) → Delayed (case {A} {B} (ch ⟨ >_ {C} p ⟩ P))
@@ -53,11 +53,11 @@ data Delayed : ∀{Γ} → Process Γ → Set where
   weaken   : ∀{Γ Δ A C P} (p : Γ ∋ `? A ⊳ Δ) → Delayed (weaken (ch ⟨ >_ {C} p ⟩ P))
   contract : ∀{Γ Δ A C P} (p : Γ ∋ `? A ⊳ Δ) → Delayed (contract (ch ⟨ >_ {C} p ⟩ P))
 
-data DelayedServer : ∀{Γ} → Process Γ → Set where
+data DelayedServer : ∀{Γ} → Proc Γ → Set where
   server : ∀{Γ Δ A C P} (p : Γ ∋ `! A ⊳ Δ) (un : Un Δ) →
            DelayedServer (server {A} (ch ⟨ >_ p ⟩ (un-∷ {C} un , P)))
 
-data Thread {Γ} (P : Process Γ) : Set where
+data Thread {Γ} (P : Proc Γ) : Set where
   link    : Link P → Thread P
   delayed : Delayed P → Thread P
   output  : Output P → Thread P
@@ -65,13 +65,13 @@ data Thread {Γ} (P : Process Γ) : Set where
   server  : Server P → Thread P
   dserver : DelayedServer P → Thread P
 
-Observable : ∀{Γ} → Process Γ → Set
+Observable : ∀{Γ} → Proc Γ → Set
 Observable P = ∃[ Q ] P ⊒ Q × Thread Q
 
-Reducible : ∀{Γ} → Process Γ → Set
+Reducible : ∀{Γ} → Proc Γ → Set
 Reducible P = ∃[ Q ] P ↝ Q
 
-Alive : ∀{Γ} → Process Γ → Set
+Alive : ∀{Γ} → Proc Γ → Set
 Alive P = Observable P ⊎ Reducible P
 
 fail→thread : ∀{Γ Δ} (p : Γ ≃ [ ⊤ ] + Δ) → Thread (fail (ch ⟨ p ⟩ tt))
@@ -127,7 +127,7 @@ contract→thread : ∀{A Γ Δ P} (p : Γ ≃ [ `? A ] + Δ) → Thread (contra
 contract→thread (< p) = output (contract p)
 contract→thread (> p) = delayed (contract p)
 
-data CanonicalCut {Γ} : Process Γ → Set where
+data CanonicalCut {Γ} : Proc Γ → Set where
   cc-link    : ∀{Γ₁ Γ₂ A P Q} (p : Γ ≃ Γ₁ + Γ₂) →
                Link P → CanonicalCut (cut {A} (P ⟨ p ⟩ Q))
   cc-redex   : ∀{Γ₁ Γ₂ A P Q} (p : Γ ≃ Γ₁ + Γ₂) →
@@ -181,11 +181,11 @@ canonical-cut pc (dserver x) (input y) = contradiction (y , x) input-delayed-ser
 canonical-cut pc (dserver x) (server y) = _ , cc-servers pc x y , s-refl
 canonical-cut pc (dserver x) (dserver y) = contradiction (x , y) delayed-server-delayed-served
 
-⊒Alive : ∀{Γ} {P Q : Process Γ} → P ⊒ Q → Alive Q → Alive P
+⊒Alive : ∀{Γ} {P Q : Proc Γ} → P ⊒ Q → Alive Q → Alive P
 ⊒Alive pcong (inj₁ (_ , x , th)) = inj₁ (_ , s-tran pcong x , th)
 ⊒Alive pcong (inj₂ (_ , red)) = inj₂ (_ , r-cong pcong red)
 
-canonical-cut-alive : ∀{Γ} {C : Process Γ} → CanonicalCut C → Alive C
+canonical-cut-alive : ∀{Γ} {C : Proc Γ} → CanonicalCut C → Alive C
 canonical-cut-alive (cc-link pc (link (< > •))) = inj₂ (_ , r-link pc)
 canonical-cut-alive (cc-link pc (link (> < •))) =
   inj₂ (_ , r-cong (s-cong pc (s-link _) s-refl) (r-link pc))
@@ -252,7 +252,7 @@ canonical-cut-alive (cc-servers pc (server p un) (server q un')) with +-empty-l 
   let _ , pc' , p' = +-assoc-l pc p in
   inj₁ (_ , s-server pc p q un un' , server→thread p' (+-un pc' un un'))
 
-deadlock-freedom : ∀{Γ} (P : Process Γ) → Alive P
+deadlock-freedom : ∀{Γ} (P : Proc Γ) → Alive P
 deadlock-freedom (link (ch ⟨ p ⟩ ch)) = inj₁ (_ , s-refl , link (link p))
 deadlock-freedom (fail (ch ⟨ p ⟩ _)) = inj₁ (_ , s-refl , fail→thread p)
 deadlock-freedom (wait (ch ⟨ p ⟩ _)) = inj₁ (_ , s-refl , wait→thread p)

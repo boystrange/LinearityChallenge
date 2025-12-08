@@ -13,26 +13,26 @@ open import Permutations
 open import Process
 open import Congruence
 
-weakening : ∀[ Un ∗ Process ⇒ Process ]
-weakening (un ⟨ p ⟩ P) = ↭process (↭concat p) (aux un P)
+weakening : ∀[ Un ∗ Proc ⇒ Proc ]
+weakening (un ⟨ p ⟩ P) = ↭proc (↭concat p) (aux un P)
   where
-    aux : ∀{Γ₁ Γ₂} (un : Un Γ₁) → Process Γ₂ → Process (Γ₁ ++ Γ₂)
+    aux : ∀{Γ₁ Γ₂} (un : Un Γ₁) → Proc Γ₂ → Proc (Γ₁ ++ Γ₂)
     aux un-[] P = P
     aux (un-∷ un) P = weaken (ch ⟨ < ≫ ⟩ aux un P)
 
-contraction : ∀{Γ Γ₁ Γ₂} (un : Un Γ₁) → Γ ≃ Γ₁ + Γ₂ → Process (Γ₁ ++ Γ) → Process Γ
-contraction un p P = ↭process (↭concat p) (aux un (↭process (↭left (↭sym (↭concat p))) P))
+contraction : ∀{Γ Γ₁ Γ₂} (un : Un Γ₁) → Γ ≃ Γ₁ + Γ₂ → Proc (Γ₁ ++ Γ) → Proc Γ
+contraction un p P = ↭proc (↭concat p) (aux un (↭proc (↭left (↭sym (↭concat p))) P))
   where
-    aux : ∀{Γ₁ Γ₂} → Un Γ₁ → Process (Γ₁ ++ Γ₁ ++ Γ₂) → Process (Γ₁ ++ Γ₂)
+    aux : ∀{Γ₁ Γ₂} → Un Γ₁ → Proc (Γ₁ ++ Γ₁ ++ Γ₂) → Proc (Γ₁ ++ Γ₂)
     aux un-[] P = P
-    aux {`? A ∷ Γ₁} {Γ₂} (un-∷ un) P with contract (ch ⟨ < ≫ ⟩ (↭process (↭shift {`? A} {`? A ∷ Γ₁} {Γ₁ ++ Γ₂}) P))
-    ... | P₁ rewrite sym (++-assoc (`? A ∷ Γ₁) Γ₁ Γ₂) with ↭process (↭sym (↭shift {`? A} {Γ₁ ++ Γ₁})) P₁
+    aux {`? A ∷ Γ₁} {Γ₂} (un-∷ un) P with contract (ch ⟨ < ≫ ⟩ (↭proc (↭shift {`? A} {`? A ∷ Γ₁} {Γ₁ ++ Γ₂}) P))
+    ... | P₁ rewrite sym (++-assoc (`? A ∷ Γ₁) Γ₁ Γ₂) with ↭proc (↭sym (↭shift {`? A} {Γ₁ ++ Γ₁})) P₁
     ... | P₂ rewrite ++-assoc Γ₁ Γ₁ (`? A ∷ Γ₂) with aux un P₂
-    ... | P₃ = ↭process ↭shift P₃
+    ... | P₃ = ↭proc ↭shift P₃
 
-data _↝_ {Γ} : Process Γ → Process Γ → Set where
+data _↝_ {Γ} : Proc Γ → Proc Γ → Set where
   r-link      : ∀{Δ A P} (p : Γ ≃ [ dual A ] + Δ) →
-                cut {A} (link (ch ⟨ < > • ⟩ ch) ⟨ p ⟩ P) ↝ ↭process (↭concat p) P
+                cut {A} (link (ch ⟨ < > • ⟩ ch) ⟨ p ⟩ P) ↝ ↭proc (↭concat p) P
   r-close     : ∀{P} (p₀ q₀ : Γ ≃ [] + Γ) →
                 cut (close ch ⟨ p₀ ⟩ wait (ch ⟨ < q₀ ⟩ P)) ↝ P
   r-select-l  : ∀{Γ₁ Γ₂ A B P Q R}
