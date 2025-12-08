@@ -1,4 +1,5 @@
 {-# OPTIONS --rewriting #-}
+open import Data.Sum
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong₂)
 open import Data.List.Base using (List; []; _∷_; [_]; _++_)
@@ -14,8 +15,7 @@ data Process : Context → Set where
   close     : Process [ 𝟙 ]
   case      : ∀{A B Γ Δ} → Γ ∋ A & B ⊳ Δ →
               Process (A ∷ Δ) → Process (B ∷ Δ) → Process Γ
-  left      : ∀{A B Γ Δ} → Γ ∋ A ⊕ B ⊳ Δ → Process (A ∷ Δ) → Process Γ
-  right     : ∀{A B Γ Δ} → Γ ∋ A ⊕ B ⊳ Δ → Process (B ∷ Δ) → Process Γ
+  select    : ∀{A B Γ Δ} → Γ ∋ A ⊕ B ⊳ Δ → Process (A ∷ Δ) ⊎ Process (B ∷ Δ) → Process Γ
   join      : ∀{A B Γ Δ} → Γ ∋ A ⅋ B ⊳ Δ → Process (B ∷ A ∷ Δ) → Process Γ
   fork      : ∀{A B Γ Δ Γ₁ Γ₂} → Γ ∋ A ⊗ B ⊳ Δ → Δ ≃ Γ₁ + Γ₂ →
               Process (A ∷ Γ₁) → Process (B ∷ Γ₂) → Process Γ
@@ -31,34 +31,34 @@ data Process : Context → Set where
 
 ↭process : ∀{Γ Δ} → Γ ↭ Δ → Process Γ → Process Δ
 ↭process π (link p) with ↭solo π p
-... | Δ′ , q , π′ rewrite ↭solo-inv π′ = link q
+... | _ , q , π' rewrite ↭solo-inv π' = link q
 ↭process π (fail p) with ↭solo π p
-... | Δ′ , q , π′ = fail q
+... | _ , q , π' = fail q
 ↭process π (wait p P) with ↭solo π p
-... | Δ′ , q , π′ = wait q (↭process π′ P)
+... | _ , q , π' = wait q (↭process π' P)
 ↭process π close rewrite ↭solo-inv π = close
 ↭process π (case p P Q) with ↭solo π p
-... | Δ′ , q , π′ = case q (↭process (prep π′) P) (↭process (prep π′) Q)
-↭process π (left p P) with ↭solo π p
-... | Δ′ , q , π′ = left q (↭process (prep π′) P)
-↭process π (right p P) with ↭solo π p
-... | Δ′ , q , π′ = right q (↭process (prep π′) P)
+... | _ , q , π' = case q (↭process (prep π') P) (↭process (prep π') Q)
+↭process π (select p (inj₁ P)) with ↭solo π p
+... | _ , q , π' = select q (inj₁ (↭process (prep π') P))
+↭process π (select p (inj₂ P)) with ↭solo π p
+... | _ , q , π' = select q (inj₂ (↭process (prep π') P))
 ↭process π (join p P) with ↭solo π p
-... | Δ′ , q , π′ = join q (↭process (prep (prep π′)) P)
+... | _ , q , π' = join q (↭process (prep (prep π')) P)
 ↭process π (fork p q P Q) with ↭solo π p
-... | Δ′ , p′ , π′ with ↭split π′ q
-... | Δ₁ , Δ₂ , q′ , π₁ , π₂ = fork p′ q′ (↭process (prep π₁) P) (↭process (prep π₂) Q)
+... | _ , p' , π' with ↭split π' q
+... | Δ₁ , Δ₂ , q' , π₁ , π₂ = fork p' q' (↭process (prep π₁) P) (↭process (prep π₂) Q)
 ↭process π (all p P) with ↭solo π p
-... | Δ' , q , π' = all q λ B → ↭process (prep π') (P B)
+... | _ , q , π' = all q λ B → ↭process (prep π') (P B)
 ↭process π (ex p P) with ↭solo π p
-... | Δ' , q , π' = ex q (↭process (prep π') P)
+... | _ , q , π' = ex q (↭process (prep π') P)
 ↭process π (server p un P) with ↭solo π p
-... | Δ′ , q , π′ = server q (↭un π′ un) (↭process (prep π′) P)
+... | _ , q , π' = server q (↭un π' un) (↭process (prep π') P)
 ↭process π (client p P) with ↭solo π p
-... | Δ′ , q , π′ = client q (↭process (prep π′) P)
+... | _ , q , π' = client q (↭process (prep π') P)
 ↭process π (weaken p P) with ↭solo π p
-... | Δ′ , q , π′ = weaken q (↭process π′ P)
+... | _ , q , π' = weaken q (↭process π' P)
 ↭process π (contract p P) with ↭solo π p
-... | Δ′ , q , π′ = contract q (↭process (prep (prep π′)) P)
+... | _ , q , π' = contract q (↭process (prep (prep π')) P)
 ↭process π (cut p P Q) with ↭split π p
 ... | Δ₁ , Δ₂ , q , π₁ , π₂ = cut q (↭process (prep π₁) P) (↭process (prep π₂) Q)

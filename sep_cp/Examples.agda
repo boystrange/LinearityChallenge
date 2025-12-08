@@ -1,11 +1,8 @@
 {-# OPTIONS --rewriting #-}
-open import Data.Sum hiding (reduce; swap)
+open import Data.Sum using (inj₁; inj₂)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
-open import Data.Nat using (ℕ; zero; suc)
 open import Data.Fin using (zero; suc; #_)
-open import Data.List.Base using (List; []; _∷_; [_]; _++_)
-open import Function using (_$_)
-open import Data.Maybe
+open import Data.List.Base using ([]; _∷_; [_])
 
 open import Type
 open import Context
@@ -33,11 +30,9 @@ drop P = if P else P
 !!_ B = cut (B ⟨ ≫ ⟩ if false else true)
 
 _&&_ _||_  : Process [ 𝔹 ] → Process [ 𝔹 ] → Process [ 𝔹 ]
-A && B   = cut (A ⟨ ≫ ⟩
-               (cut (B ⟨ ≫ ⟩
-                    (if (link (ch ⟨ < ≫ ⟩ ch)) else (drop false)))
-               )
-           )
+A && B   = cut (A ⟨ ≫ ⟩ (
+           cut (B ⟨ ≫ ⟩ (
+               if (link (ch ⟨ < ≫ ⟩ ch)) else (drop false)))))
 A || B   = !! ((!! A) && (!! B))
 
 {-# TERMINATING #-}
@@ -51,15 +46,15 @@ A ⊸ B = dual A ⅋ B
 
 echo : let X = var (# 0) in
        Process [ `! (`∀ (X ⊸ X)) ]
-echo = server $ ch ⟨ < ≫ ⟩ (un-[] , (
-       all $ ch ⟨ < ≫ ⟩ λ X →
-       join $ ch ⟨ < ≫ ⟩
-       link (ch ⟨ < ≫ ⟩ ch)))
+echo = server (ch ⟨ < ≫ ⟩ (un-[] ,
+       all (ch ⟨ < ≫ ⟩ λ X →
+       join (ch ⟨ < ≫ ⟩
+       link (ch ⟨ < ≫ ⟩ ch)))))
 
 echo-true : Process [ 𝔹 ]
 echo-true = cut (echo ⟨ ≫ ⟩
-                 client (ch ⟨ < ≫ ⟩
-                 ex (ch ⟨ < ≫ ⟩
-                 fork (ch ⟨ < ≫ ⟩ (
-                   true ⟨ ≫ ⟩
-                   link (ch ⟨ < ≫ ⟩ ch))))))
+                client (ch ⟨ < ≫ ⟩
+                ex (ch ⟨ < ≫ ⟩
+                fork (ch ⟨ < ≫ ⟩ (
+                     true ⟨ ≫ ⟩
+                     link (ch ⟨ < ≫ ⟩ ch))))))

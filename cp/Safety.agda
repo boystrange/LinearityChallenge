@@ -17,11 +17,11 @@ data ReductionContext (Δ : Context) : Context → Set where
            ReductionContext Δ Γ
 
 _⟦_⟧ : ∀{Γ Δ} → ReductionContext Δ Γ → Process Δ → Process Γ
-hole ⟦ P ⟧           = P
-cut-l p 𝒞 Q ⟦ P ⟧  = cut p (𝒞 ⟦ P ⟧) Q
-cut-r p Q 𝒞 ⟦ P ⟧  = cut p Q (𝒞 ⟦ P ⟧)
+hole         ⟦ P ⟧ = P
+cut-l p 𝒞 Q  ⟦ P ⟧ = cut p (𝒞 ⟦ P ⟧) Q
+cut-r p Q 𝒞  ⟦ P ⟧ = cut p Q (𝒞 ⟦ P ⟧)
 
-WellFormed       : ∀{Γ} → Process Γ → Set
+WellFormed : ∀{Γ} → Process Γ → Set
 WellFormed {Γ} P = ∀{Δ} {𝒞 : ReductionContext Δ Γ} {Q : Process Δ} →
                    P ⊒ (𝒞 ⟦ Q ⟧) → Alive Q
 

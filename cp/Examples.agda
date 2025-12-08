@@ -1,11 +1,9 @@
 {-# OPTIONS --rewriting #-}
-open import Data.Sum hiding (reduce; swap)
+open import Data.Sum using (inj₁; inj₂)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
-open import Data.Nat using (ℕ; zero; suc)
 open import Data.Fin using (zero; suc; #_)
-open import Data.List.Base using (List; []; _∷_; [_]; _++_)
+open import Data.List.Base using ([]; _∷_; [_])
 open import Function using (_$_)
-open import Data.Maybe
 
 open import Type
 open import Context

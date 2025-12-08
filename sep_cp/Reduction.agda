@@ -2,10 +2,10 @@
 open import Data.Bool using (Bool; true; false; if_then_else_)
 open import Data.Sum using (inj₁; inj₂)
 open import Data.Product using (_×_; _,_; ∃; Σ; Σ-syntax; ∃-syntax)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; cong; cong₂)
 open import Data.List.Base using (List; []; _∷_; [_]; _++_)
 open import Data.List.Properties using (++-assoc)
 open import Relation.Unary
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; cong; cong₂)
 
 open import Type
 open import Context

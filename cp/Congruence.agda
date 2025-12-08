@@ -1,4 +1,5 @@
 {-# OPTIONS --rewriting #-}
+open import Data.Sum using (inj₁; inj₂)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
 open import Data.List.Base using (List; []; _∷_; [_]; _++_)
 
@@ -26,14 +27,14 @@ data _⊒_ {Γ} : Process Γ → Process Γ → Set where
     let _ , p′ , q′ = +-assoc-l p q in
     cut {A} p (case (> q) P Q) R ⊒ case q′ (cut (< p′) (↭process swap P) R)
                                            (cut (< p′) (↭process swap Q) R)
-  s-left :
+  s-select-l :
     ∀{Γ₁ Γ₂ Δ A B C P Q} (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ∋ B ⊕ C ⊳ Δ) →
     let _ , p′ , q′ = +-assoc-l p q in
-    cut {A} p (left (> q) P) Q ⊒ left q′ (cut (< p′) (↭process swap P) Q)
-  s-right :
+    cut {A} p (select (> q) (inj₁ P)) Q ⊒ select q′ (inj₁ (cut (< p′) (↭process swap P) Q))
+  s-select-r :
     ∀{Γ₁ Γ₂ Δ A B C P Q} (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ∋ B ⊕ C ⊳ Δ) →
     let _ , p′ , q′ = +-assoc-l p q in
-    cut {A} p (right (> q) P) Q ⊒ right q′ (cut (< p′) (↭process swap P) Q)
+    cut {A} p (select (> q) (inj₂ P)) Q ⊒ select q′ (inj₂ (cut (< p′) (↭process swap P) Q))
   s-join :
     ∀{Γ₁ Γ₂ Δ A B C P Q} (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ∋ B ⅋ C ⊳ Δ) →
     let _ , p′ , q′ = +-assoc-l p q in

@@ -14,11 +14,11 @@ data ReductionContext (Δ : Context) : Context → Set where
   cut-r  : ∀{A} → ∀[ ((A ∷_) ⊢ Process) ∗ ((dual A ∷_) ⊢ ReductionContext Δ) ⇒ ReductionContext Δ ]
 
 _⟦_⟧ : ∀{Γ Δ} → ReductionContext Δ Γ → Process Δ → Process Γ
-hole              ⟦ P ⟧  = P
-cut-l (𝒞 ⟨ p ⟩ Q) ⟦ P ⟧  = cut ((𝒞 ⟦ P ⟧) ⟨ p ⟩ Q)
-cut-r (Q ⟨ p ⟩ 𝒞) ⟦ P ⟧  = cut (Q ⟨ p ⟩ (𝒞 ⟦ P ⟧))
+hole               ⟦ P ⟧ = P
+cut-l (𝒞 ⟨ p ⟩ Q)  ⟦ P ⟧ = cut ((𝒞 ⟦ P ⟧) ⟨ p ⟩ Q)
+cut-r (Q ⟨ p ⟩ 𝒞)  ⟦ P ⟧ = cut (Q ⟨ p ⟩ (𝒞 ⟦ P ⟧))
 
-WellFormed       : ∀{Γ} → Process Γ → Set
+WellFormed : ∀{Γ} → Process Γ → Set
 WellFormed {Γ} P = ∀{Δ} {𝒞 : ReductionContext Δ Γ} {Q : Process Δ} →
                    P ⊒ (𝒞 ⟦ Q ⟧) → Alive Q
 

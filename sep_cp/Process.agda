@@ -18,7 +18,7 @@ record _∗_ (P Q : Pred Context _) (Γ : Context) : Set where
     p     : Γ ≃ Δ + Θ
     qx    : Q Θ
 
-infixr 50 _∗_
+infixr 9 _∗_
 
 data Ch (A : Type) : Context → Set where
   ch : Ch A [ A ]
@@ -57,19 +57,19 @@ data Process : Context → Set where
 ↭process π (join (ch ⟨ p ⟩ P)) with ↭solo π p
 ... | _ , q , π' = join (ch ⟨ q ⟩ ↭process (prep (prep π')) P)
 ↭process π (fork (ch ⟨ p ⟩ (P ⟨ q ⟩ Q))) with ↭solo π p
-... | Δ' , p' , π' with ↭split π' q
+... | _ , p' , π' with ↭split π' q
 ... | Δ₁ , Δ₂ , q' , π₁ , π₂ = fork (ch ⟨ p' ⟩ (↭process (prep π₁) P ⟨ q' ⟩ ↭process (prep π₂) Q))
 ↭process π (all (ch ⟨ p ⟩ F)) with ↭solo π p
-... | Δ' , q , π' = all (ch ⟨ q ⟩ λ X → ↭process (prep π') (F X))
+... | _ , q , π' = all (ch ⟨ q ⟩ λ X → ↭process (prep π') (F X))
 ↭process π (ex (ch ⟨ p ⟩ P)) with ↭solo π p
-... | Δ' , q , π' = ex (ch ⟨ q ⟩ ↭process (prep π') P)
+... | _ , q , π' = ex (ch ⟨ q ⟩ ↭process (prep π') P)
 ↭process π (server (ch ⟨ p ⟩ (un , P))) with ↭solo π p
-... | Δ' , q , π' = server (ch ⟨ q ⟩ (↭un π' un , ↭process (prep π') P))
+... | _ , q , π' = server (ch ⟨ q ⟩ (↭un π' un , ↭process (prep π') P))
 ↭process π (client (ch ⟨ p ⟩ P)) with ↭solo π p
-... | Δ' , q , π' = client (ch ⟨ q ⟩ ↭process (prep π') P)
+... | _ , q , π' = client (ch ⟨ q ⟩ ↭process (prep π') P)
 ↭process π (weaken (ch ⟨ p ⟩ P)) with ↭solo π p
-... | Δ' , q , π' = weaken (ch ⟨ q ⟩ ↭process π' P)
+... | _ , q , π' = weaken (ch ⟨ q ⟩ ↭process π' P)
 ↭process π (contract (ch ⟨ p ⟩ P)) with ↭solo π p
-... | Δ' , q , π' = contract (ch ⟨ q ⟩ ↭process (prep (prep π')) P)
+... | _ , q , π' = contract (ch ⟨ q ⟩ ↭process (prep (prep π')) P)
 ↭process π (cut (P ⟨ p ⟩ Q)) with ↭split π p
 ... | Δ₁ , Δ₂ , q , π₁ , π₂ = cut (↭process (prep π₁) P ⟨ q ⟩ ↭process (prep π₂) Q)

@@ -1,9 +1,10 @@
 {-# OPTIONS --rewriting #-}
 open import Data.Bool using (Bool; true; false; if_then_else_)
+open import Data.Sum using (inj₁; inj₂)
 open import Data.Product using (_×_; _,_; ∃; Σ; Σ-syntax; ∃-syntax)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; cong; cong₂)
 open import Data.List.Base using (List; []; _∷_; [_]; _++_)
 open import Data.List.Properties using (++-assoc)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; cong; cong₂)
 
 open import Type
 open import Context
@@ -33,13 +34,13 @@ data _↝_ {Γ} : Process Γ → Process Γ → Set where
                 cut {A} p (link (< > •)) P ↝ ↭process (↭concat p) P
   r-close     : ∀{P} (p₀ q₀ : Γ ≃ [] + Γ) →
                 cut p₀ close (wait (< q₀) P) ↝ P
-  r-left      : ∀{Γ₁ Γ₂ A B P Q R}
+  r-select-l  : ∀{Γ₁ Γ₂ A B P Q R}
                 (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) →
-                cut {A ⊕ B} p (left (< p₀) P)
+                cut {A ⊕ B} p (select (< p₀) (inj₁ P))
                               (case (< q₀) Q R) ↝ cut p P Q
-  r-right     : ∀{Γ₁ Γ₂ A B P Q R}
+  r-select-r  : ∀{Γ₁ Γ₂ A B P Q R}
                 (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) →
-                cut {A ⊕ B} p (right (< p₀) P)
+                cut {A ⊕ B} p (select (< p₀) (inj₂ P))
                               (case (< q₀) Q R) ↝ cut p P R
   r-fork      : ∀{Γ₁ Γ₂ Γ₃ Δ A B P Q R}
                 (p : Γ ≃ Δ + Γ₃) (p₀ : Γ₃ ≃ [] + Γ₃) (q : Δ ≃ Γ₁ + Γ₂) (q₀ : Δ ≃ [] + Δ) →
@@ -47,19 +48,17 @@ data _↝_ {Γ} : Process Γ → Process Γ → Set where
                 cut {A ⊗ B} p (fork (< q₀) q P Q)
                               (join (< p₀) R) ↝ cut q′ P (cut (> p′) Q R)
   r-client    : ∀{Γ₁ Γ₂ A P Q}
-                (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) (un : Un Γ₁) →
-                cut {`! A} p (server (< p₀) un P) (client (< q₀) Q) ↝ cut p P Q
+                (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) (un : Un Γ₂) →
+                cut {`? A} p (client (< p₀) P) (server (< q₀) un Q) ↝ cut p P Q
   r-weaken    : ∀{Γ₁ Γ₂ A P Q}
-                (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) (un : Un Γ₁) →
-                cut {`! A} p (server (< p₀) un P)
-                             (weaken (< q₀) Q) ↝ weakening un p Q
+                (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) (un : Un Γ₂) →
+                cut {`? A} p (weaken (< p₀) P) (server (< q₀) un Q) ↝ weakening un (+-comm p) P
   r-contract  : ∀{Γ₁ Γ₂ A P Q}
-                (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) (un : Un Γ₁) →
-                cut {`! A} p (server (< p₀) un P)
-                             (contract (< q₀) Q) ↝
-                    contraction un p
-                      (cut ++≃+ (server (< p₀) un P)
-                      (cut (> p) (server (< p₀) un P) Q))
+                (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) (un : Un Γ₂) →
+                cut {`? A} p (contract (< p₀) P) (server (< q₀) un Q) ↝
+                    contraction un (+-comm p)
+                      (cut ++≃+ (server (< q₀) un Q)
+                      (cut (> +-comm p) (server (< q₀) un Q) P))
   r-exists     : ∀{A B Γ₁ Γ₂ P F} (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) →
                  cut {`∃ A} p (ex {_} {B} (< p₀) P) (all (< q₀) F) ↝ cut p P (F B)
   r-cut        : ∀{Γ₁ Γ₂ A P Q R} (q : Γ ≃ Γ₁ + Γ₂) →
