@@ -1,33 +1,16 @@
 {-# OPTIONS --rewriting #-}
 open import Data.Unit using (tt)
 open import Data.Sum
-open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
-open import Data.List.Base using (List; []; _∷_; [_]; _++_)
+open import Data.Product using (_,_)
+open import Data.List.Base using ([]; _∷_; [_])
 open import Relation.Unary
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong₂)
 
 open import Type
 open import Context
 open import Permutations
 
-record _∗_ (P Q : Pred Context _) (Γ : Context) : Set where
-  constructor _⟨_⟩_
-  field
-    {Δ Θ} : Context
-    px    : P Δ
-    p     : Γ ≃ Δ + Θ
-    qx    : Q Θ
-
-infixr 9 _∗_
-
 data Ch (A : Type) : Context → Set where
   ch : Ch A [ A ]
-
-_ : ∀{A B} → (Ch A ∗ Ch B) (A ∷ B ∷ [])
-_ = ch ⟨ < > • ⟩ ch
-
-_ : ∀{A B} → (Ch B ∗ Ch A) (A ∷ B ∷ [])
-_ = ch ⟨ > < • ⟩ ch
 
 data Proc : Context → Set where
   link     : ∀{A} → ∀[ Ch A ∗ Ch (dual A) ⇒ Proc ]
