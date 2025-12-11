@@ -8,7 +8,6 @@ open import Relation.Unary
 
 open import Type
 open import Context
-open import Separation
 open import Permutations
 open import Process
 open import DeadlockFreedom using (deadlock-freedom)

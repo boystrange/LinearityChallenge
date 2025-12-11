@@ -37,24 +37,24 @@ data Server : ∀{Γ} → Proc Γ → Set where
   server : ∀{Γ Δ A P} (p : Γ ≃ [] + Δ) (un : Un Δ) → Server (server {A} (ch ⟨ < p ⟩ (un , P)))
 
 data Delayed : ∀{Γ} → Proc Γ → Set where
-  fail     : ∀{C Γ Δ} (p : Γ ∋ ⊤ ⊳ Δ) → Delayed (fail (ch ⟨ >_ {C} p ⟩ tt))
-  wait     : ∀{C Γ Δ P} (p : Γ ∋ ⊥ ⊳ Δ) → Delayed (wait (ch ⟨ >_ {C} p ⟩ P))
-  case     : ∀{Γ Δ C A B P} (p : Γ ∋ A & B ⊳ Δ) → Delayed (case {A} {B} (ch ⟨ >_ {C} p ⟩ P))
-  select-l : ∀{Γ Δ C A B P} (p : Γ ∋ A ⊕ B ⊳ Δ) → Delayed (select (ch ⟨ >_ {C} p ⟩ inj₁ P))
-  select-r : ∀{Γ Δ C A B P} (p : Γ ∋ A ⊕ B ⊳ Δ) → Delayed (select (ch ⟨ >_ {C} p ⟩ inj₂ P))
-  join     : ∀{Γ Δ C A B P} (p : Γ ∋ A ⅋ B ⊳ Δ) → Delayed (join (ch ⟨ >_ {C} p ⟩ P))
-  fork-l   : ∀{Γ Δ Δ₁ Δ₂ C A B P Q} (p : Γ ∋ A ⊗ B ⊳ Δ) (q : Δ ≃ Δ₁ + Δ₂) →
+  fail     : ∀{C Γ Δ} (p : Γ ≃ [ ⊤ ] + Δ) → Delayed (fail (ch ⟨ >_ {C} p ⟩ tt))
+  wait     : ∀{C Γ Δ P} (p : Γ ≃ [ ⊥ ] + Δ) → Delayed (wait (ch ⟨ >_ {C} p ⟩ P))
+  case     : ∀{Γ Δ C A B P} (p : Γ ≃ [ A & B ] + Δ) → Delayed (case {A} {B} (ch ⟨ >_ {C} p ⟩ P))
+  select-l : ∀{Γ Δ C A B P} (p : Γ ≃ [ A ⊕ B ] + Δ) → Delayed (select (ch ⟨ >_ {C} p ⟩ inj₁ P))
+  select-r : ∀{Γ Δ C A B P} (p : Γ ≃ [ A ⊕ B ] + Δ) → Delayed (select (ch ⟨ >_ {C} p ⟩ inj₂ P))
+  join     : ∀{Γ Δ C A B P} (p : Γ ≃ [ A ⅋ B ] + Δ) → Delayed (join (ch ⟨ >_ {C} p ⟩ P))
+  fork-l   : ∀{Γ Δ Δ₁ Δ₂ C A B P Q} (p : Γ ≃ [ A ⊗ B ] + Δ) (q : Δ ≃ Δ₁ + Δ₂) →
              Delayed (fork (ch ⟨ >_ {C} p ⟩ (P ⟨ < q ⟩ Q)))
-  fork-r   : ∀{Γ Δ Δ₁ Δ₂ C A B P Q} (p : Γ ∋ A ⊗ B ⊳ Δ) (q : Δ ≃ Δ₁ + Δ₂) →
+  fork-r   : ∀{Γ Δ Δ₁ Δ₂ C A B P Q} (p : Γ ≃ [ A ⊗ B ] + Δ) (q : Δ ≃ Δ₁ + Δ₂) →
              Delayed (fork (ch ⟨ >_ {C} p ⟩ (P ⟨ > q ⟩ Q)))
-  all      : ∀{A C Γ Δ F} (p : Γ ∋ `∀ A ⊳ Δ) → Delayed (all (ch ⟨ >_ {C} p ⟩ F))
-  ex       : ∀{A B C Γ Δ P} (p : Γ ∋ `∃ A ⊳ Δ) → Delayed (ex {A} {B} (ch ⟨ >_ {C} p ⟩ P))
-  client   : ∀{Γ Δ A C P} (p : Γ ∋ `? A ⊳ Δ) → Delayed (client (ch ⟨ >_ {C} p ⟩ P))
-  weaken   : ∀{Γ Δ A C P} (p : Γ ∋ `? A ⊳ Δ) → Delayed (weaken (ch ⟨ >_ {C} p ⟩ P))
-  contract : ∀{Γ Δ A C P} (p : Γ ∋ `? A ⊳ Δ) → Delayed (contract (ch ⟨ >_ {C} p ⟩ P))
+  all      : ∀{A C Γ Δ F} (p : Γ ≃ [ `∀ A ] + Δ) → Delayed (all (ch ⟨ >_ {C} p ⟩ F))
+  ex       : ∀{A B C Γ Δ P} (p : Γ ≃ [ `∃ A ] + Δ) → Delayed (ex {A} {B} (ch ⟨ >_ {C} p ⟩ P))
+  client   : ∀{Γ Δ A C P} (p : Γ ≃ [ `? A ] + Δ) → Delayed (client (ch ⟨ >_ {C} p ⟩ P))
+  weaken   : ∀{Γ Δ A C P} (p : Γ ≃ [ `? A ] + Δ) → Delayed (weaken (ch ⟨ >_ {C} p ⟩ P))
+  contract : ∀{Γ Δ A C P} (p : Γ ≃ [ `? A ] + Δ) → Delayed (contract (ch ⟨ >_ {C} p ⟩ P))
 
 data DelayedServer : ∀{Γ} → Proc Γ → Set where
-  server : ∀{Γ Δ A C P} (p : Γ ∋ `! A ⊳ Δ) (un : Un Δ) →
+  server : ∀{Γ Δ A C P} (p : Γ ≃ [ `! A ] + Δ) (un : Un Δ) →
            DelayedServer (server {A} (ch ⟨ >_ p ⟩ (un-∷ {C} un , P)))
 
 data Thread {Γ} (P : Proc Γ) : Set where
@@ -86,11 +86,11 @@ case→thread : ∀{A B Γ Δ P} (p : Γ ≃ [ A & B ] + Δ) → Thread (case (c
 case→thread (< p) = input (case p)
 case→thread (> p) = delayed (case p)
 
-left→thread : ∀{A B Γ Δ P} (p : Γ ∋ A ⊕ B ⊳ Δ) → Thread (select (ch ⟨ p ⟩ inj₁ P))
+left→thread : ∀{A B Γ Δ P} (p : Γ ≃ [ A ⊕ B ] + Δ) → Thread (select (ch ⟨ p ⟩ inj₁ P))
 left→thread (< p) = output (select-l p)
 left→thread (> p) = delayed (select-l p)
 
-right→thread : ∀{A B Γ Δ P} (p : Γ ∋ A ⊕ B ⊳ Δ) → Thread (select (ch ⟨ p ⟩ inj₂ P))
+right→thread : ∀{A B Γ Δ P} (p : Γ ≃ [ A ⊕ B ] + Δ) → Thread (select (ch ⟨ p ⟩ inj₂ P))
 right→thread (< p) = output (select-r p)
 right→thread (> p) = delayed (select-r p)
 
@@ -103,11 +103,11 @@ fork→thread (< p) q = output (fork p q)
 fork→thread (> p) (< q) = delayed (fork-l p q)
 fork→thread (> p) (> q) = delayed (fork-r p q)
 
-all→thread : ∀{A Γ Δ F} (p : Γ ∋ `∀ A ⊳ Δ) → Thread (all (ch ⟨ p ⟩ F))
+all→thread : ∀{A Γ Δ F} (p : Γ ≃ [ `∀ A ] + Δ) → Thread (all (ch ⟨ p ⟩ F))
 all→thread (< p) = input (all p)
 all→thread (> p) = delayed (all p)
 
-ex→thread : ∀{A B Γ Δ P} (p : Γ ∋ `∃ A ⊳ Δ) → Thread (ex {A} {B} (ch ⟨ p ⟩ P))
+ex→thread : ∀{A B Γ Δ P} (p : Γ ≃ [ `∃ A ] + Δ) → Thread (ex {A} {B} (ch ⟨ p ⟩ P))
 ex→thread (< p) = output (ex p)
 ex→thread (> p) = delayed (ex p)
 
@@ -250,7 +250,7 @@ canonical-cut-alive (cc-delayed pc (contract p)) =
 canonical-cut-alive (cc-servers pc (server p un) (server q un')) with +-empty-l q
 ... | refl =
   let _ , pc' , p' = +-assoc-l pc p in
-  inj₁ (_ , s-server pc p q un un' , server→thread p' (+-un pc' un un'))
+  inj₁ (_ , s-server pc p q un un' , server→thread p' (∗-un (un ⟨ pc' ⟩ un')))
 
 deadlock-freedom : ∀{Γ} (P : Proc Γ) → Alive P
 deadlock-freedom (link (ch ⟨ p ⟩ ch)) = inj₁ (_ , s-refl , link (link p))
