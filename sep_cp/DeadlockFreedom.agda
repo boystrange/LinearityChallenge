@@ -33,9 +33,6 @@ data Output : ∀{Γ} → Proc Γ → Set where
   weaken   : ∀{Γ Δ A P}   (p : Γ ≃ [] + Δ) → Output (weaken {A} (ch ⟨ < p ⟩ P))
   contract : ∀{Γ Δ A P}   (p : Γ ≃ [] + Δ) → Output (contract {A} (ch ⟨ < p ⟩ P))
 
-data Server : ∀{Γ} → Proc Γ → Set where
-  server : ∀{Γ Δ A P} (p : Γ ≃ [] + Δ) (un : Un Δ) → Server (server {A} (ch ⟨ < p ⟩ (un , P)))
-
 data Delayed : ∀{Γ} → Proc Γ → Set where
   fail     : ∀{C Γ Δ} (p : Γ ≃ [ ⊤ ] + Δ) → Delayed (fail (ch ⟨ >_ {C} p ⟩ tt))
   wait     : ∀{C Γ Δ P} (p : Γ ≃ [ ⊥ ] + Δ) → Delayed (wait (ch ⟨ >_ {C} p ⟩ P))
@@ -52,6 +49,9 @@ data Delayed : ∀{Γ} → Proc Γ → Set where
   client   : ∀{Γ Δ A C P} (p : Γ ≃ [ `? A ] + Δ) → Delayed (client (ch ⟨ >_ {C} p ⟩ P))
   weaken   : ∀{Γ Δ A C P} (p : Γ ≃ [ `? A ] + Δ) → Delayed (weaken (ch ⟨ >_ {C} p ⟩ P))
   contract : ∀{Γ Δ A C P} (p : Γ ≃ [ `? A ] + Δ) → Delayed (contract (ch ⟨ >_ {C} p ⟩ P))
+
+data Server : ∀{Γ} → Proc Γ → Set where
+  server : ∀{Γ Δ A P} (p : Γ ≃ [] + Δ) (un : Un Δ) → Server (server {A} (ch ⟨ < p ⟩ (un , P)))
 
 data DelayedServer : ∀{Γ} → Proc Γ → Set where
   server : ∀{Γ Δ A C P} (p : Γ ≃ [ `! A ] + Δ) (un : Un Δ) →
