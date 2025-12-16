@@ -85,9 +85,9 @@ subst σ (`∃ A) = `∃ (subst (exts σ) A)
 subst σ (`! A) = `! (subst σ A)
 subst σ (`? A) = `? (subst σ A)
 
-[_/] : ∀{n} → PreType n → Fin (suc n) → PreType n
-[ A /] zero     = A
-[ A /] (suc k)  = var k
+[_/_] : ∀{n} → PreType n → Fin (suc n) → PreType n
+[ A / zero  ] = A
+[ A / suc k ] = var k
 
 dual-subst : ∀{m n} {σ : Fin m → PreType n} {A : PreType m} → subst σ (dual A) ≡ dual (subst σ A)
 dual-subst {_} {_} {σ} {⊤} = refl

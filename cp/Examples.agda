@@ -1,9 +1,10 @@
 {-# OPTIONS --rewriting #-}
+open import Function using (_$_)
 open import Data.Sum using (inj₁; inj₂)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
 open import Data.Fin using (zero; suc; #_)
 open import Data.List.Base using ([]; _∷_; [_])
-open import Function using (_$_)
+open import Relation.Unary
 
 open import Type
 open import Context
@@ -14,27 +15,30 @@ open import DeadlockFreedom using (deadlock-freedom)
 𝔹 : Type
 𝔹 = 𝟙 ⊕ 𝟙
 
-true : Process [ 𝔹 ]
-true = left (< ≫) close
+true : Proc [ 𝔹 ]
+true = select (ch ⟨ < ≫ ⟩ inj₁ (close ch))
 
-false : Process [ 𝔹 ]
-false = right (< ≫) close
+false : Proc [ 𝔹 ]
+false = select (ch ⟨ < ≫ ⟩ inj₂ (close ch))
 
-if_else : ∀{Γ} → Process Γ → Process Γ → Process (dual 𝔹 ∷ Γ)
-if P else Q = case (< ≫) (wait (< ≫) P) (wait (< ≫) Q)
+if_else : ∀{Γ} → Proc Γ → Proc Γ → Proc (dual 𝔹 ∷ Γ)
+if P else Q = curry∗ case ch (< ≫) ( wait (ch ⟨ < ≫ ⟩ P)
+                                   , wait (ch ⟨ < ≫ ⟩ Q))
 
-drop : ∀{Γ} → Process Γ → Process (dual 𝔹 ∷ Γ)
+drop : ∀{Γ} → Proc Γ → Proc (dual 𝔹 ∷ Γ)
 drop P = if P else P
 
-!!_ : Process [ 𝔹 ] → Process [ 𝔹 ]
-!!_ B = cut ≫ B (if false else true)
+!!_ : Proc [ 𝔹 ] → Proc [ 𝔹 ]
+!!_ B = curry∗ cut B ≫ (if false else true)
 
-_&&_ _||_  : Process [ 𝔹 ] → Process [ 𝔹 ] → Process [ 𝔹 ]
-A && B   = cut ≫ A (cut ≫ B (if (link (< ≫)) else (drop false)))
+_&&_ _||_  : Proc [ 𝔹 ] → Proc [ 𝔹 ] → Proc [ 𝔹 ]
+A && B   = curry∗ cut A ≫ $
+           curry∗ cut B ≫ $
+           if (curry∗ link ch (< ≫) ch) else (drop false)
 A || B   = !! ((!! A) && (!! B))
 
 {-# TERMINATING #-}
-eval : ∀{Γ} → Process Γ → Process Γ
+eval : ∀{Γ} → Proc Γ → Proc Γ
 eval P with deadlock-freedom P
 ... | inj₁ (Q , _ , _)  = Q
 ... | inj₂ (Q , _)      = eval Q
@@ -43,24 +47,15 @@ _⊸_ : ∀{n} → PreType n → PreType n → PreType n
 A ⊸ B = dual A ⅋ B
 
 echo : let X = var (# 0) in
-       Process [ `! (`∀ (X ⊸ X)) ]
-echo = server (< ≫) un-[] $
-       all (< ≫) λ X →
-       join (< ≫) $
-       link (< ≫)
+       Proc [ `! (`∀ (X ⊸ X)) ]
+echo = curry∗ server ch (< ≫)
+             ( un-[]
+             , curry∗ all ch (< ≫) λ X →
+               curry∗ join ch (< ≫) $
+               curry∗ link ch (< ≫) ch)
 
-echo-true : Process [ 𝔹 ]
-echo-true = cut ≫ echo (client (< ≫) $
-                       ex (< ≫) $
-                       fork (< ≫) ≫ true (link (< ≫)))
-
-⊗-comm : let X = var (# 1) in
-         let Y = var (# 0) in
-         Process [ `∀ (`∀ ((X ⊗ Y) ⊸ (Y ⊗ X))) ]
-⊗-comm = all (< ≫) λ X →
-         all (< ≫) λ Y →
-         join (< ≫) $
-         join (> < ≫) $
-         fork (> > < ≫) (< ≫)
-              (link (< ≫))
-              (link (< ≫))
+echo-true : Proc [ 𝔹 ]
+echo-true = curry∗ cut echo ≫ $
+            curry∗ client ch (< ≫) $
+            curry∗ ex ch (< ≫) $
+            curry∗ fork ch (< ≫) $ true ⟨ ≫ ⟩ curry∗ link ch (< ≫) ch
