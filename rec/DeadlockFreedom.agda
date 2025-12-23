@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting #-}
+{-# OPTIONS --rewriting --guardedness #-}
 open import Data.Unit using (tt)
 open import Data.Sum
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
@@ -14,7 +14,7 @@ open import Reduction
 open import Congruence
 
 data Link : ∀{Γ} → Proc Γ → Set where
-  link : ∀{Γ A} (p : Γ ≃ [ A ] + [ dual A ]) → Link (link (ch ⟨ p ⟩ ch))
+  link : ∀{Γ A} (p : Γ ≃ [ A ] + [ dual A .force ]) → Link (link (ch ⟨ p ⟩ ch))
 
 data Input : ∀{Γ} → Proc Γ → Set where
   fail : ∀{Γ Δ} (p : Γ ≃ [] + Δ) → Input (fail (ch ⟨ < p ⟩ tt))
@@ -137,25 +137,25 @@ data CanonicalCut {Γ} : Proc Γ → Set where
   cc-servers : ∀{Γ₁ Γ₂ A P Q} (p : Γ ≃ Γ₁ + Γ₂) →
                DelayedServer P → Server Q → CanonicalCut (cut {A} (P ⟨ p ⟩ Q))
 
-output-output : ∀{A Γ Δ P Q} → ¬ (Output {A ∷ Γ} P × Output {dual A ∷ Δ} Q)
+output-output : ∀{A Γ Δ P Q} → ¬ (Output {A ∷ Γ} P × Output {dual A .force ∷ Δ} Q)
 output-output (close , ())
 
-output-delayed-server : ∀{A Γ Δ P Q} → ¬ (Output {A ∷ Γ} P × DelayedServer {dual A ∷ Δ} Q)
+output-delayed-server : ∀{A Γ Δ P Q} → ¬ (Output {A ∷ Γ} P × DelayedServer {dual A .force ∷ Δ} Q)
 output-delayed-server (close , ())
 
-input-input : ∀{A Γ Δ P Q} → ¬ (Input {A ∷ Γ} P × Input {dual A ∷ Δ} Q)
+input-input : ∀{A Γ Δ P Q} → ¬ (Input {A ∷ Γ} P × Input {dual A .force ∷ Δ} Q)
 input-input (fail _ , ())
 
-input-server : ∀{A Γ Δ P Q} → ¬ (Input {A ∷ Γ} P × Server {dual A ∷ Δ} Q)
+input-server : ∀{A Γ Δ P Q} → ¬ (Input {A ∷ Γ} P × Server {dual A .force ∷ Δ} Q)
 input-server (fail _ , ())
 
-input-delayed-server : ∀{A Γ Δ P Q} → ¬ (Input {A ∷ Γ} P × DelayedServer {dual A ∷ Δ} Q)
+input-delayed-server : ∀{A Γ Δ P Q} → ¬ (Input {A ∷ Γ} P × DelayedServer {dual A .force ∷ Δ} Q)
 input-delayed-server (fail _ , ())
 
-server-server : ∀{A Γ Δ P Q} → ¬ (Server {A ∷ Γ} P × Server {dual A ∷ Δ} Q)
+server-server : ∀{A Γ Δ P Q} → ¬ (Server {A ∷ Γ} P × Server {dual A .force ∷ Δ} Q)
 server-server (server _ _ , ())
 
-delayed-server-delayed-served : ∀{A Γ Δ P Q} → ¬ (DelayedServer {A ∷ Γ} P × DelayedServer {dual A ∷ Δ} Q)
+delayed-server-delayed-served : ∀{A Γ Δ P Q} → ¬ (DelayedServer {A ∷ Γ} P × DelayedServer {dual A .force ∷ Δ} Q)
 delayed-server-delayed-served (server _ _ , ())
 
 canonical-cut : ∀{A Γ Γ₁ Γ₂ P Q} (p : Γ ≃ Γ₁ + Γ₂) →
@@ -204,7 +204,7 @@ canonical-cut-alive (cc-redex pc (client p) (inj₂ (server q un))) with +-empty
 canonical-cut-alive (cc-redex pc (weaken p) (inj₂ (server q un))) with +-empty-l p | +-empty-l q
 ... | refl | refl = inj₂ (_ , r-weaken pc p q un)
 canonical-cut-alive (cc-redex pc (contract p) (inj₂ (server q un))) with +-empty-l p | +-empty-l q
-... | refl | refl = inj₂ (_ , r-contract pc p q un)
+... | refl | refl = inj₂ (_ , r-cong {!!} (r-contract (+-comm pc) q p un))
 canonical-cut-alive (cc-delayed pc (fail p)) =
   let _ , _ , p' = +-assoc-l pc p in
   inj₁ (_ , s-fail pc p , fail→thread p')

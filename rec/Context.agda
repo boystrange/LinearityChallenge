@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting #-}
+{-# OPTIONS --rewriting --guardedness #-}
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
 open import Data.List.Base using (List; []; _∷_; [_]; _++_)
 open import Relation.Unary

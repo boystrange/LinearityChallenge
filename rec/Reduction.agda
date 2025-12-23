@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting #-}
+{-# OPTIONS --rewriting --guardedness #-}
 open import Data.Sum using (inj₁; inj₂)
 open import Data.Product using (_,_)
 open import Data.List.Base using ([]; _∷_; [_]; _++_)
@@ -31,7 +31,7 @@ contraction un p P = ↭proc (↭concat p) (aux un (↭proc (↭left (↭sym (�
 
 data _↝_ {Γ} : Proc Γ → Proc Γ → Set where
   r-rec       : ∀{Δ P} {π : Δ ↭ Γ} → rec P π ↝ ↭proc π (Unfold P)
-  r-link      : ∀{Δ A P} (p : Γ ≃ [ dual A ] + Δ) →
+  r-link      : ∀{Δ A P} (p : Γ ≃ [ dual A .force ] + Δ) →
                 cut {A = A} (link (ch ⟨ < > • ⟩ ch) ⟨ p ⟩ P) ↝ ↭proc (↭concat p) P
   r-close     : ∀{P} (p₀ q₀ : Γ ≃ [] + Γ) →
                 cut (close ch ⟨ p₀ ⟩ wait (ch ⟨ < q₀ ⟩ P)) ↝ P
@@ -56,11 +56,16 @@ data _↝_ {Γ} : Proc Γ → Proc Γ → Set where
                 (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) (un : Un Γ₂) →
                 cut {A = `? A} (weaken (ch ⟨ < p₀ ⟩ P) ⟨ p ⟩ server (ch ⟨ < q₀ ⟩ (un , Q))) ↝
                 weakening (un ⟨ +-comm p ⟩ P)
+  -- r-contract  : ∀{Γ₁ Γ₂ A} {P : Proc (`? A ∷ `? A ∷ Γ₁)} {Q : Proc (dual (A .force) .force ∷ Γ₂)}
+  --               (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) (un : Un Γ₂) →
+  --               cut {A = `? A} (contract (ch ⟨ < p₀ ⟩ P) ⟨ p ⟩ server {dual (A .force)} (ch ⟨ < q₀ ⟩ (un , Q))) ↝
+  --               contraction un (+-comm p) (cut (server {dual (A .force)} (ch ⟨ < q₀ ⟩ (un , Q)) ⟨ ++≃+ ⟩
+  --                                          cut (server {dual (A .force)} (ch ⟨ < q₀ ⟩ (un , Q)) ⟨ > +-comm p ⟩ {!P!})))
   r-contract  : ∀{Γ₁ Γ₂ A P Q}
-                (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) (un : Un Γ₂) →
-                cut {A = `? A} (contract (ch ⟨ < p₀ ⟩ P) ⟨ p ⟩ server (ch ⟨ < q₀ ⟩ (un , Q))) ↝
-                contraction un (+-comm p) (cut (server (ch ⟨ < q₀ ⟩ (un , Q)) ⟨ ++≃+ ⟩
-                                           cut (server (ch ⟨ < q₀ ⟩ (un , Q)) ⟨ > +-comm p ⟩ P)))
+                (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) (un : Un Γ₁) →
+                cut (server {A} (ch ⟨ < p₀ ⟩ (un , P)) ⟨ p ⟩ contract (ch ⟨ < q₀ ⟩ Q)) ↝
+                  contraction un p (cut (server {A} (ch ⟨ < p₀ ⟩ (un , P)) ⟨ ++≃+ ⟩
+                                        cut (server {A} (ch ⟨ < p₀ ⟩ (un , P)) ⟨ > p ⟩ Q)))
   r-exists     : ∀{A B Γ₁ Γ₂ P F} (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) →
                  cut {A = `∃ A} (ex {A = A} {B} (ch ⟨ < p₀ ⟩ P) ⟨ p ⟩ all (ch ⟨ < q₀ ⟩ F)) ↝
                  cut (P ⟨ p ⟩ F B)

@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting #-}
+{-# OPTIONS --rewriting --guardedness #-}
 open import Data.Unit using (tt)
 open import Data.Sum using (inj₁; inj₂)
 open import Data.Product using (_,_)
@@ -14,7 +14,7 @@ data _⊒_ {Γ} : Proc Γ → Proc Γ → Set where
     ∀{A Γ₁ Γ₂ P Q} (p : Γ ≃ Γ₁ + Γ₂) →
     cut {A = A} (P ⟨ p ⟩ Q) ⊒ cut (Q ⟨ +-comm p ⟩ P)
   s-link :
-    ∀{A} (p : Γ ≃ [ A ] + [ dual A ]) →
+    ∀{A} (p : Γ ≃ [ A ] + [ dual A .force ]) →
     link (ch ⟨ p ⟩ ch) ⊒ link (ch ⟨ +-comm p ⟩ ch)
   s-fail :
     ∀{A Γ₁ Γ₂ Δ P} (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ [ ⊤ ] + Δ) →
@@ -44,7 +44,7 @@ data _⊒_ {Γ} : Proc Γ → Proc Γ → Set where
     ∀{Γ₁ Γ₂ Δ A B C P Q} (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ [ B ⅋ C ] + Δ) →
     let _ , p′ , q′ = +-assoc-l p q in
     cut {A = A} (join (ch ⟨ > q ⟩ P) ⟨ p ⟩ Q) ⊒
-    join (ch ⟨ q′ ⟩ cut (↭proc (↭shift {A} {C ∷ B ∷ []}) P ⟨ < < p′ ⟩ Q))
+    join (ch ⟨ q′ ⟩ cut (↭proc (↭shift {A} {C .force ∷ B .force ∷ []}) P ⟨ < < p′ ⟩ Q))
   s-fork-l :
     ∀{Γ₁ Γ₂ Δ Δ₁ Δ₂ A B C P Q R}
     (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ [ B ⊗ C ] + Δ) (r : Δ ≃ Δ₁ + Δ₂) →

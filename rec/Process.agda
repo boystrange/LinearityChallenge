@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting #-}
+{-# OPTIONS --rewriting --guardedness #-}
 open import Data.Unit using (tt)
 open import Data.Sum
 open import Data.Product using (_,_)
@@ -22,21 +22,21 @@ data Ch (A : Type) : Context → Set where
 data PreProc : ProcContext → Context → Set where
   call     : ∀{Δ Σ} → Δ ∈ Σ → ∀[ Δ ↭_ ⇒ PreProc Σ ]
   rec      : ∀{Δ Σ} → PreProc (Δ ∷ Σ) Δ → ∀[ Δ ↭_ ⇒ PreProc Σ ]
-  link     : ∀{A Σ} → ∀[ Ch A ∗ Ch (dual A) ⇒ PreProc Σ ]
+  link     : ∀{A Σ} → ∀[ Ch A ∗ Ch (dual A .force) ⇒ PreProc Σ ]
   fail     : ∀{Σ} → ∀[ Ch ⊤ ∗ U ⇒ PreProc Σ ]
   wait     : ∀{Σ} → ∀[ Ch ⊥ ∗ PreProc Σ ⇒ PreProc Σ ]
   close    : ∀{Σ} → ∀[ Ch 𝟙 ⇒ PreProc Σ ]
-  case     : ∀{A B Σ} → ∀[ Ch (A & B) ∗ ((A ∷_) ⊢ PreProc Σ ∩ (B ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
-  select   : ∀{A B Σ} → ∀[ Ch (A ⊕ B) ∗ ((A ∷_) ⊢ PreProc Σ ∪ (B ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
-  join     : ∀{A B Σ} → ∀[ Ch (A ⅋ B) ∗ ((A ∷_) ⊢ (B ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
-  fork     : ∀{A B Σ} → ∀[ Ch (A ⊗ B) ∗ ((A ∷_) ⊢ PreProc Σ) ∗ ((B ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
-  all      : ∀{A Σ} → ∀[ Ch (`∀ A) ∗ ⋂[ X ∶ Type ] ((subst [ X /] A ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
-  ex       : ∀{A B Σ} → ∀[ Ch (`∃ A) ∗ ((subst [ B /] A ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
-  server   : ∀{A Σ} → ∀[ Ch (`! A) ∗ (Un ∩ ((A ∷_) ⊢ PreProc Σ)) ⇒ PreProc Σ ]
-  client   : ∀{A Σ} → ∀[ Ch (`? A) ∗ ((A ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
+  case     : ∀{A B Σ} → ∀[ Ch (A & B) ∗ ((A .force ∷_) ⊢ PreProc Σ ∩ (B .force ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
+  select   : ∀{A B Σ} → ∀[ Ch (A ⊕ B) ∗ ((A .force ∷_) ⊢ PreProc Σ ∪ (B .force ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
+  join     : ∀{A B Σ} → ∀[ Ch (A ⅋ B) ∗ ((A .force ∷_) ⊢ (B .force ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
+  fork     : ∀{A B Σ} → ∀[ Ch (A ⊗ B) ∗ ((A .force ∷_) ⊢ PreProc Σ) ∗ ((B .force ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
+  all      : ∀{A Σ} → ∀[ Ch (`∀ A) ∗ ⋂[ X ∶ Type ] ((subst [ X /] (A .force) .force ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
+  ex       : ∀{A B Σ} → ∀[ Ch (`∃ A) ∗ ((subst [ B /] (A .force) .force ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
+  server   : ∀{A Σ} → ∀[ Ch (`! A) ∗ (Un ∩ ((A .force ∷_) ⊢ PreProc Σ)) ⇒ PreProc Σ ]
+  client   : ∀{A Σ} → ∀[ Ch (`? A) ∗ ((A .force ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
   weaken   : ∀{A Σ} → ∀[ Ch (`? A) ∗ PreProc Σ ⇒ PreProc Σ ]
   contract : ∀{A Σ} → ∀[ Ch (`? A) ∗ ((`? A ∷_) ⊢ (`? A ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
-  cut      : ∀{A Σ} → ∀[ ((A ∷_) ⊢ PreProc Σ) ∗ ((dual A ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
+  cut      : ∀{A Σ} → ∀[ ((A ∷_) ⊢ PreProc Σ) ∗ ((dual A .force ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
 
 ProcEnv : ProcContext → Set
 ProcEnv Σ = ∀{Γ} → Γ ∈ Σ → PreProc Σ Γ
