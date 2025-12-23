@@ -253,6 +253,7 @@ canonical-cut-alive (cc-servers pc (server p un) (server q un')) with +-empty-l 
   inj₁ (_ , s-server pc p q un un' , server→thread p' (∗-un (un ⟨ pc' ⟩ un')))
 
 deadlock-freedom : ∀{Γ} (P : Proc Γ) → Alive P
+deadlock-freedom (rec P π) = inj₂ (_ , r-rec)
 deadlock-freedom (link (ch ⟨ p ⟩ ch)) = inj₁ (_ , s-refl , link (link p))
 deadlock-freedom (fail (ch ⟨ p ⟩ _)) = inj₁ (_ , s-refl , fail→thread p)
 deadlock-freedom (wait (ch ⟨ p ⟩ _)) = inj₁ (_ , s-refl , wait→thread p)

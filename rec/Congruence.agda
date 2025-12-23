@@ -9,7 +9,7 @@ open import Context
 open import Permutations
 open import Process
 
-data _⊒_ {n} {Σ : ProcContext n} {Γ} : Proc Σ Γ → Proc Σ Γ → Set where
+data _⊒_ {Γ} : Proc Γ → Proc Γ → Set where
   s-comm :
     ∀{A Γ₁ Γ₂ P Q} (p : Γ ≃ Γ₁ + Γ₂) →
     cut {A = A} (P ⟨ p ⟩ Q) ⊒ cut (Q ⟨ +-comm p ⟩ P)
