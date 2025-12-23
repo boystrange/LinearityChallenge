@@ -33,42 +33,37 @@ data _↝_ {Γ} : Proc Γ → Proc Γ → Set where
   r-rec       : ∀{Δ P} {π : Δ ↭ Γ} → rec P π ↝ ↭proc π (Unfold P)
   r-link      : ∀{Δ A P} (p : Γ ≃ [ dual A .force ] + Δ) →
                 cut {A = A} (link (ch ⟨ < > • ⟩ ch) ⟨ p ⟩ P) ↝ ↭proc (↭concat p) P
-  r-close     : ∀{P} (p₀ q₀ : Γ ≃ [] + Γ) →
-                cut (close ch ⟨ p₀ ⟩ wait (ch ⟨ < q₀ ⟩ P)) ↝ P
+  r-close     : ∀{P} (p : Γ ≃ Γ + []) (p₀ : Γ ≃ [] + Γ) →
+                cut (wait (ch ⟨ < p₀ ⟩ P) ⟨ p ⟩ close ch) ↝ P
   r-select-l  : ∀{Γ₁ Γ₂ A B P Q R}
                 (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) →
-                cut {A = A ⊕ B} (select (ch ⟨ < p₀ ⟩ inj₁ P) ⟨ p ⟩
-                                case (ch ⟨ < q₀ ⟩ (Q , R))) ↝ cut (P ⟨ p ⟩ Q)
+                cut {A = A & B} (case (ch ⟨ < p₀ ⟩ (P , Q)) ⟨ p ⟩
+                                select (ch ⟨ < q₀ ⟩ inj₁ R)) ↝ cut (P ⟨ p ⟩ R)
   r-select-r  : ∀{Γ₁ Γ₂ A B P Q R}
                 (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) →
-                cut {A = A ⊕ B} (select (ch ⟨ < p₀ ⟩ inj₂ P) ⟨ p ⟩
-                                case (ch ⟨ < q₀ ⟩ (Q , R))) ↝ cut (P ⟨ p ⟩ R)
+                cut {A = A & B} (case (ch ⟨ < p₀ ⟩ (P , Q)) ⟨ p ⟩
+                                select (ch ⟨ < q₀ ⟩ inj₂ R)) ↝ cut (Q ⟨ p ⟩ R)
   r-fork      : ∀{Γ₁ Γ₂ Γ₃ Δ A B P Q R}
-                (p : Γ ≃ Δ + Γ₃) (p₀ : Γ₃ ≃ [] + Γ₃) (q : Δ ≃ Γ₁ + Γ₂) (q₀ : Δ ≃ [] + Δ) →
-                let _ , p′ , q′ = +-assoc-l p q in
-                cut {A = A ⊗ B} (fork (ch ⟨ < q₀ ⟩ (P ⟨ q ⟩ Q)) ⟨ p ⟩
-                                join (ch ⟨ < p₀ ⟩ R)) ↝ cut (P ⟨ q′ ⟩ cut (Q ⟨ > p′ ⟩ R))
+                (p : Γ ≃ Γ₁ + Δ) (p₀ : Γ₁ ≃ [] + Γ₁) (q : Δ ≃ Γ₂ + Γ₃) (q₀ : Δ ≃ [] + Δ) →
+                let _ , p' , q' = +-assoc-r p q in
+                cut {A = A ⅋ B} (join (ch ⟨ < p₀ ⟩ P) ⟨ p ⟩
+                                fork (ch ⟨ < q₀ ⟩ (Q ⟨ q ⟩ R))) ↝ cut (cut (P ⟨ < p' ⟩ Q) ⟨ q' ⟩ R)
   r-client    : ∀{Γ₁ Γ₂ A P Q}
-                (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) (un : Un Γ₂) →
-                cut {A = `? A} (client (ch ⟨ < p₀ ⟩ P) ⟨ p ⟩ server (ch ⟨ < q₀ ⟩ (un , Q))) ↝
+                (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) (un : Un Γ₁) →
+                cut {A = `! A} (server (ch ⟨ < p₀ ⟩ (un , P)) ⟨ p ⟩ client (ch ⟨ < q₀ ⟩ Q)) ↝
                 cut (P ⟨ p ⟩ Q)
   r-weaken    : ∀{Γ₁ Γ₂ A P Q}
-                (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) (un : Un Γ₂) →
-                cut {A = `? A} (weaken (ch ⟨ < p₀ ⟩ P) ⟨ p ⟩ server (ch ⟨ < q₀ ⟩ (un , Q))) ↝
-                weakening (un ⟨ +-comm p ⟩ P)
-  -- r-contract  : ∀{Γ₁ Γ₂ A} {P : Proc (`? A ∷ `? A ∷ Γ₁)} {Q : Proc (dual (A .force) .force ∷ Γ₂)}
-  --               (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) (un : Un Γ₂) →
-  --               cut {A = `? A} (contract (ch ⟨ < p₀ ⟩ P) ⟨ p ⟩ server {dual (A .force)} (ch ⟨ < q₀ ⟩ (un , Q))) ↝
-  --               contraction un (+-comm p) (cut (server {dual (A .force)} (ch ⟨ < q₀ ⟩ (un , Q)) ⟨ ++≃+ ⟩
-  --                                          cut (server {dual (A .force)} (ch ⟨ < q₀ ⟩ (un , Q)) ⟨ > +-comm p ⟩ {!P!})))
+                (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) (un : Un Γ₁) →
+                cut {A = `! A} (server (ch ⟨ < p₀ ⟩ (un , P)) ⟨ p ⟩ weaken (ch ⟨ < q₀ ⟩ Q)) ↝
+                weakening (un ⟨ p ⟩ Q)
   r-contract  : ∀{Γ₁ Γ₂ A P Q}
                 (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) (un : Un Γ₁) →
                 cut (server {A} (ch ⟨ < p₀ ⟩ (un , P)) ⟨ p ⟩ contract (ch ⟨ < q₀ ⟩ Q)) ↝
                   contraction un p (cut (server {A} (ch ⟨ < p₀ ⟩ (un , P)) ⟨ ++≃+ ⟩
                                         cut (server {A} (ch ⟨ < p₀ ⟩ (un , P)) ⟨ > p ⟩ Q)))
   r-exists     : ∀{A B Γ₁ Γ₂ P F} (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) →
-                 cut {A = `∃ A} (ex {A = A} {B} (ch ⟨ < p₀ ⟩ P) ⟨ p ⟩ all (ch ⟨ < q₀ ⟩ F)) ↝
-                 cut (P ⟨ p ⟩ F B)
+                 cut {A = `∀ A} (all (ch ⟨ < p₀ ⟩ F) ⟨ p ⟩ ex {B = B} (ch ⟨ < q₀ ⟩ P)) ↝
+                 cut (F B ⟨ p ⟩ P)
   r-cut        : ∀{Γ₁ Γ₂ A P Q R} (q : Γ ≃ Γ₁ + Γ₂) →
                  P ↝ Q → cut {A = A} (P ⟨ q ⟩ R) ↝ cut (Q ⟨ q ⟩ R)
   r-cong       : ∀{P R Q} → P ⊒ R → R ↝ Q → P ↝ Q

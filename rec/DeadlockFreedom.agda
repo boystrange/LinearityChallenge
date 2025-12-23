@@ -131,7 +131,7 @@ data CanonicalCut {Γ} : Proc Γ → Set where
   cc-link    : ∀{Γ₁ Γ₂ A P Q} (p : Γ ≃ Γ₁ + Γ₂) →
                Link P → CanonicalCut (cut {A} (P ⟨ p ⟩ Q))
   cc-redex   : ∀{Γ₁ Γ₂ A P Q} (p : Γ ≃ Γ₁ + Γ₂) →
-               Output P → (Input ∪ Server) Q → CanonicalCut (cut {A} (P ⟨ p ⟩ Q))
+               (Input ∪ Server) P → Output Q → CanonicalCut (cut {A} (P ⟨ p ⟩ Q))
   cc-delayed : ∀{Γ₁ Γ₂ A P Q} (p : Γ ≃ Γ₁ + Γ₂) →
                Delayed P → CanonicalCut (cut {A} (P ⟨ p ⟩ Q))
   cc-servers : ∀{Γ₁ Γ₂ A P Q} (p : Γ ≃ Γ₁ + Γ₂) →
@@ -165,14 +165,14 @@ canonical-cut pc Pt (link y) = _ , cc-link (+-comm pc) y , s-comm pc
 canonical-cut pc (delayed x) Qt = _ , cc-delayed pc x , s-refl
 canonical-cut pc Pt (delayed y) = _ , cc-delayed (+-comm pc) y , s-comm pc
 canonical-cut pc (output x) (output y) = contradiction (x , y) output-output
-canonical-cut pc (output x) (input y) = _ , cc-redex pc x (inj₁ y) , s-refl
-canonical-cut pc (output x) (server y) = _ , cc-redex pc x (inj₂ y) , s-refl
+canonical-cut pc (output x) (input y) = _ , cc-redex (+-comm pc) (inj₁ y) x , s-comm pc
+canonical-cut pc (output x) (server y) = _ , cc-redex (+-comm pc) (inj₂ y) x , s-comm pc
 canonical-cut pc (output x) (dserver y) = contradiction (x , y) output-delayed-server
-canonical-cut pc (input x) (output y) = _ , cc-redex (+-comm pc) y (inj₁ x) , s-comm pc
+canonical-cut pc (input x) (output y) = _ , cc-redex pc (inj₁ x) y , s-refl
 canonical-cut pc (input x) (input y) = contradiction (x , y) input-input
 canonical-cut pc (input x) (server y) = contradiction (x , y) input-server
 canonical-cut pc (input x) (dserver y) = contradiction (x , y) input-delayed-server
-canonical-cut pc (server x) (output y) = _ , cc-redex (+-comm pc) y (inj₂ x) , s-comm pc
+canonical-cut pc (server x) (output y) = _ , cc-redex pc (inj₂ x) y , s-refl
 canonical-cut pc (server x) (input y) = contradiction (y , x) input-server
 canonical-cut pc (server x) (server y) = contradiction (x , y) server-server
 canonical-cut pc (server x) (dserver y) = _ , cc-servers (+-comm pc) y x , s-comm pc
@@ -189,22 +189,22 @@ canonical-cut-alive : ∀{Γ} {C : Proc Γ} → CanonicalCut C → Alive C
 canonical-cut-alive (cc-link pc (link (< > •))) = inj₂ (_ , r-link pc)
 canonical-cut-alive (cc-link pc (link (> < •))) =
   inj₂ (_ , r-cong (s-cong pc (s-link _) s-refl) (r-link pc))
-canonical-cut-alive (cc-redex pc close (inj₁ (wait p))) with +-empty-l p | +-empty-l pc
+canonical-cut-alive (cc-redex pc (inj₁ (wait p)) close) with +-empty-l p | +-empty-l (+-comm pc)
 ... | refl | refl = inj₂ (_ , r-close pc p)
-canonical-cut-alive (cc-redex pc (select-l p) (inj₁ (case q))) with +-empty-l p | +-empty-l q
+canonical-cut-alive (cc-redex pc (inj₁ (case p)) (select-l q)) with +-empty-l p | +-empty-l q
 ... | refl | refl = inj₂ (_ , r-select-l pc p q)
-canonical-cut-alive (cc-redex pc (select-r p) (inj₁ (case q))) with +-empty-l p | +-empty-l q
+canonical-cut-alive (cc-redex pc (inj₁ (case p)) (select-r q)) with +-empty-l p | +-empty-l q
 ... | refl | refl = inj₂ (_ , r-select-r pc p q)
-canonical-cut-alive (cc-redex pc (fork p q) (inj₁ (join r))) with +-empty-l p | +-empty-l r
-... | refl | refl = inj₂ (_ , r-fork pc r q p)
-canonical-cut-alive (cc-redex pc (ex p) (inj₁ (all q))) with +-empty-l p | +-empty-l q
+canonical-cut-alive (cc-redex pc (inj₁ (join p)) (fork q r)) with +-empty-l p | +-empty-l q
+... | refl | refl = inj₂ (_ , r-fork pc p r q)
+canonical-cut-alive (cc-redex pc (inj₁ (all p)) (ex q)) with +-empty-l p | +-empty-l q
 ... | refl | refl = inj₂ (_ , r-exists pc p q)
-canonical-cut-alive (cc-redex pc (client p) (inj₂ (server q un))) with +-empty-l p | +-empty-l q
+canonical-cut-alive (cc-redex pc (inj₂ (server p un)) (client q)) with +-empty-l p | +-empty-l q
 ... | refl | refl = inj₂ (_ , r-client pc p q un)
-canonical-cut-alive (cc-redex pc (weaken p) (inj₂ (server q un))) with +-empty-l p | +-empty-l q
+canonical-cut-alive (cc-redex pc (inj₂ (server p un)) (weaken q)) with +-empty-l p | +-empty-l q
 ... | refl | refl = inj₂ (_ , r-weaken pc p q un)
-canonical-cut-alive (cc-redex pc (contract p) (inj₂ (server q un))) with +-empty-l p | +-empty-l q
-... | refl | refl = inj₂ (_ , r-cong {!!} (r-contract (+-comm pc) q p un))
+canonical-cut-alive (cc-redex pc (inj₂ (server p un)) (contract q)) with +-empty-l p | +-empty-l q
+... | refl | refl = inj₂ (_ , r-contract pc p q un)
 canonical-cut-alive (cc-delayed pc (fail p)) =
   let _ , _ , p' = +-assoc-l pc p in
   inj₁ (_ , s-fail pc p , fail→thread p')

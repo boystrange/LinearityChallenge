@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting #-}
+{-# OPTIONS --rewriting --guardedness #-}
 open import Data.List.Base using ([]; _∷_; [_])
 open import Relation.Unary
 
@@ -10,8 +10,8 @@ open import DeadlockFreedom
 
 data ReductionContext (Δ : Context) : Context → Set where
   hole   : ReductionContext Δ Δ
-  cut-l  : ∀{A} → ∀[ ((A ∷_) ⊢ ReductionContext Δ) ∗ ((dual A ∷_) ⊢ Proc) ⇒ ReductionContext Δ ]
-  cut-r  : ∀{A} → ∀[ ((A ∷_) ⊢ Proc) ∗ ((dual A ∷_) ⊢ ReductionContext Δ) ⇒ ReductionContext Δ ]
+  cut-l  : ∀{A} → ∀[ ((A ∷_) ⊢ ReductionContext Δ) ∗ ((dual A .force ∷_) ⊢ Proc) ⇒ ReductionContext Δ ]
+  cut-r  : ∀{A} → ∀[ ((A ∷_) ⊢ Proc) ∗ ((dual A .force ∷_) ⊢ ReductionContext Δ) ⇒ ReductionContext Δ ]
 
 _⟦_⟧ : ∀{Γ Δ} → ReductionContext Δ Γ → Proc Δ → Proc Γ
 hole               ⟦ P ⟧ = P

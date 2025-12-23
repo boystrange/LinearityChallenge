@@ -44,7 +44,7 @@ data _⊒_ {Γ} : Proc Γ → Proc Γ → Set where
     ∀{Γ₁ Γ₂ Δ A B C P Q} (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ [ B ⅋ C ] + Δ) →
     let _ , p′ , q′ = +-assoc-l p q in
     cut {A = A} (join (ch ⟨ > q ⟩ P) ⟨ p ⟩ Q) ⊒
-    join (ch ⟨ q′ ⟩ cut (↭proc (↭shift {A} {C .force ∷ B .force ∷ []}) P ⟨ < < p′ ⟩ Q))
+    join (ch ⟨ q′ ⟩ cut (↭proc (↭shift {A} {B .force ∷ C .force ∷ []}) P ⟨ < < p′ ⟩ Q))
   s-fork-l :
     ∀{Γ₁ Γ₂ Δ Δ₁ Δ₂ A B C P Q R}
     (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ [ B ⊗ C ] + Δ) (r : Δ ≃ Δ₁ + Δ₂) →

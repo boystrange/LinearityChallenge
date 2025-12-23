@@ -28,7 +28,7 @@ data PreProc : ProcContext → Context → Set where
   close    : ∀{Σ} → ∀[ Ch 𝟙 ⇒ PreProc Σ ]
   case     : ∀{A B Σ} → ∀[ Ch (A & B) ∗ ((A .force ∷_) ⊢ PreProc Σ ∩ (B .force ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
   select   : ∀{A B Σ} → ∀[ Ch (A ⊕ B) ∗ ((A .force ∷_) ⊢ PreProc Σ ∪ (B .force ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
-  join     : ∀{A B Σ} → ∀[ Ch (A ⅋ B) ∗ ((A .force ∷_) ⊢ (B .force ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
+  join     : ∀{A B Σ} → ∀[ Ch (A ⅋ B) ∗ ((B .force ∷_) ⊢ (A .force ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
   fork     : ∀{A B Σ} → ∀[ Ch (A ⊗ B) ∗ ((A .force ∷_) ⊢ PreProc Σ) ∗ ((B .force ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
   all      : ∀{A Σ} → ∀[ Ch (`∀ A) ∗ ⋂[ X ∶ Type ] ((subst [ X /] (A .force) .force ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
   ex       : ∀{A B Σ} → ∀[ Ch (`∃ A) ∗ ((subst [ B /] (A .force) .force ∷_) ⊢ PreProc Σ) ⇒ PreProc Σ ]
