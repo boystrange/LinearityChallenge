@@ -15,30 +15,30 @@ open import DeadlockFreedom using (deadlock-freedom)
 𝔹 : Type
 𝔹 = 𝟙 ⊕ 𝟙
 
-true : Proc [ 𝔹 ]
-true = select (ch ⟨ < ≫ ⟩ inj₁ (close ch))
+True : Proc [ 𝔹 ]
+True = select (ch ⟨ < ≫ ⟩ inj₁ (close ch))
 
-false : Proc [ 𝔹 ]
-false = select (ch ⟨ < ≫ ⟩ inj₂ (close ch))
+False : Proc [ 𝔹 ]
+False = select (ch ⟨ < ≫ ⟩ inj₂ (close ch))
 
-if_else : ∀{Γ} → Proc Γ → Proc Γ → Proc (dual 𝔹 ∷ Γ)
-if P else Q = curry∗ case ch (< ≫) ( wait (ch ⟨ < ≫ ⟩ P)
+If_Else : ∀[ Proc ⇒ Proc ⇒ (dual 𝔹 ∷_) ⊢ Proc ]
+If P Else Q = curry∗ case ch (< ≫) ( wait (ch ⟨ < ≫ ⟩ P)
                                    , wait (ch ⟨ < ≫ ⟩ Q))
 
-drop : ∀{Γ} → Proc Γ → Proc (dual 𝔹 ∷ Γ)
-drop P = if P else P
+Drop : ∀[ Proc ⇒ (dual 𝔹 ∷_) ⊢ Proc ]
+Drop P = If P Else P
 
 !!_ : Proc [ 𝔹 ] → Proc [ 𝔹 ]
-!!_ B = curry∗ cut B ≫ (if false else true)
+!!_ B = curry∗ cut B ≫ (If False Else True)
 
 _&&_ _||_  : Proc [ 𝔹 ] → Proc [ 𝔹 ] → Proc [ 𝔹 ]
 A && B   = curry∗ cut A ≫ $
            curry∗ cut B ≫ $
-           if (curry∗ link ch (< ≫) ch) else (drop false)
+           If (curry∗ link ch (< ≫) ch) Else (Drop False)
 A || B   = !! ((!! A) && (!! B))
 
 {-# TERMINATING #-}
-eval : ∀{Γ} → Proc Γ → Proc Γ
+eval : ∀[ Proc ⇒ Proc ]
 eval P with deadlock-freedom P
 ... | inj₁ (Q , _ , _)  = Q
 ... | inj₂ (Q , _)      = eval Q
@@ -46,16 +46,16 @@ eval P with deadlock-freedom P
 _⊸_ : ∀{n} → PreType n → PreType n → PreType n
 A ⊸ B = dual A ⅋ B
 
-echo : let X = var (# 0) in
+Echo : let X = var (# 0) in
        Proc [ `! (`∀ (X ⊸ X)) ]
-echo = curry∗ server ch (< ≫)
+Echo = curry∗ server ch (< ≫)
              ( un-[]
              , curry∗ all ch (< ≫) λ X →
                curry∗ join ch (< ≫) $
                curry∗ link ch (< ≫) ch)
 
-echo-true : Proc [ 𝔹 ]
-echo-true = curry∗ cut echo ≫ $
+Echo-True : Proc [ 𝔹 ]
+Echo-True = curry∗ cut Echo ≫ $
             curry∗ client ch (< ≫) $
             curry∗ ex ch (< ≫) $
-            curry∗ fork ch (< ≫) $ true ⟨ ≫ ⟩ curry∗ link ch (< ≫) ch
+            curry∗ fork ch (< ≫) $ True ⟨ ≫ ⟩ curry∗ link ch (< ≫) ch
