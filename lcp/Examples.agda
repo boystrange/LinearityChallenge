@@ -43,19 +43,20 @@ eval P with deadlock-freedom P
 ... | inj₁ (Q , _ , _)  = Q
 ... | inj₂ (Q , _)      = eval Q
 
-_⊸_ : ∀{n} → PreType n → PreType n → PreType n
-A ⊸ B = dual A ⅋ B
-
 Echo : let X = var (# 0) in
-       Proc [ `! (`∀ (X ⊸ X)) ]
+       Proc [ `! (`∀ (X ⅋ (dual X ⊗ 𝟙))) ]
 Echo = curry∗ server ch (< ≫)
              ( un-[]
              , curry∗ all ch (< ≫) λ X →
                curry∗ join ch (< ≫) $
-               curry∗ link ch (< ≫) ch)
+               curry∗ (curry∗ fork ch (< ≫)) (curry∗ link ch (< > •) ch) (< ≫) $
+               close ch )
 
 Echo-True : Proc [ 𝔹 ]
 Echo-True = curry∗ cut Echo ≫ $
             curry∗ client ch (< ≫) $
-            curry∗ ex ch (< ≫) $
-            curry∗ fork ch (< ≫) $ True ⟨ ≫ ⟩ curry∗ link ch (< ≫) ch
+            curry∗ (ex {_} {dual 𝔹}) ch (< ≫) $
+            curry∗ (curry∗ fork ch (< ≫)) True ≫ $
+            curry∗ join ch (< ≫) $
+            curry∗ wait ch (< ≫) $
+            curry∗ link ch (< > •) ch
