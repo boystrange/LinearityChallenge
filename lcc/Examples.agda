@@ -1,7 +1,7 @@
 {-# OPTIONS --rewriting #-}
 open import Function using (_$_)
 open import Data.Sum using (inj₁; inj₂)
-open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
+open import Data.Product using (_×_; _,_; ∃; ∃-syntax; curry)
 open import Data.Fin using (zero; suc; #_)
 open import Data.List.Base using ([]; _∷_; [_])
 open import Relation.Unary
@@ -43,20 +43,23 @@ eval P with deadlock-freedom P
 ... | inj₁ (Q , _ , _)  = Q
 ... | inj₂ (Q , _)      = eval Q
 
-Echo : let X = var (# 0) in
-       Proc [ `! (`∀ (X ⅋ (dual X ⊗ 𝟙))) ]
-Echo = curry∗ server ch (< ≫)
-             ( un-[]
-             , curry∗ all ch (< ≫) λ X →
-               curry∗ join ch (< ≫) $
-               curry∗ (curry∗ fork ch (< ≫)) (curry∗ link ch (< > •) ch) (< ≫) $
-               close ch )
+ServerT : Type
+ServerT = `! (`∀ (rav (# 0) ⅋ (var (# 0) ⊗ 𝟙)))
 
-Echo-True : Proc [ 𝔹 ]
-Echo-True = curry∗ cut Echo ≫ $
-            curry∗ client ch (< ≫) $
-            curry∗ (ex {_} {dual 𝔹}) ch (< ≫) $
-            curry∗ (curry∗ fork ch (< ≫)) True ≫ $
-            curry∗ join ch (< ≫) $
-            curry∗ wait ch (< ≫) $
-            curry∗ link ch (< > •) ch
+Server : Proc [ ServerT ]
+Server = curry (curry∗ server ch (< ≫)) un-[] $
+         curry∗ all ch (< ≫) λ X →
+         curry∗ join ch (< ≫) $
+         curry∗ (curry∗ fork ch (< ≫)) (curry∗ link ch (< > •) ch) (< ≫) $
+         close ch
+
+Client : Proc (dual ServerT ∷ 𝔹 ∷ [])
+Client = curry∗ client ch (< ≫) $
+         curry∗ (ex {_} {𝔹}) ch (< ≫) $
+         curry∗ (curry∗ fork ch (< ≫)) True ≫ $
+         curry∗ join ch (< ≫) $
+         curry∗ wait ch (< ≫) $
+         curry∗ link ch (< > •) ch
+
+Main : Proc [ 𝔹 ]
+Main = curry∗ cut Client (< •) Server
