@@ -28,20 +28,23 @@ If P Else Q = curry∗ case ch (< ≫) ( wait (ch ⟨ < ≫ ⟩ P)
 Drop : ∀[ Proc ⇒ (dual 𝔹 ∷_) ⊢ Proc ]
 Drop P = If P Else P
 
-!!_ : Proc [ 𝔹 ] → Proc [ 𝔹 ]
-!!_ B = curry∗ cut B ≫ (If False Else True)
+!! : Proc [ 𝔹 ] → Proc [ 𝔹 ]
+!! B = curry∗ cut B ≫ (If False Else True)
 
 _&&_ _||_  : Proc [ 𝔹 ] → Proc [ 𝔹 ] → Proc [ 𝔹 ]
 A && B   = curry∗ cut A ≫ $
            curry∗ cut B ≫ $
-           If (curry∗ link ch (< ≫) ch) Else (Drop False)
-A || B   = !! ((!! A) && (!! B))
+           If curry∗ link ch (< ≫) ch Else (Drop False)
+A || B   = !! (!! A && !! B)
 
 {-# TERMINATING #-}
 eval : ∀[ Proc ⇒ Proc ]
 eval P with deadlock-freedom P
 ... | inj₁ (Q , _ , _)  = Q
 ... | inj₂ (Q , _)      = eval Q
+
+send : ∀{A B Γ} → Proc (B ∷ Γ) → Proc (A ⊗ B ∷ dual A ∷ Γ)
+send P = curry∗ (curry∗ fork ch (< ≫)) (curry∗ link ch (< > •) ch) (< ≫) P
 
 ServerT : Type
 ServerT = `! (`∀ (rav (# 0) ⅋ (var (# 0) ⊗ 𝟙)))
@@ -50,7 +53,7 @@ Server : Proc [ ServerT ]
 Server = curry (curry∗ server ch (< ≫)) un-[] $
          curry∗ all ch (< ≫) λ X →
          curry∗ join ch (< ≫) $
-         curry∗ (curry∗ fork ch (< ≫)) (curry∗ link ch (< > •) ch) (< ≫) $
+         send $
          close ch
 
 Client : Proc (dual ServerT ∷ 𝔹 ∷ [])
