@@ -44,7 +44,6 @@ dual-inv {_} {A ⊗ B} = cong₂ _⊗_ dual-inv dual-inv
 dual-inv {_} {inv x} = refl
 dual-inv {_} {rec A} = cong rec dual-inv
 
--- -- {-# BUILTIN REWRITE _~_ #-}
 {-# REWRITE dual-inv #-}
 
 ext : ∀{m n} → (Fin m → Fin n) → Fin (suc m) → Fin (suc n)
@@ -94,6 +93,9 @@ subst σ (rec A) = rec (subst (exts σ) A)
 [ A /] zero     = A
 [ A /] (suc x)  = inv x
 
+unfold : ∀{r} → PreType (suc r) → PreType r
+unfold A = subst [ rec A /] A
+
 postulate
   extensionality : ∀{A B : Set} {f g : A → B} → ((x : A) → f x ≡ g x) → f ≡ g
 
@@ -136,7 +138,7 @@ dual-subst {_} {_} σ (rec A) rewrite extensionality {f = exts (dual ∘ σ)} {d
 data Skip {r} : PreType r → Set where
   skip : Skip skip
   seq  : ∀{A B} → Skip A → Skip B → Skip (A ⨟ B)
-  rec  : ∀{A} → Skip A → Skip (rec A)
+  rec  : ∀{A} → Skip (unfold A) → Skip (rec A)
 
 data Label : Set where
   ⊥ 𝟙 ⊤ 𝟘 &L &R ⊕L ⊕R ⅋L ⅋R ⊗L ⊗R : Label
@@ -193,8 +195,7 @@ data _⊨_⇒_ {r} : PreType r → Label → PreType r → Set where
   ⊗R   : ∀{A B} → (A ⊗ B) ⊨ ⊗R ⇒ B
   skip : ∀{A B C ℓ} → Skip (A) → B ⊨ ℓ ⇒ C → (A ⨟ B) ⊨ ℓ ⇒ C
   seq  : ∀{A B C ℓ} → A ⊨ ℓ ⇒ B → (A ⨟ C) ⊨ ℓ ⇒ (B ⨟ C)
-  -- rec  : ∀{A B ℓ} → A ⊨ ℓ ⇒ B → rec A ⊨ ℓ ⇒ subst [ rec A /] B
-  rec  : ∀{A B ℓ} → subst [ rec A /] A ⊨ ℓ ⇒ B → rec A ⊨ ℓ ⇒ B
+  rec  : ∀{A B ℓ} → unfold A ⊨ ℓ ⇒ B → rec A ⊨ ℓ ⇒ B
 
 record _≲_ {r} (A B : PreType r) : Set where
   coinductive
@@ -203,6 +204,13 @@ record _≲_ {r} (A B : PreType r) : Set where
     ≲cont : ∀{ℓ A'} → A ⊨ ℓ ⇒ A' → ∃[ B' ] (B ⊨ ℓ ⇒ B' × A' ≲ B')
 
 open _≲_ public
+
+record _≅_ {r} (A B : PreType r) : Set where
+  field
+    to : A ≲ B
+    from : B ≲ A
+
+open _≅_ public
 
 ≲refl : ∀{r} {A : PreType r} → A ≲ A
 ≲refl .≲skip sk = sk
@@ -214,10 +222,26 @@ open _≲_ public
 ... | _ , tr' , p' with q .≲cont tr'
 ... | _ , tr'' , q' = _ , tr'' , ≲trans p' q'
 
+≲unfold : ∀{r} {A : PreType (suc r)} → rec A ≲ unfold A
+≲unfold .≲skip (rec sk) = sk
+≲unfold .≲cont (rec tr) = _ , tr , ≲refl
+
+≅refl : ∀{r} {A : PreType r} → A ≅ A
+≅refl .to = ≲refl
+≅refl .from = ≲refl
+
+≅sym : ∀{r} {A B : PreType r} → A ≅ B → B ≅ A
+≅sym p .to = p .from
+≅sym p .from = p .to
+
+≅trans : ∀{r} {A B C : PreType r} → A ≅ B → B ≅ C → A ≅ C
+≅trans p q .to = ≲trans (p .to) (q .to)
+≅trans p q .from = ≲trans (q .from) (p .from)
+
 skip-dual : ∀{r} {A : PreType r} → Skip A → Skip (dual A)
 skip-dual skip = skip
 skip-dual (seq sk sk') = seq (skip-dual sk) (skip-dual sk')
-skip-dual (rec sk) = rec (skip-dual sk)
+skip-dual (rec sk) = rec (skip-dual {!!})
 
 lemma'' : ∀{r} {A : PreType r} → [ dual A /] ≡ dual ∘ [ A /]
 lemma'' = extensionality aux
@@ -246,96 +270,49 @@ transition-dual (seq tr) = seq (transition-dual tr)
 transition-dual {A = rec A} {B} (rec {B = C} tr) with transition-dual tr
 ... | tr' rewrite dual-subst [ rec A /] A | sym (lemma'' {_} {rec A}) = rec tr'
 
-dual-transition : ∀{r} {A B : PreType r} {ℓ} → dual A ⊨ ℓ ⇒ B → A ⊨ dual-label ℓ ⇒ dual B
-dual-transition = transition-dual
+record Complete {r} (A : PreType r) : Set where
+  coinductive
+  field
+    {ℓ}           : Label
+    {B}           : PreType r
+    complete-tr   : A ⊨ ℓ ⇒ B
+    complete-cont : ∀{ℓ B} → A ⊨ ℓ ⇒ B → Complete B
 
--- dual-transition {A = ⊤} 𝟘 = ⊤
--- dual-transition {A = 𝟘} ⊤ = 𝟘
--- dual-transition {A = ⊥} 𝟙 = ⊥
--- dual-transition {A = 𝟙} ⊥ = 𝟙
--- dual-transition {A = var x} rav = var
--- dual-transition {A = rav x} var = rav
--- dual-transition {A = x ⨟ x₁} (skip sk tr) = skip {!!} {!!}
--- dual-transition {A = x ⨟ x₁} (seq tr) = {!!}
--- dual-transition {A = x & x₁} ⊕L = {!!}
--- dual-transition {A = x & x₁} ⊕R = {!!}
--- dual-transition {A = x ⊕ x₁} &L = {!!}
--- dual-transition {A = x ⊕ x₁} &R = {!!}
--- dual-transition {A = x ⅋ x₁} tr = {!!}
--- dual-transition {A = x ⊗ x₁} tr = {!!}
-
--- inv-dual-dual : ∀{n} {A : PreType n 0} → A ≲ dual (dual A)
--- inv-dual-dual .≲skip sk = skip-dual (skip-dual sk)
--- inv-dual-dual .≲cont tr = _ , transition-dual (transition-dual tr) , inv-dual-dual
-
--- dual-dual-inv : ∀{n} {A : PreType n 0} → dual (dual A) ≲ A
--- dual-dual-inv .≲skip sk = dual-skip (dual-skip sk)
--- dual-dual-inv .≲cont tr = _ , dual-transition (dual-transition tr) , inv-dual-dual
-
--- -- record Complete {n} (A : PreType n) : Set where
--- --   coinductive
--- --   field
--- --     {ℓ}  : Label
--- --     {B}  : PreType n
--- --     tr   : A ⊨ ℓ ⇒ B
--- --     cont : ∀{ℓ B} → A ⊨ ℓ ⇒ B → Complete B
-
--- -- open Complete public
+open Complete public
 
 ≲dual : ∀{n} {A B : PreType n} → A ≲ B → dual A ≲ dual B
 ≲dual le .≲skip sk = skip-dual (le .≲skip (skip-dual sk))
 ≲dual le .≲cont tr with le .≲cont (transition-dual tr)
 ... | _ , tr' , le' = _ , transition-dual tr' , ≲dual le'
 
--- -- transition-not-skip : ∀{n} {A B : PreType n} {ℓ} → A ⊨ ℓ ⇒ B → ¬ Skip A
--- -- transition-not-skip (skip _ tr) (seq _ sk) = transition-not-skip tr sk
--- -- transition-not-skip (seq tr) (seq sk _) = transition-not-skip tr sk
--- -- transition-not-skip (rec tr) (rec sk) = transition-not-skip tr {!!}
+skip-subst : ∀{r s} {A : PreType r} {σ : Fin r → PreType s}→ Skip A → Skip (subst σ A)
+skip-subst skip = skip
+skip-subst (seq sk sk') = seq (skip-subst sk) (skip-subst sk')
+skip-subst (rec sk) = rec {!!}
 
--- -- complete-not-skip : ∀{n} {A : PreType n} → Complete A → ¬ Skip A
--- -- complete-not-skip comp sk = transition-not-skip (comp .tr) sk
+transition-not-skip : ∀{n} {A B : PreType n} {ℓ} → A ⊨ ℓ ⇒ B → ¬ Skip A
+transition-not-skip (skip _ tr) (seq _ sk) = transition-not-skip tr sk
+transition-not-skip (seq tr) (seq sk _) = transition-not-skip tr sk
+transition-not-skip (rec tr) (rec sk) = transition-not-skip tr {!!}
 
--- -- complete-absorbing : ∀{n} {A B : PreType n} → Complete A → A ~ (A ⨟ B)
--- -- complete-absorbing comp .skip-l sk = contradiction sk (transition-not-skip (comp .tr))
--- -- complete-absorbing comp .skip-r (seq sk _) = contradiction sk (complete-not-skip comp)
--- -- complete-absorbing comp .cont-l tr = _ , seq tr , complete-absorbing (comp .cont tr)
--- -- complete-absorbing comp .cont-r (skip sk _) = contradiction sk (complete-not-skip comp)
--- -- complete-absorbing comp .cont-r (seq tr) = _ , tr , complete-absorbing (comp .cont tr)
+complete-not-skip : ∀{n} {A : PreType n} → Complete A → ¬ Skip A
+complete-not-skip comp sk = transition-not-skip (comp .complete-tr) sk
 
--- -- data Kind : Set where
--- --   S O : Kind
+complete-absorbing-r : ∀{n} {A B : PreType n} → Complete A → A ≲ (A ⨟ B)
+complete-absorbing-r comp .≲skip sk = contradiction sk (transition-not-skip (comp .complete-tr))
+complete-absorbing-r comp .≲cont tr = _ , seq tr , complete-absorbing-r (comp .complete-cont tr)
 
--- -- data _::_ {n} : PreType n → Kind → Set where
--- --   :skip : skip :: S
--- --   :⊥    : ⊥ :: O
--- --   :𝟙    : 𝟙 :: O
--- --   :⊤    : ⊤ :: O
--- --   :𝟘    : 𝟘 :: O
--- --   :var  : ∀{n} → var n :: O
--- --   :rav  : ∀{n} → rav n :: O
--- --   :&    : ∀{h k A B} → A :: h → B :: k → (A & B) :: O
--- --   :⊕    : ∀{h k A B} → A :: h → B :: k → (A ⊕ B) :: O
--- --   :⅋    : ∀{h k A B} → A :: h → B :: k → (A ⅋ B) :: O
--- --   :⊗    : ∀{h k A B} → A :: h → B :: k → (A ⊗ B) :: O
--- --   :seqo : ∀{k A B} → A :: O → B :: k → (A ⨟ B) :: O
--- --   :seqs : ∀{k A B} → A :: S → B :: k → (A ⨟ B) :: k
--- --   :rec  : ∀{A} → (subst [ rec A /] A) :: O → (rec A) :: O
+complete-absorbing-l : ∀{r} {A B : PreType r} → Complete A → (A ⨟ B) ≲ A
+complete-absorbing-l comp .≲skip (seq sk _) = sk
+complete-absorbing-l comp .≲cont (skip sk _) = contradiction sk (complete-not-skip comp)
+complete-absorbing-l comp .≲cont (seq tr) = _ , tr , complete-absorbing-l (comp .complete-cont tr)
 
--- -- Type : Set
--- -- Type = PreType 0
+complete-absorbing : ∀{r} {A B : PreType r} → Complete A → A ≅ (A ⨟ B)
+complete-absorbing comp .to = complete-absorbing-r comp
+complete-absorbing comp .from = complete-absorbing-l comp
 
--- -- data HeadNormalForm : Type → Set where
--- --   hnf-skip : HeadNormalForm skip
--- --   hnf-⊥ : HeadNormalForm ⊥
--- --   hnf-𝟙 : HeadNormalForm 𝟙
--- --   hnf-⊤ : HeadNormalForm ⊤
--- --   hnf-𝟘 : HeadNormalForm 𝟘
--- --   hnf-var : ∀{x} → HeadNormalForm (var x)
--- --   hnf-rav : ∀{x} → HeadNormalForm (rav x)
--- --   hnf-&   : ∀{A B} → HeadNormalForm (A & B)
--- --   hnf-⊕   : ∀{A B} → HeadNormalForm (A ⊕ B)
--- --   hnf-⅋   : ∀{A B} → HeadNormalForm (A ⅋ B)
--- --   hnf-⊗   : ∀{A B} → HeadNormalForm (A ⊗ B)
+Type : Set
+Type = PreType 0
 
 -- -- infix  1 ≤begin_
 -- -- infixr 2 _≤⟨⟩_ _≤⟨_⟩_
@@ -356,20 +333,6 @@ dual-transition = transition-dual
 -- --   (A ⨟ B) ≤⟨ ≤-cong (lemma-skip x) (lemma-skip y) ⟩
 -- --   (skip ⨟ skip) ≤⟨ ≤-skip ⟩
 -- --   skip ≤∎
-
--- -- nf : ∀{A κ} → A :: κ → ∃[ B ] HeadNormalForm B × A ≤ B
--- -- nf :skip = _ , hnf-skip , ≤-refl
--- -- nf :⊥ = _ , hnf-⊥ , ≤-refl
--- -- nf :𝟙 = _ , hnf-𝟙 , ≤-refl
--- -- nf :⊤ = _ , hnf-⊤ , ≤-refl
--- -- nf :𝟘 = _ , hnf-𝟘 , ≤-refl
--- -- nf (:& x y) = _ , hnf-& , ≤-refl
--- -- nf (:⊕ x y) = _ , hnf-⊕ , ≤-refl
--- -- nf (:⅋ x y) = _ , hnf-⅋ , ≤-refl
--- -- nf (:⊗ x y) = _ , hnf-⊗ , ≤-refl
--- -- nf (:seqo x y) = {!!}
--- -- nf (:seqs x y) = {!!}
--- -- nf (:rec x) = {!!}
 
 -- -- lemma-rec : ∀{A B} → (subst [ skip /] A ⨟ B) ≤ subst [ B /] A
 -- -- lemma-rec {A} = {!!}
