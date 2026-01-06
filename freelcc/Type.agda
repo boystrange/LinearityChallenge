@@ -89,49 +89,51 @@ subst σ (rec A) = rec (subst (exts σ) A)
 -- -- subst-compose : ∀{m n o} → (Fin m → PreType n) → (Fin n → PreType o) → Fin m → PreType o
 -- -- subst-compose σ τ x = subst τ (σ x)
 
-[_/] : ∀{r} → PreType r → Fin (suc r) → PreType r
-[ A /] zero     = A
-[ A /] (suc x)  = inv x
+s-just : ∀{r} → PreType r → Fin (suc r) → PreType r
+s-just A zero     = A
+s-just A (suc x)  = inv x
 
 unfold : ∀{r} → PreType (suc r) → PreType r
-unfold A = subst [ rec A /] A
+unfold A = subst (s-just (rec A)) A
 
 postulate
   extensionality : ∀{A B : Set} {f g : A → B} → ((x : A) → f x ≡ g x) → f ≡ g
 
-dual-rename : ∀{r s} {ρ : Fin r → Fin s} (A : PreType r) → dual (rename ρ A) ≡ rename ρ (dual A)
-dual-rename skip = refl
-dual-rename ⊤ = refl
-dual-rename 𝟘 = refl
-dual-rename ⊥ = refl
-dual-rename 𝟙 = refl
-dual-rename (A ⨟ B) = cong₂ _⨟_ (dual-rename A) (dual-rename B)
-dual-rename (A & B) = cong₂ _⊕_ (dual-rename A) (dual-rename B)
-dual-rename (A ⊕ B) = cong₂ _&_ (dual-rename A) (dual-rename B)
-dual-rename (A ⅋ B) = cong₂ _⊗_ (dual-rename A) (dual-rename B)
-dual-rename (A ⊗ B) = cong₂ _⅋_ (dual-rename A) (dual-rename B)
-dual-rename (inv x) = refl
-dual-rename (rec A) = cong rec (dual-rename A)
+dual-rename : ∀{r s} (ρ : Fin r → Fin s) (A : PreType r) → dual (rename ρ A) ≡ rename ρ (dual A)
+dual-rename ρ skip = refl
+dual-rename ρ ⊤ = refl
+dual-rename ρ 𝟘 = refl
+dual-rename ρ ⊥ = refl
+dual-rename ρ 𝟙 = refl
+dual-rename ρ (A ⨟ B) = cong₂ _⨟_ (dual-rename ρ A) (dual-rename ρ B)
+dual-rename ρ (A & B) = cong₂ _⊕_ (dual-rename ρ A) (dual-rename ρ B)
+dual-rename ρ (A ⊕ B) = cong₂ _&_ (dual-rename ρ A) (dual-rename ρ B)
+dual-rename ρ (A ⅋ B) = cong₂ _⊗_ (dual-rename ρ A) (dual-rename ρ B)
+dual-rename ρ (A ⊗ B) = cong₂ _⅋_ (dual-rename ρ A) (dual-rename ρ B)
+dual-rename ρ (inv x) = refl
+dual-rename ρ (rec A) = cong rec (dual-rename (ext ρ) A)
 
-exts-dual : ∀{r s} {σ : Fin r → PreType s} (x : Fin (suc r)) → exts (dual ∘ σ) x ≡ dual ((exts σ) x)
-exts-dual zero = refl
-exts-dual {σ = σ} (suc x) rewrite dual-rename {ρ = suc} (σ x) = refl
+exts-dual : ∀{r s} (σ : Fin r → PreType s) → exts (dual ∘ σ) ≡ dual ∘ (exts σ)
+exts-dual {r} σ = extensionality aux
+  where
+    aux : (x : Fin (suc r)) → exts (dual ∘ σ) x ≡ dual ((exts σ) x)
+    aux zero = refl
+    aux (suc x) rewrite dual-rename suc (σ x) = refl
 
 dual-subst : ∀{r s} (σ : Fin r → PreType s) (A : PreType r) → dual (subst σ A) ≡ subst (dual ∘ σ) (dual A)
-dual-subst {_} {_} σ skip = refl
-dual-subst {_} {_} σ ⊤ = refl
-dual-subst {_} {_} σ 𝟘 = refl
-dual-subst {_} {_} σ ⊥ = refl
-dual-subst {_} {_} σ 𝟙 = refl
-dual-subst {_} {_} σ (A ⨟ B) = cong₂ _⨟_ (dual-subst σ A) (dual-subst σ B)
-dual-subst {_} {_} σ (A & B) = cong₂ _⊕_ (dual-subst σ A) (dual-subst σ B)
-dual-subst {_} {_} σ (A ⊕ B) = cong₂ _&_ (dual-subst σ A) (dual-subst σ B)
-dual-subst {_} {_} σ (A ⅋ B) = cong₂ _⊗_ (dual-subst σ A) (dual-subst σ B)
-dual-subst {_} {_} σ (A ⊗ B) = cong₂ _⅋_ (dual-subst σ A) (dual-subst σ B)
-dual-subst {_} {_} σ (inv zero) = refl
-dual-subst {_} {_} σ (inv (suc x)) = refl
-dual-subst {_} {_} σ (rec A) rewrite extensionality {f = exts (dual ∘ σ)} {dual ∘ (exts σ)} exts-dual
-  = cong rec (dual-subst (exts σ) A)
+dual-subst σ skip = refl
+dual-subst σ ⊤ = refl
+dual-subst σ 𝟘 = refl
+dual-subst σ ⊥ = refl
+dual-subst σ 𝟙 = refl
+dual-subst σ (A ⨟ B) = cong₂ _⨟_ (dual-subst σ A) (dual-subst σ B)
+dual-subst σ (A & B) = cong₂ _⊕_ (dual-subst σ A) (dual-subst σ B)
+dual-subst σ (A ⊕ B) = cong₂ _&_ (dual-subst σ A) (dual-subst σ B)
+dual-subst σ (A ⅋ B) = cong₂ _⊗_ (dual-subst σ A) (dual-subst σ B)
+dual-subst σ (A ⊗ B) = cong₂ _⅋_ (dual-subst σ A) (dual-subst σ B)
+dual-subst σ (inv zero) = refl
+dual-subst σ (inv (suc x)) = refl
+dual-subst σ (rec A) rewrite exts-dual σ = cong rec (dual-subst (exts σ) A)
 
 -- {-# REWRITE dual-subst #-}
 
@@ -173,22 +175,10 @@ dual-label-inv {⊗R} = refl
 -- dual-label-inv {var x} = refl
 -- dual-label-inv {rav x} = refl
 
-dual-label-not-skip : ∀{ℓ} → ℓ ≢ skip → dual-label ℓ ≢ skip
-dual-label-not-skip {skip} neq = neq
-dual-label-not-skip {⊥} neq = λ ()
-dual-label-not-skip {𝟙} neq = λ ()
-dual-label-not-skip {⊤} neq = λ ()
-dual-label-not-skip {𝟘} neq = λ ()
-dual-label-not-skip {&L} neq = λ ()
-dual-label-not-skip {&R} neq = λ ()
-dual-label-not-skip {⊕L} neq = λ ()
-dual-label-not-skip {⊕R} neq = λ ()
-dual-label-not-skip {⅋L} neq = λ ()
-dual-label-not-skip {⅋R} neq = λ ()
-dual-label-not-skip {⊗L} neq = λ ()
-dual-label-not-skip {⊗R} neq = λ ()
-
 {-# REWRITE dual-label-inv #-}
+
+dual-label-not-skip : ∀{ℓ} → ℓ ≢ skip → dual-label ℓ ≢ skip
+dual-label-not-skip neq eq = contradiction (cong dual-label eq) neq
 
 data _⊨_⇒_ {r} : PreType r → Label → PreType r → Set where
   skip : skip ⊨ skip ⇒ skip
@@ -263,6 +253,13 @@ open _≅_ public
 ≲unfold : ∀{r} {A : PreType (suc r)} → rec A ≲ unfold A
 ≲unfold .≲cont (rec tr) = _ , tr , ≲refl
 
+unfold≲ : ∀{r} {A : PreType (suc r)} → unfold A ≲ rec A
+unfold≲ .≲cont tr = _ , rec tr , ≲refl
+
+≅unfold : ∀{r} {A : PreType (suc r)} → rec A ≅ unfold A
+≅unfold .to = ≲unfold
+≅unfold .from = unfold≲
+
 ≅refl : ∀{r} {A : PreType r} → A ≅ A
 ≅refl .to = ≲refl
 ≅refl .from = ≲refl
@@ -279,15 +276,12 @@ open _≅_ public
 ≅after eq at bt with eq .to .≲cont at | eq .from .≲cont bt
 ... | _ , bt' , ale | _ , at' , ble rewrite deterministic at at' | deterministic bt bt' = record { to = ale ; from = ble }
 
-lemma'' : ∀{r} {A : PreType r} → [ dual A /] ≡ dual ∘ [ A /]
-lemma'' = extensionality aux
+dual-s-just : ∀{r} (A : PreType r) → dual ∘ s-just A ≡ s-just (dual A)
+dual-s-just {r} A = extensionality aux
   where
-    aux : ∀{r} {A : PreType r} (x : Fin (suc r)) → [ dual A /] x ≡ (dual ∘ [ A /]) x
+    aux : (x : Fin (suc r)) → (dual ∘ s-just A) x ≡ s-just (dual A) x
     aux zero = refl
     aux (suc x) = refl
-
-dual-unfold : ∀{r} {A : PreType (suc r)} → dual (unfold A) ≡ unfold (dual A)
-dual-unfold {_} {A} rewrite dual-subst [ rec A /] A | sym (lemma'' {_} {rec A}) = refl
 
 transition-dual : ∀{r} {A B : PreType r} {ℓ} → A ⊨ ℓ ⇒ B → dual A ⊨ dual-label ℓ ⇒ dual B
 transition-dual skip = skip
@@ -307,14 +301,12 @@ transition-dual ⊗L = ⅋L
 transition-dual ⊗R = ⅋R
 transition-dual (seqr tr tr') = seqr (transition-dual tr) (transition-dual tr')
 transition-dual (seql tr neq) = seql (transition-dual tr) (dual-label-not-skip neq)
-transition-dual {A = rec A} {B} (rec {B = C} tr) with transition-dual tr
-... | tr' rewrite dual-subst [ rec A /] A | sym (lemma'' {_} {rec A}) = rec tr'
+transition-dual {A = rec A} (rec tr) with transition-dual tr
+... | tr' rewrite dual-subst (s-just (rec A)) A | dual-s-just (rec A) = rec tr'
 
 record Complete {r} (A : PreType r) : Set where
   coinductive
   field
-    {ℓ}           : Label
-    {B}           : PreType r
     not-skip      : ∀{ℓ B} → A ⊨ ℓ ⇒ B → ℓ ≢ skip
     complete-cont : ∀{ℓ B} → A ⊨ ℓ ⇒ B → Complete B
 
@@ -341,26 +333,3 @@ complete-absorbing comp .from = complete-absorbing-l comp
 
 Type : Set
 Type = PreType 0
-
--- -- infix  1 ≤begin_
--- -- infixr 2 _≤⟨⟩_ _≤⟨_⟩_
--- -- infix  3 _≤∎
-
--- -- ≤begin_ : {x y : Type} -> x ≤ y -> x ≤ y
--- -- ≤begin_ p = p
-
--- -- _≤∎ : (x : Type) -> x ≤ x
--- -- _≤∎ _ = ≤-refl
-
--- -- _≤⟨_⟩_ : (x : Type) {y z : Type} -> x ≤ y -> y ≤ z -> x ≤ z
--- -- _≤⟨_⟩_ _ = ≤-tran
-
--- -- lemma-skip : ∀{A} → A :: S → A ≤ skip
--- -- lemma-skip :skip = ≤-refl
--- -- lemma-skip {A ⨟ B} (:seqs x y) = ≤begin
--- --   (A ⨟ B) ≤⟨ ≤-cong (lemma-skip x) (lemma-skip y) ⟩
--- --   (skip ⨟ skip) ≤⟨ ≤-skip ⟩
--- --   skip ≤∎
-
--- -- lemma-rec : ∀{A B} → (subst [ skip /] A ⨟ B) ≤ subst [ B /] A
--- -- lemma-rec {A} = {!!}
