@@ -247,6 +247,10 @@ open _≅_ public
 ≅trans p q .to = ≲trans (p .to) (q .to)
 ≅trans p q .from = ≲trans (q .from) (p .from)
 
+≅after : ∀{r} {ℓ} {A B A' B' : PreType r} → A ≅ B → A ⊨ ℓ ⇒ A' → ∃[ B' ] B ⊨ ℓ ⇒ B' × A' ≅ B'
+≅after eq tr with eq .to .≲cont tr
+... | _ , tr' , le = {!!} , {!!} , {!!}
+
 lemma'' : ∀{r} {A : PreType r} → [ dual A /] ≡ dual ∘ [ A /]
 lemma'' = extensionality aux
   where
