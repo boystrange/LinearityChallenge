@@ -5,6 +5,7 @@ open import Data.Product using (_,_)
 open import Data.List.Base using ([]; _∷_; [_])
 
 open import Type
+open import Equivalence
 open import Context
 open import Permutations
 open import Process

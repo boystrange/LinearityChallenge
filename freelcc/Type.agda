@@ -228,54 +228,6 @@ deterministic (seqr x _) (seql y ne) = contradiction (only-skip y x) ne
 deterministic (seqr _ x) (seqr _ y) = deterministic x y
 deterministic (rec x) (rec y) = deterministic x y
 
-record _≲_ {r} (A B : PreType r) : Set where
-  coinductive
-  field
-    ≲cont : ∀{ℓ A'} → A ⊨ ℓ ⇒ A' → ∃[ B' ] (B ⊨ ℓ ⇒ B' × A' ≲ B')
-
-open _≲_ public
-
-record _≅_ {r} (A B : PreType r) : Set where
-  field
-    to : A ≲ B
-    from : B ≲ A
-
-open _≅_ public
-
-≲refl : ∀{r} {A : PreType r} → A ≲ A
-≲refl .≲cont tr = _ , tr , ≲refl
-
-≲trans : ∀{r} {A B C : PreType r} → A ≲ B → B ≲ C → A ≲ C
-≲trans p q .≲cont tr with p .≲cont tr
-... | _ , tr' , p' with q .≲cont tr'
-... | _ , tr'' , q' = _ , tr'' , ≲trans p' q'
-
-≲unfold : ∀{r} {A : PreType (suc r)} → rec A ≲ unfold A
-≲unfold .≲cont (rec tr) = _ , tr , ≲refl
-
-unfold≲ : ∀{r} {A : PreType (suc r)} → unfold A ≲ rec A
-unfold≲ .≲cont tr = _ , rec tr , ≲refl
-
-≅unfold : ∀{r} {A : PreType (suc r)} → rec A ≅ unfold A
-≅unfold .to = ≲unfold
-≅unfold .from = unfold≲
-
-≅refl : ∀{r} {A : PreType r} → A ≅ A
-≅refl .to = ≲refl
-≅refl .from = ≲refl
-
-≅sym : ∀{r} {A B : PreType r} → A ≅ B → B ≅ A
-≅sym p .to = p .from
-≅sym p .from = p .to
-
-≅trans : ∀{r} {A B C : PreType r} → A ≅ B → B ≅ C → A ≅ C
-≅trans p q .to = ≲trans (p .to) (q .to)
-≅trans p q .from = ≲trans (q .from) (p .from)
-
-≅after : ∀{r} {ℓ} {A B A' B' : PreType r} → A ≅ B → A ⊨ ℓ ⇒ A' → B ⊨ ℓ ⇒ B' → A' ≅ B'
-≅after eq at bt with eq .to .≲cont at | eq .from .≲cont bt
-... | _ , bt' , ale | _ , at' , ble rewrite deterministic at at' | deterministic bt bt' = record { to = ale ; from = ble }
-
 dual-s-just : ∀{r} (A : PreType r) → dual ∘ s-just A ≡ s-just (dual A)
 dual-s-just {r} A = extensionality aux
   where
@@ -311,25 +263,6 @@ record Complete {r} (A : PreType r) : Set where
     complete-cont : ∀{ℓ B} → A ⊨ ℓ ⇒ B → Complete B
 
 open Complete public
-
-≲dual : ∀{n} {A B : PreType n} → A ≲ B → dual A ≲ dual B
-≲dual le .≲cont tr with le .≲cont (transition-dual tr)
-... | _ , tr' , le' = _ , transition-dual tr' , ≲dual le'
-
-≅dual : ∀{r} {A B : PreType r} → A ≅ B → dual A ≅ dual B
-≅dual eq .to = ≲dual (eq .to)
-≅dual eq .from = ≲dual (eq .from)
-
-complete-absorbing-r : ∀{n} {A B : PreType n} → Complete A → A ≲ (A ⨟ B)
-complete-absorbing-r comp .≲cont tr = _ , seql tr (comp .not-skip tr) , complete-absorbing-r (comp .complete-cont tr)
-
-complete-absorbing-l : ∀{r} {A B : PreType r} → Complete A → (A ⨟ B) ≲ A
-complete-absorbing-l comp .≲cont (seql tr neq) = _ , tr , complete-absorbing-l (comp .complete-cont tr)
-complete-absorbing-l comp .≲cont (seqr tr tr') = contradiction refl (comp .not-skip tr)
-
-complete-absorbing : ∀{r} {A B : PreType r} → Complete A → A ≅ (A ⨟ B)
-complete-absorbing comp .to = complete-absorbing-r comp
-complete-absorbing comp .from = complete-absorbing-l comp
 
 Type : Set
 Type = PreType 0

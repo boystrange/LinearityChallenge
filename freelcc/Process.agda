@@ -11,6 +11,7 @@ open import Relation.Unary hiding (_∈_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong₂; subst)
 
 open import Type
+open import Equivalence
 open import Context
 open import Permutations
 

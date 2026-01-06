@@ -7,6 +7,7 @@ open import Relation.Unary hiding (_∈_)
 open import Relation.Binary.PropositionalEquality using (sym)
 
 open import Type
+open import Equivalence
 open import Context
 open import Permutations
 open import Process
