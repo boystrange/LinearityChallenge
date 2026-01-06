@@ -256,13 +256,13 @@ transition-dual (seql tr neq) = seql (transition-dual tr) (dual-label-not-skip n
 transition-dual {A = rec A} (rec tr) with transition-dual tr
 ... | tr' rewrite dual-subst (s-just (rec A)) A | dual-s-just (rec A) = rec tr'
 
-record Complete {r} (A : PreType r) : Set where
+record Closed {r} (A : PreType r) : Set where
   coinductive
   field
-    not-skip      : ∀{ℓ B} → A ⊨ ℓ ⇒ B → ℓ ≢ ε
-    complete-cont : ∀{ℓ B} → A ⊨ ℓ ⇒ B → Complete B
+    closed-skip : ∀{ℓ B} → A ⊨ ℓ ⇒ B → ℓ ≢ ε
+    closed-cont : ∀{ℓ B} → A ⊨ ℓ ⇒ B → Closed B
 
-open Complete public
+open Closed public
 
 Type : Set
 Type = PreType 0

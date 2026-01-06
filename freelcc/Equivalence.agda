@@ -36,12 +36,12 @@ unfold≲ .≲cont tr = _ , rec tr , ≲refl
 ≲dual le .≲cont tr with le .≲cont (transition-dual tr)
 ... | _ , tr' , le' = _ , transition-dual tr' , ≲dual le'
 
-complete-absorbing-r : ∀{n} {A B : PreType n} → Complete A → A ≲ (A ⨟ B)
-complete-absorbing-r comp .≲cont tr = _ , seql tr (comp .not-skip tr) , complete-absorbing-r (comp .complete-cont tr)
+closed-absorbing-r : ∀{n} {A B : PreType n} → Closed A → A ≲ (A ⨟ B)
+closed-absorbing-r comp .≲cont tr = _ , seql tr (comp .closed-skip tr) , closed-absorbing-r (comp .closed-cont tr)
 
-complete-absorbing-l : ∀{r} {A B : PreType r} → Complete A → (A ⨟ B) ≲ A
-complete-absorbing-l comp .≲cont (seql tr neq) = _ , tr , complete-absorbing-l (comp .complete-cont tr)
-complete-absorbing-l comp .≲cont (seqr tr tr') = contradiction refl (comp .not-skip tr)
+closed-absorbing-l : ∀{r} {A B : PreType r} → Closed A → (A ⨟ B) ≲ A
+closed-absorbing-l comp .≲cont (seql tr neq) = _ , tr , closed-absorbing-l (comp .closed-cont tr)
+closed-absorbing-l comp .≲cont (seqr tr tr') = contradiction refl (comp .closed-skip tr)
 
 -- EQUIVALENCE
 
@@ -76,6 +76,6 @@ open _≅_ public
 ≅unfold .to = ≲unfold
 ≅unfold .from = unfold≲
 
-complete-absorbing : ∀{r} {A B : PreType r} → Complete A → A ≅ (A ⨟ B)
-complete-absorbing comp .to = complete-absorbing-r comp
-complete-absorbing comp .from = complete-absorbing-l comp
+closed-absorbing : ∀{r} {A B : PreType r} → Closed A → A ≅ (A ⨟ B)
+closed-absorbing comp .to = closed-absorbing-r comp
+closed-absorbing comp .from = closed-absorbing-l comp
