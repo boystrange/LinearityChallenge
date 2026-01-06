@@ -58,11 +58,11 @@ rename ρ ⊥ = ⊥
 rename ρ 𝟙 = 𝟙
 -- rename ρ (var x) = var (ρ x)
 -- rename ρ (rav x) = rav (ρ x)
-rename ρ (A ⨟ B) = rename ρ (A) ⨟ rename ρ (B)
-rename ρ (A & B) = rename ρ (A) & rename ρ (B)
-rename ρ (A ⊕ B) = rename ρ (A) ⊕ rename ρ (B)
-rename ρ (A ⅋ B) = rename ρ (A) ⅋ rename ρ (B)
-rename ρ (A ⊗ B) = rename ρ (A) ⊗ rename ρ (B)
+rename ρ (A ⨟ B) = rename ρ A ⨟ rename ρ B
+rename ρ (A & B) = rename ρ A & rename ρ B
+rename ρ (A ⊕ B) = rename ρ A ⊕ rename ρ B
+rename ρ (A ⅋ B) = rename ρ A ⅋ rename ρ B
+rename ρ (A ⊗ B) = rename ρ A ⊗ rename ρ B
 rename ρ (inv x) = inv (ρ x)
 rename ρ (rec A) = rec (rename (ext ρ) A)
 
