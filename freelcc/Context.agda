@@ -8,35 +8,35 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong
 
 open import Type
 
-Context : Set
-Context = List Type
+Context : ℕ → Set
+Context n = List (Type n)
 
 infix  4 _≃_+_
 infixr 8 _─∗_
 infixr 9 _∗_
 
-data _≃_+_ : Context → Context → Context → Set where
+data _≃_+_ {n} : Context n → Context n → Context n → Set where
   •   : [] ≃ [] + []
   <_  : ∀{A Γ Δ Θ} → Γ ≃ Δ + Θ → A ∷ Γ ≃ A ∷ Δ + Θ
   >_  : ∀{A Γ Δ Θ} → Γ ≃ Δ + Θ → A ∷ Γ ≃ Δ + A ∷ Θ
 
-+-comm : ∀{Γ Δ Θ} → Γ ≃ Δ + Θ → Γ ≃ Θ + Δ
++-comm : ∀{n} {Γ Δ Θ : Context n} → Γ ≃ Δ + Θ → Γ ≃ Θ + Δ
 +-comm • = •
 +-comm (< p) = > (+-comm p)
 +-comm (> p) = < (+-comm p)
 
-++≃+ : ∀{Γ Δ} → Γ ++ Δ ≃ Γ + Δ
-++≃+ {[]}    {[]}    = •
-++≃+ {[]}    {_ ∷ _} = > ++≃+
-++≃+ {_ ∷ _} {_}     = < ++≃+
+++≃+ : ∀{n} {Γ Δ : Context n} → Γ ++ Δ ≃ Γ + Δ
+++≃+ {_} {[]}    {[]}    = •
+++≃+ {_} {[]}    {_ ∷ _} = > ++≃+
+++≃+ {_} {_ ∷ _} {_}     = < ++≃+
 
-≫ : ∀{Γ} → Γ ≃ [] + Γ
-≫ = ++≃+ {[]}
+≫ : ∀{n} {Γ : Context n} → Γ ≃ [] + Γ
+≫ = ++≃+ {_} {[]}
 
-≪ : ∀{Γ} → Γ ≃ Γ + []
+≪ : ∀{n} {Γ : Context n} → Γ ≃ Γ + []
 ≪ = +-comm ≫
 
-+-assoc-r  : ∀{Γ Δ Θ Δ′ Θ′} → Γ ≃ Δ + Θ → Θ ≃ Δ′ + Θ′ →
++-assoc-r  : ∀{n} {Γ Δ Θ Δ′ Θ′ : Context n} → Γ ≃ Δ + Θ → Θ ≃ Δ′ + Θ′ →
              ∃[ Γ′ ] Γ′ ≃ Δ + Δ′ × Γ ≃ Γ′ + Θ′
 +-assoc-r • • = [] , • , •
 +-assoc-r (< p) q with +-assoc-r p q
@@ -46,36 +46,35 @@ data _≃_+_ : Context → Context → Context → Set where
 +-assoc-r (> p) (> q) with +-assoc-r p q
 ... | _ , p′ , q′ = _ , p′ , > q′
 
-+-assoc-l  : ∀{Γ Δ Θ Δ′ Θ′} → Γ ≃ Δ + Θ → Δ ≃ Δ′ + Θ′ →
++-assoc-l  : ∀{n} {Γ Δ Θ Δ′ Θ′ : Context n} → Γ ≃ Δ + Θ → Δ ≃ Δ′ + Θ′ →
              ∃[ Γ′ ] Γ′ ≃ Θ′ + Θ × Γ ≃ Δ′ + Γ′
 +-assoc-l p q with +-assoc-r (+-comm p) (+-comm q)
 ... | Δ , r , p′ = Δ , +-comm r , +-comm p′
 
-+-empty-l : ∀{Γ Δ} → Γ ≃ [] + Δ → Γ ≡ Δ
++-empty-l : ∀{n} {Γ Δ : Context n} → Γ ≃ [] + Δ → Γ ≡ Δ
 +-empty-l • = refl
 +-empty-l (> p) = cong (_ ∷_) (+-empty-l p)
 
-data _∗_ (P Q : Pred Context _) (Γ : Context) : Set where
+data _∗_ {n} (P Q : Pred (Context n) _) (Γ : Context n) : Set where
   _⟨_⟩_ : ∀{Δ Θ} → P Δ → Γ ≃ Δ + Θ → Q Θ → (P ∗ Q) Γ
 
-∗-comm : ∀{P Q : Pred Context _} → ∀[ P ∗ Q ⇒ Q ∗ P ]
+∗-comm : ∀{n} {P Q : Pred (Context n) _} → ∀[ P ∗ Q ⇒ Q ∗ P ]
 ∗-comm (p ⟨ σ ⟩ q) = q ⟨ +-comm σ ⟩ p
 
-∗-assoc-l : ∀{P Q R : Pred Context _} → ∀[ (P ∗ Q) ∗ R ⇒ P ∗ (Q ∗ R) ]
+∗-assoc-l : ∀{n} {P Q R : Pred (Context n) _} → ∀[ (P ∗ Q) ∗ R ⇒ P ∗ (Q ∗ R) ]
 ∗-assoc-l ((p ⟨ σ ⟩ q) ⟨ ρ ⟩ r) with +-assoc-l ρ σ
 ... | _ , σ' , ρ' = p ⟨ ρ' ⟩ (q ⟨ σ' ⟩ r)
 
-_─∗_ : Pred Context _ → Pred Context _ → Context → Set
+_─∗_ : ∀{n} → Pred (Context n) _ → Pred (Context n) _ → Context n → Set
 (P ─∗ Q) Δ = ∀{Θ Γ} → Γ ≃ Δ + Θ → P Θ → Q Γ
 
-curry∗ : ∀{P Q R : Pred Context _} → ∀[ P ∗ Q ⇒ R ] → ∀[ P ⇒ Q ─∗ R ]
+curry∗ : ∀{n} {P Q R : Pred (Context n) _} → ∀[ P ∗ Q ⇒ R ] → ∀[ P ⇒ Q ─∗ R ]
 curry∗ F px σ qx = F (px ⟨ σ ⟩ qx)
 
--- data Un : Context → Set where
---   un-[]  : Un []
---   un-∷   : ∀{A} → ∀[ Un ⇒ (`? A ∷_) ⊢ Un ]
+substc : ∀{m n} → (Fin m → Type n) → Context m → Context n
+substc σ = map (subst σ λ ())
 
--- ∗-un : ∀[ Un ∗ Un ⇒ Un ]
--- ∗-un (un-[] ⟨ • ⟩ un-[]) = un-[]
--- ∗-un (un-∷ un ⟨ < σ ⟩ un′) = un-∷ (∗-un (un ⟨ σ ⟩ un′))
--- ∗-un (un ⟨ > σ ⟩ un-∷ un′) = un-∷ (∗-un (un ⟨ σ ⟩ un′))
++-subst : ∀{m n}{Γ Δ Θ : Context m} (σ : Fin m → Type n) → Γ ≃ Δ + Θ → substc σ Γ ≃ substc σ Δ + substc σ Θ
++-subst σ • = •
++-subst σ (< p) = < +-subst σ p
++-subst σ (> p) = > +-subst σ p

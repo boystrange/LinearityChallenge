@@ -18,7 +18,7 @@ open import Permutations
 record ProcType : Set where
   field
     {n} : ℕ
-    context : Context
+    context : Context n
 
 open ProcType public
 
@@ -29,11 +29,11 @@ data _∈_ (T : ProcType) : ProcContext → Set where
   here : ∀{Σ} → T ∈ (T ∷ Σ)
   next : ∀{S Σ} → T ∈ Σ → T ∈ (S ∷ Σ)
 
-data Ch (A : Type) : Context → Set where
+data Ch {n} (A : Type n) : Context n → Set where
   ch : Ch A [ A ]
 
-data Proc (Σ : ProcContext) : Context → Set where
-  call     : ∀{T} → T ∈ Σ → ∀[ T .context ↭_ ⇒ Proc Σ ]
+data Proc {n} (Σ : ProcContext) : Context n → Set where
+  call     : ∀{T} → T ∈ Σ → (σ : Fin (T .ProcType.n) → Type n) → ∀[ substc σ (T .context) ↭_ ⇒ Proc Σ ]
   link     : ∀{A B} → dual A ≅ B → ∀[ Ch A ∗ Ch B ⇒ Proc Σ ]
   fail     : ∀[ Ch ⊤ ∗ U ⇒ Proc Σ ]
   wait     : ∀[ Ch ⊥ ∗ Proc Σ ⇒ Proc Σ ]
@@ -55,8 +55,8 @@ lookup : ∀{Σ Σ' T} → PreDef Σ Σ' → T ∈ Σ' → Proc Σ (T .context)
 lookup (P ∷ def) here = P
 lookup (_ ∷ def) (next x) = lookup def x
 
-↭proc : ∀{Γ Δ Σ} → Γ ↭ Δ → Proc Σ Γ → Proc Σ Δ
-↭proc π (call σ π') = call σ (trans π' π)
+↭proc : ∀{n} {Γ Δ : Context n} {Σ} → Γ ↭ Δ → Proc Σ Γ → Proc Σ Δ
+↭proc π (call x σ π') = call x σ (trans π' π)
 ↭proc π (link eq (ch ⟨ p ⟩ ch)) with ↭solo π p
 ... | _ , q , π' rewrite ↭solo-inv π' = link eq (ch ⟨ q ⟩ ch)
 ↭proc π (fail (ch ⟨ p ⟩ tt)) with ↭solo π p
@@ -77,6 +77,19 @@ lookup (_ ∷ def) (next x) = lookup def x
 ... | Δ₁ , Δ₂ , q' , π₁ , π₂ = fork (ch ⟨ p' ⟩ (↭proc (prep π₁) P ⟨ q' ⟩ ↭proc (prep π₂) Q))
 ↭proc π (cut eq (P ⟨ p ⟩ Q)) with ↭split π p
 ... | Δ₁ , Δ₂ , q , π₁ , π₂ = cut eq (↭proc (prep π₁) P ⟨ q ⟩ ↭proc (prep π₂) Q)
+
+substp : ∀{n m Σ} {Γ : Context n} (σ : Fin n → Type m) → Proc Σ Γ → Proc Σ (substc σ Γ)
+substp σ (call x σ' π) = call x {!!} {!!}
+substp σ (link eq (ch ⟨ p ⟩ ch)) = link {!!} (ch ⟨ +-subst σ p ⟩ ch)
+substp σ (fail (ch ⟨ p ⟩ tt)) = fail (ch ⟨ +-subst σ p ⟩ tt)
+substp σ (wait (ch ⟨ p ⟩ P)) = wait (ch ⟨ +-subst σ p ⟩ substp σ P)
+substp σ (close ch) = close ch
+substp σ (case (ch ⟨ p ⟩ (P , Q))) = case (ch ⟨ +-subst σ p ⟩ (substp σ P , substp σ Q))
+substp σ (select (ch ⟨ p ⟩ inj₁ P)) = select (ch ⟨ +-subst σ p ⟩ inj₁ (substp σ P))
+substp σ (select (ch ⟨ p ⟩ inj₂ Q)) = select (ch ⟨ +-subst σ p ⟩ inj₂ (substp σ Q))
+substp σ (join (ch ⟨ p ⟩ P)) = join (ch ⟨ +-subst σ p ⟩ substp σ P)
+substp σ (fork (ch ⟨ p ⟩ (P ⟨ q ⟩ Q))) = fork (ch ⟨ +-subst σ p ⟩ (substp σ P ⟨ +-subst σ q ⟩ substp σ Q))
+substp σ (cut eq (P ⟨ p ⟩ Q)) = cut {!!} (substp σ P ⟨ +-subst σ p ⟩ substp σ Q)
 
 -- Ext : ∀{Γ Σ Σ'} → (∀{Δ} → Δ ∈ Σ → Δ ∈ Σ') →
 --       ∀{Δ} → Δ ∈ (Γ ∷ Σ) → Δ ∈ (Γ ∷ Σ')

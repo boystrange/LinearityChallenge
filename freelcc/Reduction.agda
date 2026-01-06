@@ -1,6 +1,7 @@
 {-# OPTIONS --rewriting --guardedness #-}
 open import Data.Sum using (inj₁; inj₂)
 open import Data.Product using (_,_)
+open import Data.Fin using (Fin)
 open import Data.List.Base using ([]; _∷_; [_]; _++_)
 open import Data.List.Properties using (++-assoc)
 open import Relation.Unary hiding (_∈_)
@@ -13,8 +14,9 @@ open import Permutations
 open import Process
 open import Congruence
 
-data _⊢_↝_ {Σ} {Γ} (ℙ : Def Σ) : Proc Σ Γ → Proc Σ Γ → Set where
-  r-call      : ∀{T} (x : T ∈ Σ) (π : T .context ↭ Γ) → ℙ ⊢ call x π ↝ ↭proc π (lookup ℙ x)
+data _⊢_↝_ {n Σ Γ} (ℙ : Def Σ) : Proc {n} Σ Γ → Proc Σ Γ → Set where
+  r-call      : ∀{T} (x : T ∈ Σ) (σ : Fin (T .ProcType.n) → Type n) (π : substc σ (T .context) ↭ Γ) →
+                ℙ ⊢ call x σ π ↝ ↭proc π (lookup ℙ {!!}) -- ↭proc π (lookup ℙ x)
   r-link      : ∀{Δ A A' P} (eq eq' : dual A' ≅ A) (p : Γ ≃ [ A ] + Δ) →
                 ℙ ⊢ cut {A = A'} {A} eq (link eq' (ch ⟨ < > • ⟩ ch) ⟨ p ⟩ P) ↝ ↭proc (↭concat p) P
   r-close     : ∀{P} (eq : 𝟙 ≅ 𝟙) (p : Γ ≃ Γ + []) (p₀ : Γ ≃ [] + Γ) →

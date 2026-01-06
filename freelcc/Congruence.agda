@@ -10,7 +10,7 @@ open import Context
 open import Permutations
 open import Process
 
-data _⊒_ {Σ} {Γ} : Proc Σ Γ → Proc Σ Γ → Set where
+data _⊒_ {n Σ Γ} : Proc {n} Σ Γ → Proc Σ Γ → Set where
   s-comm :
     ∀{A B Γ₁ Γ₂ P Q} (eq : dual A ≅ B) (p : Γ ≃ Γ₁ + Γ₂) →
     cut eq (P ⟨ p ⟩ Q) ⊒ cut (≅sym (≅dual eq)) (Q ⟨ +-comm p ⟩ P)
@@ -20,7 +20,7 @@ data _⊒_ {Σ} {Γ} : Proc Σ Γ → Proc Σ Γ → Set where
   s-fail :
     ∀{A B Γ₁ Γ₂ Δ P} (eq : dual A ≅ B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ [ ⊤ ] + Δ) →
     let _ , _ , q′ = +-assoc-l p q in
-    cut {_} {A} {B} eq (fail (ch ⟨ > q ⟩ tt) ⟨ p ⟩ P) ⊒ fail (ch ⟨ q′ ⟩ tt)
+    cut {_} {_} {A} {B} eq (fail (ch ⟨ > q ⟩ tt) ⟨ p ⟩ P) ⊒ fail (ch ⟨ q′ ⟩ tt)
   s-wait :
     ∀{Γ₁ Γ₂ Δ A B P Q} (eq : dual A ≅ B) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ [ ⊥ ] + Δ) →
     let _ , p′ , q′ = +-assoc-l p q in
@@ -45,7 +45,7 @@ data _⊒_ {Σ} {Γ} : Proc Σ Γ → Proc Σ Γ → Set where
     ∀{Γ₁ Γ₂ Δ A A' B C P Q} (eq : dual A ≅ A') (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ [ B ⅋ C ] + Δ) →
     let _ , p′ , q′ = +-assoc-l p q in
     cut {A = A} {A'} eq (join (ch ⟨ > q ⟩ P) ⟨ p ⟩ Q) ⊒
-    join (ch ⟨ q′ ⟩ cut eq (↭proc (↭shift {A} {B ∷ C ∷ []}) P ⟨ < < p′ ⟩ Q))
+    join (ch ⟨ q′ ⟩ cut eq (↭proc (↭shift {_} {A} {B ∷ C ∷ []}) P ⟨ < < p′ ⟩ Q))
   s-fork-l :
     ∀{Γ₁ Γ₂ Δ Δ₁ Δ₂ A A' B C P Q R}
     (p : Γ ≃ Γ₁ + Γ₂) (eq : dual A ≅ A') (q : Γ₁ ≃ [ B ⊗ C ] + Δ) (r : Δ ≃ Δ₁ + Δ₂) →

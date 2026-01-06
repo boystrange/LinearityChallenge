@@ -43,6 +43,9 @@ closed-absorbing-l : ∀{n r} {A B : PreType n r} → Closed A → (A ⨟ B) ≲
 closed-absorbing-l comp .≲cont (seql tr neq) = _ , tr , closed-absorbing-l (comp .closed-cont tr)
 closed-absorbing-l comp .≲cont (seqr tr tr') = contradiction refl (comp .closed-skip tr)
 
+≲subst : ∀{m n r} {A B : PreType m r} (σ : Fin m → PreType n r) → A ≲ B → subst σ inv A ≲ subst σ inv B
+≲subst σ le .≲cont = {!!}
+
 -- EQUIVALENCE
 
 record _≅_ {n r} (A B : PreType n r) : Set where
@@ -79,3 +82,7 @@ open _≅_ public
 closed-absorbing : ∀{n r} {A B : PreType n r} → Closed A → A ≅ (A ⨟ B)
 closed-absorbing comp .to = closed-absorbing-r comp
 closed-absorbing comp .from = closed-absorbing-l comp
+
+≅subst : ∀{m n r} {A B : PreType m r} (σ : Fin m → PreType n r) → A ≅ B → subst σ inv A ≅ subst σ inv B
+≅subst σ eq .to = ≲subst σ (eq .to)
+≅subst σ eq .from = ≲subst σ (eq .from)
