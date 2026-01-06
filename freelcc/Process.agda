@@ -33,7 +33,7 @@ data Ch (A : Type) : Context → Set where
 
 data Proc (Σ : ProcContext) : Context → Set where
   call     : ∀{T} → T ∈ Σ → (As : Vec Type (T .n)) → ∀[ T .context As ↭_ ⇒ Proc Σ ]
-  link     : ∀{A B} → A ~ dual B → ∀[ Ch A ∗ Ch B ⇒ Proc Σ ]
+  link     : ∀{A B} → dual A ≅ B → ∀[ Ch A ∗ Ch B ⇒ Proc Σ ]
   fail     : ∀[ Ch ⊤ ∗ U ⇒ Proc Σ ]
   wait     : ∀[ Ch ⊥ ∗ Proc Σ ⇒ Proc Σ ]
   close    : ∀[ Ch 𝟙 ⇒ Proc Σ ]
@@ -41,7 +41,7 @@ data Proc (Σ : ProcContext) : Context → Set where
   select   : ∀{A B} → ∀[ Ch (A ⊕ B) ∗ ((A ∷_) ⊢ Proc Σ ∪ (B ∷_) ⊢ Proc Σ) ⇒ Proc Σ ]
   join     : ∀{A B} → ∀[ Ch (A ⅋ B) ∗ ((B ∷_) ⊢ (A ∷_) ⊢ Proc Σ) ⇒ Proc Σ ]
   fork     : ∀{A B} → ∀[ Ch (A ⊗ B) ∗ ((A ∷_) ⊢ Proc Σ) ∗ ((B ∷_) ⊢ Proc Σ) ⇒ Proc Σ ]
-  cut      : ∀{A B} → A ~ dual B → ∀[ ((A ∷_) ⊢ Proc Σ) ∗ ((B ∷_) ⊢ Proc Σ) ⇒ Proc Σ ]
+  cut      : ∀{A B} → dual A ≅ B → ∀[ ((A ∷_) ⊢ Proc Σ) ∗ ((B ∷_) ⊢ Proc Σ) ⇒ Proc Σ ]
 
 data PreDef (Σ : ProcContext) : ProcContext → Set where
   []  : PreDef Σ []

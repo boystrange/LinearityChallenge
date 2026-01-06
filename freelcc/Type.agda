@@ -292,6 +292,10 @@ open Complete public
 ≲dual le .≲cont tr with le .≲cont (transition-dual tr)
 ... | _ , tr' , le' = _ , transition-dual tr' , ≲dual le'
 
+≅dual : ∀{r} {A B : PreType r} → A ≅ B → dual A ≅ dual B
+≅dual eq .to = ≲dual (eq .to)
+≅dual eq .from = ≲dual (eq .from)
+
 complete-absorbing-r : ∀{n} {A B : PreType n} → Complete A → A ≲ (A ⨟ B)
 complete-absorbing-r comp .≲cont tr = _ , seql tr (comp .not-skip tr) , complete-absorbing-r (comp .complete-cont tr)
 
