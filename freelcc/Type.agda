@@ -210,6 +210,34 @@ data _⊨_⇒_ {r} : PreType r → Label → PreType r → Set where
   seqr : ∀{A B C ℓ} → A ⊨ skip ⇒ skip → B ⊨ ℓ ⇒ C → (A ⨟ B) ⊨ ℓ ⇒ C
   rec  : ∀{A B ℓ} → unfold A ⊨ ℓ ⇒ B → rec A ⊨ ℓ ⇒ B
 
+only-skip : ∀{r ℓ} {A B C : PreType r} → A ⊨ ℓ ⇒ B → A ⊨ skip ⇒ C → ℓ ≡ skip
+only-skip skip skip = refl
+only-skip (seql _ _) (seql _ ne) = contradiction refl ne
+only-skip (seqr _ _) (seql _ ne) = contradiction refl ne
+only-skip (seql x ne) (seqr y _) = contradiction (only-skip x y) ne
+only-skip (seqr _ x) (seqr _ y) = only-skip x y
+only-skip (rec x) (rec y) = only-skip x y
+
+deterministic : ∀{r ℓ} {A B C : PreType r} → A ⊨ ℓ ⇒ B → A ⊨ ℓ ⇒ C → B ≡ C
+deterministic skip skip = refl
+deterministic ⊥ ⊥ = refl
+deterministic 𝟙 𝟙 = refl
+deterministic ⊤ ⊤ = refl
+deterministic 𝟘 𝟘 = refl
+deterministic &L &L = refl
+deterministic &R &R = refl
+deterministic ⊕L ⊕L = refl
+deterministic ⊕R ⊕R = refl
+deterministic ⅋L ⅋L = refl
+deterministic ⅋R ⅋R = refl
+deterministic ⊗L ⊗L = refl
+deterministic ⊗R ⊗R = refl
+deterministic (seql x _) (seql y _) = cong₂ _⨟_ (deterministic x y) refl
+deterministic (seql x ne) (seqr y _) = contradiction (only-skip x y) ne
+deterministic (seqr x _) (seql y ne) = contradiction (only-skip y x) ne
+deterministic (seqr _ x) (seqr _ y) = deterministic x y
+deterministic (rec x) (rec y) = deterministic x y
+
 record _≲_ {r} (A B : PreType r) : Set where
   coinductive
   field
@@ -247,9 +275,9 @@ open _≅_ public
 ≅trans p q .to = ≲trans (p .to) (q .to)
 ≅trans p q .from = ≲trans (q .from) (p .from)
 
-≅after : ∀{r} {ℓ} {A B A' B' : PreType r} → A ≅ B → A ⊨ ℓ ⇒ A' → ∃[ B' ] B ⊨ ℓ ⇒ B' × A' ≅ B'
-≅after eq tr with eq .to .≲cont tr
-... | _ , tr' , le = {!!} , {!!} , {!!}
+≅after : ∀{r} {ℓ} {A B A' B' : PreType r} → A ≅ B → A ⊨ ℓ ⇒ A' → B ⊨ ℓ ⇒ B' → A' ≅ B'
+≅after eq at bt with eq .to .≲cont at | eq .from .≲cont bt
+... | _ , bt' , ale | _ , at' , ble rewrite deterministic at at' | deterministic bt bt' = record { to = ale ; from = ble }
 
 lemma'' : ∀{r} {A : PreType r} → [ dual A /] ≡ dual ∘ [ A /]
 lemma'' = extensionality aux

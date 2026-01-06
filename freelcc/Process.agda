@@ -16,10 +16,10 @@ open import Permutations
 
 record ProcType : Set where
   field
-    n : ℕ
-    context : Vec Type n → Context
+    {n} : ℕ
+    context : Context
 
-open ProcType
+open ProcType public
 
 ProcContext : Set
 ProcContext = List ProcType
@@ -32,7 +32,7 @@ data Ch (A : Type) : Context → Set where
   ch : Ch A [ A ]
 
 data Proc (Σ : ProcContext) : Context → Set where
-  call     : ∀{T} → T ∈ Σ → (As : Vec Type (T .n)) → ∀[ T .context As ↭_ ⇒ Proc Σ ]
+  call     : ∀{T} → T ∈ Σ → ∀[ T .context ↭_ ⇒ Proc Σ ]
   link     : ∀{A B} → dual A ≅ B → ∀[ Ch A ∗ Ch B ⇒ Proc Σ ]
   fail     : ∀[ Ch ⊤ ∗ U ⇒ Proc Σ ]
   wait     : ∀[ Ch ⊥ ∗ Proc Σ ⇒ Proc Σ ]
@@ -45,13 +45,17 @@ data Proc (Σ : ProcContext) : Context → Set where
 
 data PreDef (Σ : ProcContext) : ProcContext → Set where
   []  : PreDef Σ []
-  _∷_ : ∀{T Σ'} → ((As : Vec Type (T .n)) → Proc Σ (T .context As)) → PreDef Σ Σ' → PreDef Σ (T ∷ Σ')
+  _∷_ : ∀{T Σ'} → Proc Σ (T .context) → PreDef Σ Σ' → PreDef Σ (T ∷ Σ')
 
 Def : ProcContext → Set
 Def Σ = PreDef Σ Σ
 
+lookup : ∀{Σ Σ' T} → PreDef Σ Σ' → T ∈ Σ' → Proc Σ (T .context)
+lookup (P ∷ def) here = P
+lookup (_ ∷ def) (next x) = lookup def x
+
 ↭proc : ∀{Γ Δ Σ} → Γ ↭ Δ → Proc Σ Γ → Proc Σ Δ
-↭proc π (call σ As π') = call σ As (trans π' π)
+↭proc π (call σ π') = call σ (trans π' π)
 ↭proc π (link eq (ch ⟨ p ⟩ ch)) with ↭solo π p
 ... | _ , q , π' rewrite ↭solo-inv π' = link eq (ch ⟨ q ⟩ ch)
 ↭proc π (fail (ch ⟨ p ⟩ tt)) with ↭solo π p
