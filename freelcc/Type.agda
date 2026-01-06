@@ -4,7 +4,7 @@ open import Data.Nat using (ℕ; zero; suc)
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
 open import Relation.Nullary using (¬_; contradiction)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong₂; sym)
+open import Relation.Binary.PropositionalEquality as Eq using (_≡_; _≢_; refl; cong; cong₂; sym)
 open import Agda.Builtin.Equality.Rewrite
 
 data PreType : ℕ → Set where
@@ -135,16 +135,12 @@ dual-subst {_} {_} σ (rec A) rewrite extensionality {f = exts (dual ∘ σ)} {d
 
 -- {-# REWRITE dual-subst #-}
 
-data Skip {r} : PreType r → Set where
-  skip : Skip skip
-  seq  : ∀{A B} → Skip A → Skip B → Skip (A ⨟ B)
-  rec  : ∀{A} → Skip (unfold A) → Skip (rec A)
-
 data Label : Set where
-  ⊥ 𝟙 ⊤ 𝟘 &L &R ⊕L ⊕R ⅋L ⅋R ⊗L ⊗R : Label
+  skip ⊥ 𝟙 ⊤ 𝟘 &L &R ⊕L ⊕R ⅋L ⅋R ⊗L ⊗R : Label
   -- var rav : ∀{n} → Fin n → Label
 
 dual-label : Label → Label
+dual-label skip = skip
 dual-label ⊥ = 𝟙
 dual-label 𝟙 = ⊥
 dual-label ⊤ = 𝟘
@@ -161,6 +157,7 @@ dual-label ⊗R = ⅋R
 -- dual-label (rav x) = var x
 
 dual-label-inv : ∀{ℓ} → dual-label (dual-label ℓ) ≡ ℓ
+dual-label-inv {skip} = refl
 dual-label-inv {⊥} = refl
 dual-label-inv {𝟙} = refl
 dual-label-inv {⊤} = refl
@@ -176,9 +173,25 @@ dual-label-inv {⊗R} = refl
 -- dual-label-inv {var x} = refl
 -- dual-label-inv {rav x} = refl
 
+dual-label-not-skip : ∀{ℓ} → ℓ ≢ skip → dual-label ℓ ≢ skip
+dual-label-not-skip {skip} neq = neq
+dual-label-not-skip {⊥} neq = λ ()
+dual-label-not-skip {𝟙} neq = λ ()
+dual-label-not-skip {⊤} neq = λ ()
+dual-label-not-skip {𝟘} neq = λ ()
+dual-label-not-skip {&L} neq = λ ()
+dual-label-not-skip {&R} neq = λ ()
+dual-label-not-skip {⊕L} neq = λ ()
+dual-label-not-skip {⊕R} neq = λ ()
+dual-label-not-skip {⅋L} neq = λ ()
+dual-label-not-skip {⅋R} neq = λ ()
+dual-label-not-skip {⊗L} neq = λ ()
+dual-label-not-skip {⊗R} neq = λ ()
+
 {-# REWRITE dual-label-inv #-}
 
 data _⊨_⇒_ {r} : PreType r → Label → PreType r → Set where
+  skip : skip ⊨ skip ⇒ skip
   ⊥    : ⊥ ⊨ ⊥ ⇒ ⊥
   𝟙    : 𝟙 ⊨ 𝟙 ⇒ 𝟙
   ⊤    : ⊤ ⊨ ⊤ ⇒ ⊤
@@ -193,14 +206,13 @@ data _⊨_⇒_ {r} : PreType r → Label → PreType r → Set where
   ⅋R   :  ∀{A B} → (A ⅋ B) ⊨ ⅋R ⇒ B
   ⊗L   : ∀{A B} → (A ⊗ B) ⊨ ⊗L ⇒ A
   ⊗R   : ∀{A B} → (A ⊗ B) ⊨ ⊗R ⇒ B
-  skip : ∀{A B C ℓ} → Skip (A) → B ⊨ ℓ ⇒ C → (A ⨟ B) ⊨ ℓ ⇒ C
-  seq  : ∀{A B C ℓ} → A ⊨ ℓ ⇒ B → (A ⨟ C) ⊨ ℓ ⇒ (B ⨟ C)
+  seql : ∀{A B C ℓ} → A ⊨ ℓ ⇒ B → ℓ ≢ skip → (A ⨟ C) ⊨ ℓ ⇒ (B ⨟ C)
+  seqr : ∀{A B C ℓ} → A ⊨ skip ⇒ skip → B ⊨ ℓ ⇒ C → (A ⨟ B) ⊨ ℓ ⇒ C
   rec  : ∀{A B ℓ} → unfold A ⊨ ℓ ⇒ B → rec A ⊨ ℓ ⇒ B
 
 record _≲_ {r} (A B : PreType r) : Set where
   coinductive
   field
-    ≲skip : Skip A → Skip B
     ≲cont : ∀{ℓ A'} → A ⊨ ℓ ⇒ A' → ∃[ B' ] (B ⊨ ℓ ⇒ B' × A' ≲ B')
 
 open _≲_ public
@@ -213,17 +225,14 @@ record _≅_ {r} (A B : PreType r) : Set where
 open _≅_ public
 
 ≲refl : ∀{r} {A : PreType r} → A ≲ A
-≲refl .≲skip sk = sk
 ≲refl .≲cont tr = _ , tr , ≲refl
 
 ≲trans : ∀{r} {A B C : PreType r} → A ≲ B → B ≲ C → A ≲ C
-≲trans p q .≲skip sk = q .≲skip (p .≲skip sk)
 ≲trans p q .≲cont tr with p .≲cont tr
 ... | _ , tr' , p' with q .≲cont tr'
 ... | _ , tr'' , q' = _ , tr'' , ≲trans p' q'
 
 ≲unfold : ∀{r} {A : PreType (suc r)} → rec A ≲ unfold A
-≲unfold .≲skip (rec sk) = sk
 ≲unfold .≲cont (rec tr) = _ , tr , ≲refl
 
 ≅refl : ∀{r} {A : PreType r} → A ≅ A
@@ -238,11 +247,6 @@ open _≅_ public
 ≅trans p q .to = ≲trans (p .to) (q .to)
 ≅trans p q .from = ≲trans (q .from) (p .from)
 
-skip-dual : ∀{r} {A : PreType r} → Skip A → Skip (dual A)
-skip-dual skip = skip
-skip-dual (seq sk sk') = seq (skip-dual sk) (skip-dual sk')
-skip-dual (rec sk) = rec (skip-dual {!!})
-
 lemma'' : ∀{r} {A : PreType r} → [ dual A /] ≡ dual ∘ [ A /]
 lemma'' = extensionality aux
   where
@@ -250,7 +254,11 @@ lemma'' = extensionality aux
     aux zero = refl
     aux (suc x) = refl
 
+dual-unfold : ∀{r} {A : PreType (suc r)} → dual (unfold A) ≡ unfold (dual A)
+dual-unfold {_} {A} rewrite dual-subst [ rec A /] A | sym (lemma'' {_} {rec A}) = refl
+
 transition-dual : ∀{r} {A B : PreType r} {ℓ} → A ⊨ ℓ ⇒ B → dual A ⊨ dual-label ℓ ⇒ dual B
+transition-dual skip = skip
 transition-dual ⊥ = 𝟙
 transition-dual 𝟙 = ⊥
 transition-dual ⊤ = 𝟘
@@ -265,8 +273,8 @@ transition-dual ⅋L = ⊗L
 transition-dual ⅋R = ⊗R
 transition-dual ⊗L = ⅋L
 transition-dual ⊗R = ⅋R
-transition-dual (skip sk tr) = skip (skip-dual sk) (transition-dual tr)
-transition-dual (seq tr) = seq (transition-dual tr)
+transition-dual (seqr tr tr') = seqr (transition-dual tr) (transition-dual tr')
+transition-dual (seql tr neq) = seql (transition-dual tr) (dual-label-not-skip neq)
 transition-dual {A = rec A} {B} (rec {B = C} tr) with transition-dual tr
 ... | tr' rewrite dual-subst [ rec A /] A | sym (lemma'' {_} {rec A}) = rec tr'
 
@@ -275,37 +283,21 @@ record Complete {r} (A : PreType r) : Set where
   field
     {ℓ}           : Label
     {B}           : PreType r
-    complete-tr   : A ⊨ ℓ ⇒ B
+    not-skip      : ∀{ℓ B} → A ⊨ ℓ ⇒ B → ℓ ≢ skip
     complete-cont : ∀{ℓ B} → A ⊨ ℓ ⇒ B → Complete B
 
 open Complete public
 
 ≲dual : ∀{n} {A B : PreType n} → A ≲ B → dual A ≲ dual B
-≲dual le .≲skip sk = skip-dual (le .≲skip (skip-dual sk))
 ≲dual le .≲cont tr with le .≲cont (transition-dual tr)
 ... | _ , tr' , le' = _ , transition-dual tr' , ≲dual le'
 
-skip-subst : ∀{r s} {A : PreType r} {σ : Fin r → PreType s}→ Skip A → Skip (subst σ A)
-skip-subst skip = skip
-skip-subst (seq sk sk') = seq (skip-subst sk) (skip-subst sk')
-skip-subst (rec sk) = rec {!!}
-
-transition-not-skip : ∀{n} {A B : PreType n} {ℓ} → A ⊨ ℓ ⇒ B → ¬ Skip A
-transition-not-skip (skip _ tr) (seq _ sk) = transition-not-skip tr sk
-transition-not-skip (seq tr) (seq sk _) = transition-not-skip tr sk
-transition-not-skip (rec tr) (rec sk) = transition-not-skip tr {!!}
-
-complete-not-skip : ∀{n} {A : PreType n} → Complete A → ¬ Skip A
-complete-not-skip comp sk = transition-not-skip (comp .complete-tr) sk
-
 complete-absorbing-r : ∀{n} {A B : PreType n} → Complete A → A ≲ (A ⨟ B)
-complete-absorbing-r comp .≲skip sk = contradiction sk (transition-not-skip (comp .complete-tr))
-complete-absorbing-r comp .≲cont tr = _ , seq tr , complete-absorbing-r (comp .complete-cont tr)
+complete-absorbing-r comp .≲cont tr = _ , seql tr (comp .not-skip tr) , complete-absorbing-r (comp .complete-cont tr)
 
 complete-absorbing-l : ∀{r} {A B : PreType r} → Complete A → (A ⨟ B) ≲ A
-complete-absorbing-l comp .≲skip (seq sk _) = sk
-complete-absorbing-l comp .≲cont (skip sk _) = contradiction sk (complete-not-skip comp)
-complete-absorbing-l comp .≲cont (seq tr) = _ , tr , complete-absorbing-l (comp .complete-cont tr)
+complete-absorbing-l comp .≲cont (seql tr neq) = _ , tr , complete-absorbing-l (comp .complete-cont tr)
+complete-absorbing-l comp .≲cont (seqr tr tr') = contradiction refl (comp .not-skip tr)
 
 complete-absorbing : ∀{r} {A B : PreType r} → Complete A → A ≅ (A ⨟ B)
 complete-absorbing comp .to = complete-absorbing-r comp
