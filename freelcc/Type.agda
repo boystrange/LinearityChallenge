@@ -138,11 +138,11 @@ dual-subst σ (rec A) rewrite exts-dual σ = cong rec (dual-subst (exts σ) A)
 -- {-# REWRITE dual-subst #-}
 
 data Label : Set where
-  skip ⊥ 𝟙 ⊤ 𝟘 &L &R ⊕L ⊕R ⅋L ⅋R ⊗L ⊗R : Label
+  ε ⊥ 𝟙 ⊤ 𝟘 &L &R ⊕L ⊕R ⅋L ⅋R ⊗L ⊗R : Label
   -- var rav : ∀{n} → Fin n → Label
 
 dual-label : Label → Label
-dual-label skip = skip
+dual-label ε = ε
 dual-label ⊥ = 𝟙
 dual-label 𝟙 = ⊥
 dual-label ⊤ = 𝟘
@@ -159,7 +159,7 @@ dual-label ⊗R = ⅋R
 -- dual-label (rav x) = var x
 
 dual-label-inv : ∀{ℓ} → dual-label (dual-label ℓ) ≡ ℓ
-dual-label-inv {skip} = refl
+dual-label-inv {ε} = refl
 dual-label-inv {⊥} = refl
 dual-label-inv {𝟙} = refl
 dual-label-inv {⊤} = refl
@@ -177,11 +177,11 @@ dual-label-inv {⊗R} = refl
 
 {-# REWRITE dual-label-inv #-}
 
-dual-label-not-skip : ∀{ℓ} → ℓ ≢ skip → dual-label ℓ ≢ skip
+dual-label-not-skip : ∀{ℓ} → ℓ ≢ ε → dual-label ℓ ≢ ε
 dual-label-not-skip neq eq = contradiction (cong dual-label eq) neq
 
 data _⊨_⇒_ {r} : PreType r → Label → PreType r → Set where
-  skip : skip ⊨ skip ⇒ skip
+  skip : skip ⊨ ε ⇒ skip
   ⊥    : ⊥ ⊨ ⊥ ⇒ ⊥
   𝟙    : 𝟙 ⊨ 𝟙 ⇒ 𝟙
   ⊤    : ⊤ ⊨ ⊤ ⇒ ⊤
@@ -196,11 +196,11 @@ data _⊨_⇒_ {r} : PreType r → Label → PreType r → Set where
   ⅋R   :  ∀{A B} → (A ⅋ B) ⊨ ⅋R ⇒ B
   ⊗L   : ∀{A B} → (A ⊗ B) ⊨ ⊗L ⇒ A
   ⊗R   : ∀{A B} → (A ⊗ B) ⊨ ⊗R ⇒ B
-  seql : ∀{A B C ℓ} → A ⊨ ℓ ⇒ B → ℓ ≢ skip → (A ⨟ C) ⊨ ℓ ⇒ (B ⨟ C)
-  seqr : ∀{A B C ℓ} → A ⊨ skip ⇒ skip → B ⊨ ℓ ⇒ C → (A ⨟ B) ⊨ ℓ ⇒ C
+  seql : ∀{A B C ℓ} → A ⊨ ℓ ⇒ B → ℓ ≢ ε → (A ⨟ C) ⊨ ℓ ⇒ (B ⨟ C)
+  seqr : ∀{A B C ℓ} → A ⊨ ε ⇒ skip → B ⊨ ℓ ⇒ C → (A ⨟ B) ⊨ ℓ ⇒ C
   rec  : ∀{A B ℓ} → unfold A ⊨ ℓ ⇒ B → rec A ⊨ ℓ ⇒ B
 
-only-skip : ∀{r ℓ} {A B C : PreType r} → A ⊨ ℓ ⇒ B → A ⊨ skip ⇒ C → ℓ ≡ skip
+only-skip : ∀{r ℓ} {A B C : PreType r} → A ⊨ ℓ ⇒ B → A ⊨ ε ⇒ C → ℓ ≡ ε
 only-skip skip skip = refl
 only-skip (seql _ _) (seql _ ne) = contradiction refl ne
 only-skip (seqr _ _) (seql _ ne) = contradiction refl ne
@@ -307,7 +307,7 @@ transition-dual {A = rec A} (rec tr) with transition-dual tr
 record Complete {r} (A : PreType r) : Set where
   coinductive
   field
-    not-skip      : ∀{ℓ B} → A ⊨ ℓ ⇒ B → ℓ ≢ skip
+    not-skip      : ∀{ℓ B} → A ⊨ ℓ ⇒ B → ℓ ≢ ε
     complete-cont : ∀{ℓ B} → A ⊨ ℓ ⇒ B → Complete B
 
 open Complete public
