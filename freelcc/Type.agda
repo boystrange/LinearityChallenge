@@ -7,6 +7,9 @@ open import Relation.Nullary using (¬_; contradiction)
 open import Relation.Binary.PropositionalEquality as Eq using (_≡_; _≢_; refl; cong; cong₂; sym)
 open import Agda.Builtin.Equality.Rewrite
 
+postulate
+  extensionality : ∀{A B : Set} {f g : A → B} → ((x : A) → f x ≡ g x) → f ≡ g
+
 data PreType : ℕ → Set where
   skip ⊤ 𝟘 ⊥ 𝟙         : ∀{r} → PreType r
   -- var rav              : ∀{r} → Fin n → PreType r
@@ -66,9 +69,30 @@ rename ρ (A ⊗ B) = rename ρ A ⊗ rename ρ B
 rename ρ (inv x) = inv (ρ x)
 rename ρ (rec A) = rec (rename (ext ρ) A)
 
+dual-rename : ∀{r s} (ρ : Fin r → Fin s) (A : PreType r) → dual (rename ρ A) ≡ rename ρ (dual A)
+dual-rename ρ skip = refl
+dual-rename ρ ⊤ = refl
+dual-rename ρ 𝟘 = refl
+dual-rename ρ ⊥ = refl
+dual-rename ρ 𝟙 = refl
+dual-rename ρ (A ⨟ B) = cong₂ _⨟_ (dual-rename ρ A) (dual-rename ρ B)
+dual-rename ρ (A & B) = cong₂ _⊕_ (dual-rename ρ A) (dual-rename ρ B)
+dual-rename ρ (A ⊕ B) = cong₂ _&_ (dual-rename ρ A) (dual-rename ρ B)
+dual-rename ρ (A ⅋ B) = cong₂ _⊗_ (dual-rename ρ A) (dual-rename ρ B)
+dual-rename ρ (A ⊗ B) = cong₂ _⅋_ (dual-rename ρ A) (dual-rename ρ B)
+dual-rename ρ (inv x) = refl
+dual-rename ρ (rec A) = cong rec (dual-rename (ext ρ) A)
+
 exts : ∀{r s} → (Fin r → PreType s) → Fin (suc r) → PreType (suc s)
 exts σ zero = inv zero
 exts σ (suc k) = rename suc (σ k)
+
+dual-exts : ∀{r s} (σ : Fin r → PreType s) → exts (dual ∘ σ) ≡ dual ∘ (exts σ)
+dual-exts {r} σ = extensionality aux
+  where
+    aux : (x : Fin (suc r)) → exts (dual ∘ σ) x ≡ dual ((exts σ) x)
+    aux zero = refl
+    aux (suc x) rewrite dual-rename suc (σ x) = refl
 
 subst : ∀{r s} → (Fin r → PreType s) → PreType r → PreType s
 subst σ skip = skip
@@ -86,40 +110,6 @@ subst σ (A ⊗ B) = subst σ A ⊗ subst σ B
 subst σ (inv x) = σ x
 subst σ (rec A) = rec (subst (exts σ) A)
 
--- -- subst-compose : ∀{m n o} → (Fin m → PreType n) → (Fin n → PreType o) → Fin m → PreType o
--- -- subst-compose σ τ x = subst τ (σ x)
-
-s-just : ∀{r} → PreType r → Fin (suc r) → PreType r
-s-just A zero     = A
-s-just A (suc x)  = inv x
-
-unfold : ∀{r} → PreType (suc r) → PreType r
-unfold A = subst (s-just (rec A)) A
-
-postulate
-  extensionality : ∀{A B : Set} {f g : A → B} → ((x : A) → f x ≡ g x) → f ≡ g
-
-dual-rename : ∀{r s} (ρ : Fin r → Fin s) (A : PreType r) → dual (rename ρ A) ≡ rename ρ (dual A)
-dual-rename ρ skip = refl
-dual-rename ρ ⊤ = refl
-dual-rename ρ 𝟘 = refl
-dual-rename ρ ⊥ = refl
-dual-rename ρ 𝟙 = refl
-dual-rename ρ (A ⨟ B) = cong₂ _⨟_ (dual-rename ρ A) (dual-rename ρ B)
-dual-rename ρ (A & B) = cong₂ _⊕_ (dual-rename ρ A) (dual-rename ρ B)
-dual-rename ρ (A ⊕ B) = cong₂ _&_ (dual-rename ρ A) (dual-rename ρ B)
-dual-rename ρ (A ⅋ B) = cong₂ _⊗_ (dual-rename ρ A) (dual-rename ρ B)
-dual-rename ρ (A ⊗ B) = cong₂ _⅋_ (dual-rename ρ A) (dual-rename ρ B)
-dual-rename ρ (inv x) = refl
-dual-rename ρ (rec A) = cong rec (dual-rename (ext ρ) A)
-
-exts-dual : ∀{r s} (σ : Fin r → PreType s) → exts (dual ∘ σ) ≡ dual ∘ (exts σ)
-exts-dual {r} σ = extensionality aux
-  where
-    aux : (x : Fin (suc r)) → exts (dual ∘ σ) x ≡ dual ((exts σ) x)
-    aux zero = refl
-    aux (suc x) rewrite dual-rename suc (σ x) = refl
-
 dual-subst : ∀{r s} (σ : Fin r → PreType s) (A : PreType r) → dual (subst σ A) ≡ subst (dual ∘ σ) (dual A)
 dual-subst σ skip = refl
 dual-subst σ ⊤ = refl
@@ -133,9 +123,23 @@ dual-subst σ (A ⅋ B) = cong₂ _⊗_ (dual-subst σ A) (dual-subst σ B)
 dual-subst σ (A ⊗ B) = cong₂ _⅋_ (dual-subst σ A) (dual-subst σ B)
 dual-subst σ (inv zero) = refl
 dual-subst σ (inv (suc x)) = refl
-dual-subst σ (rec A) rewrite exts-dual σ = cong rec (dual-subst (exts σ) A)
+dual-subst σ (rec A) rewrite dual-exts σ = cong rec (dual-subst (exts σ) A)
 
 -- {-# REWRITE dual-subst #-}
+
+s-just : ∀{r} → PreType r → Fin (suc r) → PreType r
+s-just A zero     = A
+s-just A (suc x)  = inv x
+
+dual-s-just : ∀{r} (A : PreType r) → dual ∘ s-just A ≡ s-just (dual A)
+dual-s-just {r} A = extensionality aux
+  where
+    aux : (x : Fin (suc r)) → (dual ∘ s-just A) x ≡ s-just (dual A) x
+    aux zero = refl
+    aux (suc x) = refl
+
+unfold : ∀{r} → PreType (suc r) → PreType r
+unfold A = subst (s-just (rec A)) A
 
 data Label : Set where
   ε ⊥ 𝟙 ⊤ 𝟘 &L &R ⊕L ⊕R ⅋L ⅋R ⊗L ⊗R : Label
@@ -227,13 +231,6 @@ deterministic (seql x ne) (seqr y _) = contradiction (only-skip x y) ne
 deterministic (seqr x _) (seql y ne) = contradiction (only-skip y x) ne
 deterministic (seqr _ x) (seqr _ y) = deterministic x y
 deterministic (rec x) (rec y) = deterministic x y
-
-dual-s-just : ∀{r} (A : PreType r) → dual ∘ s-just A ≡ s-just (dual A)
-dual-s-just {r} A = extensionality aux
-  where
-    aux : (x : Fin (suc r)) → (dual ∘ s-just A) x ≡ s-just (dual A) x
-    aux zero = refl
-    aux (suc x) = refl
 
 transition-dual : ∀{r} {A B : PreType r} {ℓ} → A ⊨ ℓ ⇒ B → dual A ⊨ dual-label ℓ ⇒ dual B
 transition-dual skip = skip
