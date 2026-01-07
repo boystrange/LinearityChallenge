@@ -59,14 +59,8 @@ sim-dual le .sim-next tr with le .sim-next (transition-dual tr)
 -- ClosedSubstitution : ∀{m n r} → (Fin m → PreType n r) → Set
 -- ClosedSubstitution σ = ∀ x → Closed (σ x)
 
--- DualPreserving : ∀{m n r s} (f : PreType m r → PreType n s) → Set
--- DualPreserving f = dual ∘ f ≡ f ∘ dual
-
--- dual-preserving : ∀{m n r s} {f : PreType m r → PreType n s} → DualPreserving f → DualPreserving (dual ∘ f)
--- dual-preserving = cong (dual ∘_)
-
 _≲_ : ∀{n r} → PreType n r → PreType n r → Set
-_≲_ {n} {r} A B = ∀{m s} {σ : Fin n → PreType m s} {τ : Fin r → PreType m s} → Sim (subst σ τ A) (subst σ τ B)
+_≲_ {n} {r} A B = ∀{m} {σ : ∀{s} → Fin n → PreType m s} → Sim (subst σ inv A) (subst σ inv B)
 
 ≲refl : ∀{n r} {A : PreType n r} → A ≲ A
 ≲refl = sim-refl
@@ -74,32 +68,16 @@ _≲_ {n} {r} A B = ∀{m s} {σ : Fin n → PreType m s} {τ : Fin r → PreTyp
 ≲trans : ∀{n r} {A B C : PreType n r} → A ≲ B → B ≲ C → A ≲ C
 ≲trans p q = sim-trans p q
 
+≲-unfold-rec : ∀{n r} {A B : PreType n (suc r)} → unfold A ≲ rec A
+≲-unfold-rec = {!!}
+
 ≲dual : ∀{n r} {A B : PreType n r} → A ≲ B → dual A ≲ dual B
-≲dual {n} {r} {A} {B} le = {!!}
+≲dual {n} {r} {A} {B} le {_} {σ}
+  rewrite sym (dual-subst σ inv A) | sym (dual-subst σ inv B) = sim-dual le
 
-subst-compose : ∀{m n o r s t} (σ : Fin m → PreType n s) (τ : Fin r → PreType n s)
-                (σ' : Fin n → PreType o t) (τ' : Fin s → PreType o t) →
-                (A : PreType m r) →
-                subst σ' τ' (subst σ τ A) ≡ subst (subst σ' τ' ∘ σ) (subst σ' τ' ∘ τ) A
-subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' (var x) = refl
-subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' (rav x) = {!!}
-subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' skip = refl
-subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' ⊤ = refl
-subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' 𝟘 = {!!}
-subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' ⊥ = {!!}
-subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' 𝟙 = {!!}
-subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' (A ⨟ A₁) = {!!}
-subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' (A & A₁) = {!!}
-subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' (A ⊕ A₁) = {!!}
-subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' (A ⅋ A₁) = {!!}
-subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' (A ⊗ A₁) = {!!}
-subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' (inv x) = refl
-subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' (rec A) =
-  cong rec {!!}
-
-≲subst : ∀{m n r s} {A B : PreType m r} (σ : Fin m → PreType n s) (τ : Fin r → PreType n s) →
-         A ≲ B → subst σ τ A ≲ subst σ τ B
-≲subst σ τ le = {!!}
+≲subst : ∀{m n r} {A B : PreType m r} (σ : ∀{s} → Fin m → PreType n s) →
+         A ≲ B → subst σ inv A ≲ subst σ inv B
+≲subst {A = A} {B} σ le {_} {τ} rewrite subst-compose σ τ A | subst-compose σ τ B = le
 
 -- EQUIVALENCE
 
@@ -114,21 +92,21 @@ open _≅_ public
 ≅refl .to = sim-refl
 ≅refl .from = sim-refl
 
--- ≅sym : ∀{n r} {A B : PreType n r} → A ≅ B → B ≅ A
--- ≅sym p .to = p .from
--- ≅sym p .from = p .to
+≅sym : ∀{n r} {A B : PreType n r} → A ≅ B → B ≅ A
+≅sym p .to = p .from
+≅sym p .from = p .to
 
--- ≅trans : ∀{n r} {A B C : PreType n r} → A ≅ B → B ≅ C → A ≅ C
--- ≅trans p q .to = sim-trans (p .to) (q .to)
--- ≅trans p q .from = sim-trans (q .from) (p .from)
+≅trans : ∀{n r} {A B C : PreType n r} → A ≅ B → B ≅ C → A ≅ C
+≅trans p q .to = sim-trans (p .to) (q .to)
+≅trans p q .from = sim-trans (q .from) (p .from)
 
 -- ≅after : ∀{n r} {ℓ} {A B A' B' : PreType n r} → A ≅ B → A ⊨ ℓ ⇒ A' → B ⊨ ℓ ⇒ B' → A' ≅ B'
 -- ≅after eq at bt with eq .to .sim-next at | eq .from .sim-next bt
 -- ... | _ , bt' , ale | _ , at' , ble rewrite deterministic at at' | deterministic bt bt' = record { to = ale ; from = ble }
 
--- ≅dual : ∀{n r} {A B : PreType n r} → A ≅ B → dual A ≅ dual B
--- ≅dual {n} {r} {A} {B} eq .to   = ≲dual {n} {r} {A} {B} (eq .to)
--- ≅dual {n} {r} {A} {B} eq .from = ≲dual {n} {r} {B} {A} (eq .from)
+≅dual : ∀{n r} {A B : PreType n r} → A ≅ B → dual A ≅ dual B
+≅dual {A = A} {B} eq .to   = ≲dual {A = A} {B} (eq .to)
+≅dual {A = A} {B} eq .from = ≲dual {A = B} {A} (eq .from)
 
 ≅unfold : ∀{n r} {A : PreType n (suc r)} → rec A ≅ unfold A
 ≅unfold .to   = {!!}
@@ -138,6 +116,7 @@ open _≅_ public
 -- closed-absorbing comp .to = closed-absorbing-r comp
 -- closed-absorbing comp .from = closed-absorbing-l comp
 
--- ≅subst : ∀{m n r} {A B : PreType m r} (σ : Fin m → PreType n r) → A ≅ B → subst σ inv A ≅ subst σ inv B
--- ≅subst σ eq .to = sim-subst σ (eq .to)
--- ≅subst σ eq .from = sim-subst σ (eq .from)
+≅subst : ∀{m n r} {A B : PreType m r} (σ : ∀{s} → Fin m → PreType n s) → A ≅ B →
+         subst σ inv A ≅ subst σ inv B
+≅subst {A = A} {B} σ eq .to = ≲subst {A = A} {B} σ (eq .to)
+≅subst {A = A} {B} σ eq .from = ≲subst {A = B} {A} σ (eq .from)
