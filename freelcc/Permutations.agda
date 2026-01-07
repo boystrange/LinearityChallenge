@@ -1,4 +1,5 @@
 {-# OPTIONS --rewriting --guardedness #-}
+open import Data.Fin using (Fin)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
 open import Data.List.Base using (List; []; _∷_; [_]; _++_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
@@ -57,3 +58,9 @@ data _↭_ {n} : Context n → Context n → Set where
 ↭left : ∀{n} {Γ Δ Θ : Context n} → Γ ↭ Δ → (Θ ++ Γ) ↭ (Θ ++ Δ)
 ↭left {Θ = []} π = π
 ↭left {Θ = _ ∷ _} π = prep (↭left π)
+
+↭subst : ∀{m n}{Γ Δ : Context m} (σ : ∀{s} → Fin m → PreType n s) → Γ ↭ Δ → substc σ Γ ↭ substc σ Δ
+↭subst σ refl = refl
+↭subst σ swap = swap
+↭subst σ (prep π) = prep (↭subst σ π)
+↭subst σ (trans π π') = trans (↭subst σ π) (↭subst σ π')

@@ -8,7 +8,7 @@ open import Data.Product using (Σ; _,_)
 open import Data.List.Base using (List; []; _∷_; [_]; map)
 open import Data.Vec using (Vec)
 open import Relation.Unary hiding (_∈_)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong₂; subst)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong₂)
 
 open import Type
 open import Equivalence
@@ -33,7 +33,8 @@ data Ch {n} (A : Type n) : Context n → Set where
   ch : Ch A [ A ]
 
 data Proc {n} (Σ : ProcContext) : Context n → Set where
-  call     : ∀{T} → T ∈ Σ → (σ : Fin (T .ProcType.n) → Type n) → ∀[ substc σ (T .context) ↭_ ⇒ Proc Σ ]
+  call     : ∀{T} → T ∈ Σ → (σ : ∀{s} → Fin (T .ProcType.n) → PreType n s) →
+             ∀[ substc σ (T .context) ↭_ ⇒ Proc Σ ]
   link     : ∀{A B} → dual A ≅ B → ∀[ Ch A ∗ Ch B ⇒ Proc Σ ]
   fail     : ∀[ Ch ⊤ ∗ U ⇒ Proc Σ ]
   wait     : ∀[ Ch ⊥ ∗ Proc Σ ⇒ Proc Σ ]
@@ -78,8 +79,8 @@ lookup (_ ∷ def) (next x) = lookup def x
 ↭proc π (cut eq (P ⟨ p ⟩ Q)) with ↭split π p
 ... | Δ₁ , Δ₂ , q , π₁ , π₂ = cut eq (↭proc (prep π₁) P ⟨ q ⟩ ↭proc (prep π₂) Q)
 
-substp : ∀{n m Σ} {Γ : Context n} (σ : Fin n → Type m) → Proc Σ Γ → Proc Σ (substc σ Γ)
-substp σ (call x σ' π) = call x {!!} {!!}
+substp : ∀{n m Σ} {Γ : Context n} (σ : ∀{s} → Fin n → PreType m s) → Proc Σ Γ → Proc Σ (substc σ Γ)
+substp σ (call x σ' π) = call x (Type.subst σ inv ∘ σ') {!!}
 substp σ (link eq (ch ⟨ p ⟩ ch)) = link {!!} (ch ⟨ +-subst σ p ⟩ ch)
 substp σ (fail (ch ⟨ p ⟩ tt)) = fail (ch ⟨ +-subst σ p ⟩ tt)
 substp σ (wait (ch ⟨ p ⟩ P)) = wait (ch ⟨ +-subst σ p ⟩ substp σ P)

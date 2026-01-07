@@ -68,8 +68,8 @@ _≲_ {n} {r} A B = ∀{m} {σ : ∀{s} → Fin n → PreType m s} → Sim (subs
 ≲trans : ∀{n r} {A B C : PreType n r} → A ≲ B → B ≲ C → A ≲ C
 ≲trans p q = sim-trans p q
 
-≲-unfold-rec : ∀{n r} {A B : PreType n (suc r)} → unfold A ≲ rec A
-≲-unfold-rec = {!!}
+-- ≲-unfold-rec : ∀{n r} {A B : PreType n (suc r)} → unfold A ≲ rec A
+-- ≲-unfold-rec = {!!}
 
 ≲dual : ∀{n r} {A B : PreType n r} → A ≲ B → dual A ≲ dual B
 ≲dual {n} {r} {A} {B} le {_} {σ}
@@ -108,9 +108,9 @@ open _≅_ public
 ≅dual {A = A} {B} eq .to   = ≲dual {A = A} {B} (eq .to)
 ≅dual {A = A} {B} eq .from = ≲dual {A = B} {A} (eq .from)
 
-≅unfold : ∀{n r} {A : PreType n (suc r)} → rec A ≅ unfold A
-≅unfold .to   = {!!}
-≅unfold .from = {!!}
+-- ≅unfold : ∀{n r} {A : PreType n (suc r)} → rec A ≅ unfold A
+-- ≅unfold .to   = {!!}
+-- ≅unfold .from = {!!}
 
 -- closed-absorbing : ∀{n r} {A B : PreType n r} → Closed A → A ≅ (A ⨟ B)
 -- closed-absorbing comp .to = closed-absorbing-r comp

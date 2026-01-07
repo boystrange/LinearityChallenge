@@ -71,10 +71,10 @@ _─∗_ : ∀{n} → Pred (Context n) _ → Pred (Context n) _ → Context n �
 curry∗ : ∀{n} {P Q R : Pred (Context n) _} → ∀[ P ∗ Q ⇒ R ] → ∀[ P ⇒ Q ─∗ R ]
 curry∗ F px σ qx = F (px ⟨ σ ⟩ qx)
 
-substc : ∀{m n} → (Fin m → Type n) → Context m → Context n
-substc σ = map (subst σ λ ())
+substc : ∀{m n} → (∀{s} → Fin m → PreType n s) → Context m → Context n
+substc σ = map (subst σ inv)
 
-+-subst : ∀{m n}{Γ Δ Θ : Context m} (σ : Fin m → Type n) → Γ ≃ Δ + Θ → substc σ Γ ≃ substc σ Δ + substc σ Θ
++-subst : ∀{m n}{Γ Δ Θ : Context m} (σ : ∀{s} → Fin m → PreType n s) → Γ ≃ Δ + Θ → substc σ Γ ≃ substc σ Δ + substc σ Θ
 +-subst σ • = •
 +-subst σ (< p) = < +-subst σ p
 +-subst σ (> p) = > +-subst σ p
