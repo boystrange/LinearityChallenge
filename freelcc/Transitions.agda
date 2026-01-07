@@ -10,12 +10,11 @@ open import Agda.Builtin.Equality.Rewrite
 open import Type
 open import Skip
 
-data Label (n : ℕ) : Set where
-  -- ε : Label n
-  ⊥ 𝟙 ⊤ 𝟘 &L &R ⊕L ⊕R ⅋L ⅋R ⊗L ⊗R : Label n
-  var rav : Fin n → Label n
+data Label : Set where
+  -- ε : Label
+  ⊥ 𝟙 ⊤ 𝟘 &L &R ⊕L ⊕R ⅋L ⅋R ⊗L ⊗R : Label
 
-dual-label : ∀{n} → Label n → Label n
+dual-label : Label → Label
 -- dual-label ε = ε
 dual-label ⊥ = 𝟙
 dual-label 𝟙 = ⊥
@@ -29,39 +28,33 @@ dual-label ⅋L = ⊗L
 dual-label ⅋R = ⊗R
 dual-label ⊗L = ⅋L
 dual-label ⊗R = ⅋R
-dual-label (var x) = rav x
-dual-label (rav x) = var x
 
-dual-label-inv : ∀{n} {ℓ : Label n} → dual-label (dual-label ℓ) ≡ ℓ
-dual-label-inv {_} {var x} = refl
-dual-label-inv {_} {rav x} = refl
+dual-label-inv : ∀{ℓ} → dual-label (dual-label ℓ) ≡ ℓ
 -- dual-label-inv {_} {ε} = refl
-dual-label-inv {_} {⊥} = refl
-dual-label-inv {_} {𝟙} = refl
-dual-label-inv {_} {⊤} = refl
-dual-label-inv {_} {𝟘} = refl
-dual-label-inv {_} {&L} = refl
-dual-label-inv {_} {&R} = refl
-dual-label-inv {_} {⊕L} = refl
-dual-label-inv {_} {⊕R} = refl
-dual-label-inv {_} {⅋L} = refl
-dual-label-inv {_} {⅋R} = refl
-dual-label-inv {_} {⊗L} = refl
-dual-label-inv {_} {⊗R} = refl
+dual-label-inv {⊥} = refl
+dual-label-inv {𝟙} = refl
+dual-label-inv {⊤} = refl
+dual-label-inv {𝟘} = refl
+dual-label-inv {&L} = refl
+dual-label-inv {&R} = refl
+dual-label-inv {⊕L} = refl
+dual-label-inv {⊕R} = refl
+dual-label-inv {⅋L} = refl
+dual-label-inv {⅋R} = refl
+dual-label-inv {⊗L} = refl
+dual-label-inv {⊗R} = refl
 
 {-# REWRITE dual-label-inv #-}
 
 -- dual-label-not-skip : ∀{n} {ℓ : Label n} → ℓ ≢ ε → dual-label ℓ ≢ ε
 -- dual-label-not-skip neq eq = contradiction (cong dual-label eq) neq
 
-data _⊨_⇒_ {n r} : PreType n r → Label n → PreType n r → Set where
+data _⊨_⇒_ {n r} : PreType n r → Label → PreType n r → Set where
   -- skip : skip ⊨ ε ⇒ skip
   ⊥    : ⊥ ⊨ ⊥ ⇒ ⊥
   𝟙    : 𝟙 ⊨ 𝟙 ⇒ 𝟙
   ⊤    : ⊤ ⊨ ⊤ ⇒ ⊤
   𝟘    : 𝟘 ⊨ 𝟘 ⇒ 𝟘
-  var  : ∀{x} → var x ⊨ var x ⇒ var x
-  rav  : ∀{x} → rav x ⊨ rav x ⇒ rav x
   &L   : ∀{A B} → (A & B) ⊨ &L ⇒ A
   &R   : ∀{A B} → (A & B) ⊨ &R ⇒ B
   ⊕L   : ∀{A B} → (A ⊕ B) ⊨ ⊕L ⇒ A
@@ -88,8 +81,6 @@ transition-not-skip (seqr _ tr) (seq _ sk) = transition-not-skip tr sk
 transition-not-skip (rec tr) (rec sk) = transition-not-skip tr sk
 
 deterministic : ∀{n r ℓ} {A B C : PreType n r} → A ⊨ ℓ ⇒ B → A ⊨ ℓ ⇒ C → B ≡ C
-deterministic var var = refl
-deterministic rav rav = refl
 -- deterministic skip skip = refl
 deterministic ⊥ ⊥ = refl
 deterministic 𝟙 𝟙 = refl
@@ -112,8 +103,6 @@ deterministic (seqr _ x) (seqr _ y) = deterministic x y
 deterministic (rec x) (rec y) = deterministic x y
 
 transition-dual : ∀{n r} {A B : PreType n r} {ℓ} → A ⊨ ℓ ⇒ B → dual A ⊨ dual-label ℓ ⇒ dual B
-transition-dual var = rav
-transition-dual rav = var
 -- transition-dual skip = skip
 transition-dual ⊥ = 𝟙
 transition-dual 𝟙 = ⊥
@@ -141,4 +130,3 @@ record Closed {n r} (A : PreType n r) : Set where
     closed-cont : ∀{ℓ B} → A ⊨ ℓ ⇒ B → Closed B
 
 open Closed public
-
