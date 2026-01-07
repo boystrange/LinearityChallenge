@@ -101,7 +101,7 @@ dual-exts {_} {r} σ = extensionality aux
     aux zero = refl
     aux (suc x) rewrite dual-rename suc (σ x) = refl
 
-subst : ∀{n m r s} → (Fin n → PreType m s) → (Fin r → PreType m s) → PreType n r → PreType m s
+subst : ∀{n m r} → (∀{s} → Fin n → PreType m s) → ∀{s} → (Fin r → PreType m s) → PreType n r → PreType m s
 subst σ τ (var x) = σ x
 subst σ τ (rav x) = dual (σ x)
 subst σ τ skip = skip
@@ -115,9 +115,9 @@ subst σ τ (A ⊕ B) = subst σ τ A ⊕ subst σ τ B
 subst σ τ (A ⅋ B) = subst σ τ A ⅋ subst σ τ B
 subst σ τ (A ⊗ B) = subst σ τ A ⊗ subst σ τ B
 subst σ τ (inv x) = τ x
-subst σ τ (rec A) = rec (subst (rename suc ∘ σ) (exts τ) A)
+subst σ τ (rec A) = rec (subst σ (exts τ) A)
 
-dual-subst : ∀{n m r s} (σ : Fin n → PreType m s) (τ : Fin r → PreType m s) (A : PreType n r) →
+dual-subst : ∀{n m r s} (σ : ∀{s} → Fin n → PreType m s) (τ : Fin r → PreType m s) (A : PreType n r) →
              dual (subst σ τ A) ≡ subst σ (dual ∘ τ) (dual A)
 dual-subst σ τ (var x) = refl
 dual-subst σ τ (rav x) = refl
@@ -132,7 +132,7 @@ dual-subst σ τ (A ⊕ B) = cong₂ _&_ (dual-subst σ τ A) (dual-subst σ τ 
 dual-subst σ τ (A ⅋ B) = cong₂ _⊗_ (dual-subst σ τ A) (dual-subst σ τ B)
 dual-subst σ τ (A ⊗ B) = cong₂ _⅋_ (dual-subst σ τ A) (dual-subst σ τ B)
 dual-subst σ τ (inv x) = refl
-dual-subst σ τ (rec A) rewrite dual-exts τ = cong rec (dual-subst (rename suc ∘ σ) (exts τ) A)
+dual-subst σ τ (rec A) rewrite dual-exts τ = cong rec (dual-subst σ (exts τ) A)
 
 -- {-# REWRITE dual-subst #-}
 
@@ -155,3 +155,31 @@ dual-unfold A rewrite dual-subst var (s-just (rec A)) A | dual-s-just (rec A) = 
 
 Type : ℕ → Set
 Type n = PreType n 0
+
+exts-inv : ∀{n r} → exts {n} {r} inv ≡ inv
+exts-inv {n} {r} = extensionality aux
+  where
+    aux : (x : Fin (suc r)) → exts {n} inv x ≡ inv x
+    aux zero = refl
+    aux (suc x) = refl
+
+subst-compose : ∀{m n o r}
+                (σ₁ : ∀{u} → Fin m → PreType n u) (σ₂ : ∀{u} → Fin n → PreType o u) →
+                (A : PreType m r) →
+                subst σ₂ inv (subst σ₁ inv A) ≡ subst (subst σ₂ inv ∘ σ₁) inv A
+subst-compose σ₁ σ₂ (var x) = refl
+subst-compose σ₁ σ₂ (rav x) = sym (dual-subst σ₂ inv (σ₁ x))
+subst-compose σ₁ σ₂ skip = refl
+subst-compose σ₁ σ₂ ⊤ = refl
+subst-compose σ₁ σ₂ 𝟘 = refl
+subst-compose σ₁ σ₂ ⊥ = refl
+subst-compose σ₁ σ₂ 𝟙 = refl
+subst-compose σ₁ σ₂ (A ⨟ B) = cong₂ _⨟_ (subst-compose σ₁ σ₂ A) (subst-compose σ₁ σ₂ B)
+subst-compose σ₁ σ₂ (A & B) = cong₂ _&_ (subst-compose σ₁ σ₂ A) (subst-compose σ₁ σ₂ B)
+subst-compose σ₁ σ₂ (A ⊕ B) = cong₂ _⊕_ (subst-compose σ₁ σ₂ A) (subst-compose σ₁ σ₂ B)
+subst-compose σ₁ σ₂ (A ⅋ B) = cong₂ _⅋_ (subst-compose σ₁ σ₂ A) (subst-compose σ₁ σ₂ B)
+subst-compose σ₁ σ₂ (A ⊗ B) = cong₂ _⊗_ (subst-compose σ₁ σ₂ A) (subst-compose σ₁ σ₂ B)
+subst-compose σ₁ σ₂ (inv x) = refl
+subst-compose {m} {n} {o} {r} σ₁ σ₂ (rec A)
+  rewrite exts-inv {n} {r} | exts-inv {o} {r} =
+  cong rec (subst-compose σ₁ σ₂ A)

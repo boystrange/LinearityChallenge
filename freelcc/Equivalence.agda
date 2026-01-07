@@ -62,8 +62,11 @@ sim-dual le .sim-next tr with le .sim-next (transition-dual tr)
 -- DualPreserving : ∀{m n r s} (f : PreType m r → PreType n s) → Set
 -- DualPreserving f = dual ∘ f ≡ f ∘ dual
 
+-- dual-preserving : ∀{m n r s} {f : PreType m r → PreType n s} → DualPreserving f → DualPreserving (dual ∘ f)
+-- dual-preserving = cong (dual ∘_)
+
 _≲_ : ∀{n r} → PreType n r → PreType n r → Set
-_≲_ {n} {r} A B = ∀{m} {σ : Fin n → PreType m r} → Sim (subst σ inv A) (subst σ inv B)
+_≲_ {n} {r} A B = ∀{m s} {σ : Fin n → PreType m s} {τ : Fin r → PreType m s} → Sim (subst σ τ A) (subst σ τ B)
 
 ≲refl : ∀{n r} {A : PreType n r} → A ≲ A
 ≲refl = sim-refl
@@ -72,88 +75,31 @@ _≲_ {n} {r} A B = ∀{m} {σ : Fin n → PreType m r} → Sim (subst σ inv A)
 ≲trans p q = sim-trans p q
 
 ≲dual : ∀{n r} {A B : PreType n r} → A ≲ B → dual A ≲ dual B
-≲dual {_} {_} {A} {B} p {_} {σ} rewrite sym (dual-subst σ inv A) | sym (dual-subst σ inv B) = sim-dual p
+≲dual {n} {r} {A} {B} le = {!!}
 
--- subst-compose : ∀{m n o r s t}
---                 (σ₁ : Fin m → PreType n s) (τ₁ : Fin r → PreType n s)
---                 (σ₂ : Fin n → PreType o t) (τ₂ : Fin s → PreType o t) {A : PreType m r} →
---                 subst σ₂ τ₂ (subst σ₁ τ₁ A) ≡ subst {!!} {!!} A
--- subst-compose σ₁ τ₁ σ₂ τ₂ {A} = {!!}
+subst-compose : ∀{m n o r s t} (σ : Fin m → PreType n s) (τ : Fin r → PreType n s)
+                (σ' : Fin n → PreType o t) (τ' : Fin s → PreType o t) →
+                (A : PreType m r) →
+                subst σ' τ' (subst σ τ A) ≡ subst (subst σ' τ' ∘ σ) (subst σ' τ' ∘ τ) A
+subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' (var x) = refl
+subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' (rav x) = {!!}
+subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' skip = refl
+subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' ⊤ = refl
+subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' 𝟘 = {!!}
+subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' ⊥ = {!!}
+subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' 𝟙 = {!!}
+subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' (A ⨟ A₁) = {!!}
+subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' (A & A₁) = {!!}
+subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' (A ⊕ A₁) = {!!}
+subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' (A ⅋ A₁) = {!!}
+subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' (A ⊗ A₁) = {!!}
+subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' (inv x) = refl
+subst-compose {m} {n} {o} {r} {s} {t} σ τ σ' τ' (rec A) =
+  cong rec {!!}
 
-exts-inv : ∀{n r} → exts {n} {r} inv ≡ inv
-exts-inv {n} {r} = extensionality aux
-  where
-    aux : (x : Fin (suc r)) → exts {n} inv x ≡ inv x
-    aux zero = refl
-    aux (suc x) = refl
-
-∘-assoc-r : ∀{A B C D : Set} (f : C → D) (g : B → C) (h : A → B) → f ∘ (g ∘ h) ≡ (f ∘ g) ∘ h
-∘-assoc-r f g h = extensionality aux
-  where
-    aux : ∀ x → (f ∘ (g ∘ h)) x ≡ ((f ∘ g) ∘ h) x
-    aux x = refl
-
-ext-compose : ∀{r s t} (f : Fin s → Fin t) (g : Fin r → Fin s) → ext (f ∘ g) ≡ ext f ∘ ext g
-ext-compose = {!!}
-
-rename-compose : ∀{r s t} (f : Fin s → Fin t) (g : Fin r → Fin s) →
-                 rename {s} f ∘ rename g ≡ rename (f ∘ g)
-rename-compose f g = extensionality (aux f g)
-  where
-    aux : ∀{n r s t} (f : Fin s → Fin t) (g : Fin r → Fin s) (A : PreType n r) →
-          (rename f ∘ rename g) A ≡ rename (f ∘ g) A
-    aux f g (var x) = refl
-    aux f g (rav x) = refl
-    aux f g skip = refl
-    aux f g ⊤ = refl
-    aux f g 𝟘 = refl
-    aux f g ⊥ = refl
-    aux f g 𝟙 = refl
-    aux f g (A ⨟ B) = cong₂ _⨟_ (aux f g A) (aux f g B)
-    aux f g (A & B) = cong₂ _&_ (aux f g A) (aux f g B)
-    aux f g (A ⊕ B) = cong₂ _⊕_ (aux f g A) (aux f g B)
-    aux f g (A ⅋ B) = cong₂ _⅋_ (aux f g A) (aux f g B)
-    aux f g (A ⊗ B) = cong₂ _⊗_ (aux f g A) (aux f g B)
-    aux f g (inv x) = refl
-    aux f g (rec A) rewrite ext-compose f g = cong rec (aux (ext f) (ext g) A)
-
-cong₃ : ∀{A B C D : Set} (f : A -> B -> C -> D) {x x' : A} {y y' : B} {z z' : C} → x ≡ x' → y ≡ y' → z ≡ z' → f x y z ≡ f x' y' z'
-cong₃ f refl refl refl = refl
-
--- subst (λ x → rename suc (σ₂ x)) (exts τ)
---       (subst (λ x → rename suc (σ₁ x)) (exts τ) A)
---       ≡ subst (λ x → rename suc ((subst σ₂ inv ∘ σ₁) x)) (exts τ) A
-
-rename-∘ : ∀{m n o r} {σ₁ : Fin m → PreType n r} {σ₂ : Fin n → PreType o r}
-           (A : PreType n r) →
-           rename suc ((subst σ₂ inv ∘ σ₁) A) ≡ subst (rename suc ∘ σ₂) inv ((rename suc ∘ σ₁) A)
-rename-∘ = {!!}
-
-subst-compose : ∀{m n o r}
-                (σ₁ : Fin m → PreType n r) (σ₂ : Fin n → PreType o r)
-                (τ : ∀{k} → Fin r → PreType k r)
-                {A : PreType m r} →
-                subst σ₂ τ (subst σ₁ τ A) ≡ subst (subst σ₂ inv ∘ σ₁) τ A
-subst-compose σ₁ σ₂ τ {var x} = {!!}
-subst-compose σ₁ σ₂ τ {rav x} = {!!}
-subst-compose σ₁ σ₂ τ {skip} = {!!}
-subst-compose σ₁ σ₂ τ {⊤} = {!!}
-subst-compose σ₁ σ₂ τ {𝟘} = {!!}
-subst-compose σ₁ σ₂ τ {⊥} = {!!}
-subst-compose σ₁ σ₂ τ {𝟙} = {!!}
-subst-compose σ₁ σ₂ τ {A ⨟ A₁} = {!!}
-subst-compose σ₁ σ₂ τ {A & A₁} = {!!}
-subst-compose σ₁ σ₂ τ {A ⊕ A₁} = {!!}
-subst-compose σ₁ σ₂ τ {A ⅋ A₁} = {!!}
-subst-compose σ₁ σ₂ τ {A ⊗ A₁} = {!!}
-subst-compose σ₁ σ₂ τ {inv x} = {!!}
-subst-compose σ₁ σ₂ τ {rec A} = cong rec {!!}
-
--- subst-compose {m} {n} {o} {r} σ₁ σ₂ {rec A} = {!!}
-  -- rewrite exts-inv {o} {r} | exts-inv {n} {r} = cong rec {!!}
-
-≲subst : ∀{m n r} {A B : PreType m r} (σ : Fin m → PreType n r) → A ≲ B → subst σ inv A ≲ subst σ inv B
-≲subst τ le = {!!}
+≲subst : ∀{m n r s} {A B : PreType m r} (σ : Fin m → PreType n s) (τ : Fin r → PreType n s) →
+         A ≲ B → subst σ τ A ≲ subst σ τ B
+≲subst σ τ le = {!!}
 
 -- EQUIVALENCE
 
@@ -168,21 +114,21 @@ open _≅_ public
 ≅refl .to = sim-refl
 ≅refl .from = sim-refl
 
-≅sym : ∀{n r} {A B : PreType n r} → A ≅ B → B ≅ A
-≅sym p .to = p .from
-≅sym p .from = p .to
+-- ≅sym : ∀{n r} {A B : PreType n r} → A ≅ B → B ≅ A
+-- ≅sym p .to = p .from
+-- ≅sym p .from = p .to
 
-≅trans : ∀{n r} {A B C : PreType n r} → A ≅ B → B ≅ C → A ≅ C
-≅trans p q .to = sim-trans (p .to) (q .to)
-≅trans p q .from = sim-trans (q .from) (p .from)
+-- ≅trans : ∀{n r} {A B C : PreType n r} → A ≅ B → B ≅ C → A ≅ C
+-- ≅trans p q .to = sim-trans (p .to) (q .to)
+-- ≅trans p q .from = sim-trans (q .from) (p .from)
 
 -- ≅after : ∀{n r} {ℓ} {A B A' B' : PreType n r} → A ≅ B → A ⊨ ℓ ⇒ A' → B ⊨ ℓ ⇒ B' → A' ≅ B'
 -- ≅after eq at bt with eq .to .sim-next at | eq .from .sim-next bt
 -- ... | _ , bt' , ale | _ , at' , ble rewrite deterministic at at' | deterministic bt bt' = record { to = ale ; from = ble }
 
-≅dual : ∀{n r} {A B : PreType n r} → A ≅ B → dual A ≅ dual B
-≅dual {n} {r} {A} {B} eq .to   = ≲dual {n} {r} {A} {B} (eq .to)
-≅dual {n} {r} {A} {B} eq .from = ≲dual {n} {r} {B} {A} (eq .from)
+-- ≅dual : ∀{n r} {A B : PreType n r} → A ≅ B → dual A ≅ dual B
+-- ≅dual {n} {r} {A} {B} eq .to   = ≲dual {n} {r} {A} {B} (eq .to)
+-- ≅dual {n} {r} {A} {B} eq .from = ≲dual {n} {r} {B} {A} (eq .from)
 
 ≅unfold : ∀{n r} {A : PreType n (suc r)} → rec A ≅ unfold A
 ≅unfold .to   = {!!}
