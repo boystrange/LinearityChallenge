@@ -121,7 +121,7 @@ transition-dual (seqr sk tr) = seqr (skip-dual sk) (transition-dual tr)
 -- transition-dual (seql tr neq) = seql (transition-dual tr) (dual-label-not-skip neq)
 transition-dual (seql tr) = seql (transition-dual tr)
 transition-dual {A = rec A} (rec tr) with transition-dual tr
-... | tr' rewrite dual-subst var (s-just (rec A)) A | dual-s-just (rec A) = rec tr'
+... | tr' rewrite dual-unfold A = rec tr'
 
 record Closed {n r} (A : PreType n r) : Set where
   coinductive

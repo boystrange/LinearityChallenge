@@ -8,7 +8,7 @@ open import Data.Product using (Σ; _,_)
 open import Data.List.Base using (List; []; _∷_; [_]; map)
 open import Data.Vec using (Vec)
 open import Relation.Unary hiding (_∈_)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong₂)
+open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂)
 
 open import Type
 open import Equivalence
@@ -80,8 +80,10 @@ lookup (_ ∷ def) (next x) = lookup def x
 ... | Δ₁ , Δ₂ , q , π₁ , π₂ = cut eq (↭proc (prep π₁) P ⟨ q ⟩ ↭proc (prep π₂) Q)
 
 substp : ∀{n m Σ} {Γ : Context n} (σ : ∀{s} → Fin n → PreType m s) → Proc Σ Γ → Proc Σ (substc σ Γ)
-substp σ (call x σ' π) = call x (Type.subst σ inv ∘ σ') {!!}
-substp σ (link eq (ch ⟨ p ⟩ ch)) = link {!!} (ch ⟨ +-subst σ p ⟩ ch)
+substp σ (call {T} x σ' π) with ↭subst σ π
+... | π' rewrite substc-compose σ' σ (T .context) = call x (Type.subst σ ∘ σ') π'
+substp σ (link {A} eq (ch ⟨ p ⟩ ch)) with ≅subst σ eq
+... | eq' rewrite Eq.sym (dual-subst σ A) = link eq' (ch ⟨ +-subst σ p ⟩ ch)
 substp σ (fail (ch ⟨ p ⟩ tt)) = fail (ch ⟨ +-subst σ p ⟩ tt)
 substp σ (wait (ch ⟨ p ⟩ P)) = wait (ch ⟨ +-subst σ p ⟩ substp σ P)
 substp σ (close ch) = close ch
@@ -90,52 +92,5 @@ substp σ (select (ch ⟨ p ⟩ inj₁ P)) = select (ch ⟨ +-subst σ p ⟩ inj
 substp σ (select (ch ⟨ p ⟩ inj₂ Q)) = select (ch ⟨ +-subst σ p ⟩ inj₂ (substp σ Q))
 substp σ (join (ch ⟨ p ⟩ P)) = join (ch ⟨ +-subst σ p ⟩ substp σ P)
 substp σ (fork (ch ⟨ p ⟩ (P ⟨ q ⟩ Q))) = fork (ch ⟨ +-subst σ p ⟩ (substp σ P ⟨ +-subst σ q ⟩ substp σ Q))
-substp σ (cut eq (P ⟨ p ⟩ Q)) = cut {!!} (substp σ P ⟨ +-subst σ p ⟩ substp σ Q)
-
--- Ext : ∀{Γ Σ Σ'} → (∀{Δ} → Δ ∈ Σ → Δ ∈ Σ') →
---       ∀{Δ} → Δ ∈ (Γ ∷ Σ) → Δ ∈ (Γ ∷ Σ')
--- Ext ρ here = here
--- Ext ρ (next x) = next (ρ x)
-
--- Rename : ∀{Γ Σ Σ'} → (∀{Δ} → Δ ∈ Σ → Δ ∈ Σ') → Proc Σ Γ → Proc Σ' Γ
--- Rename ρ (call σ x π) = call σ (ρ x) π
--- Rename ρ (rec σ P π) = rec σ (Rename (Ext ρ) P) π
--- Rename ρ (link eq x) = link eq x
--- Rename ρ (fail x) = fail x
--- Rename ρ (wait (ch ⟨ σ ⟩ P)) = wait (ch ⟨ σ ⟩ Rename ρ P)
--- Rename ρ (close ch) = close ch
--- Rename ρ (case (ch ⟨ p ⟩ (P , Q))) = case (ch ⟨ p ⟩ (Rename ρ P , Rename ρ Q))
--- Rename ρ (select (ch ⟨ p ⟩ inj₁ P)) = select (ch ⟨ p ⟩ inj₁ (Rename ρ P))
--- Rename ρ (select (ch ⟨ p ⟩ inj₂ P)) = select (ch ⟨ p ⟩ inj₂ (Rename ρ P))
--- Rename ρ (join (ch ⟨ p ⟩ P)) = join (ch ⟨ p ⟩ Rename ρ P)
--- Rename ρ (fork (ch ⟨ p ⟩ (P ⟨ q ⟩ Q))) = fork (ch ⟨ p ⟩ (Rename ρ P ⟨ q ⟩ Rename ρ Q))
--- Rename ρ (cut eq (P ⟨ σ ⟩ Q)) = cut eq (Rename ρ P ⟨ σ ⟩ Rename ρ Q)
-
--- Exts : ∀{Γ Σ Σ'} → (∀{Δ} → Δ ∈ Σ → Proc Σ' Δ) →
---        ∀{Δ} → Δ ∈ (Γ ∷ Σ) → Proc (Γ ∷ Σ') Δ
--- Exts {_} {Γ} σ here = call var here {!!}
--- Exts σ (next x) = Rename next (σ x)
-
--- Subst : ∀{Γ Σ Σ'} → (∀{Δ} → Δ ∈ Σ → Proc Σ' Δ) → Proc Σ Γ → Proc Σ' Γ
--- Subst σ (call τ x π) = ↭proc π (σ x)
--- Subst σ (rec τ P π) = rec τ (Subst (Exts σ) P) π
--- Subst σ (link eq x) = link eq x
--- Subst σ (fail x) = fail x
--- Subst σ (wait (ch ⟨ p ⟩ P)) = wait (ch ⟨ p ⟩ Subst σ P)
--- Subst σ (close ch) = close ch
--- Subst σ (case (ch ⟨ p ⟩ (P , Q))) = case (ch ⟨ p ⟩ (Subst σ P , Subst σ Q))
--- Subst σ (select (ch ⟨ p ⟩ inj₁ P)) = select (ch ⟨ p ⟩ inj₁ (Subst σ P))
--- Subst σ (select (ch ⟨ p ⟩ inj₂ P)) = select (ch ⟨ p ⟩ inj₂ (Subst σ P))
--- Subst σ (join (ch ⟨ p ⟩ P)) = join (ch ⟨ p ⟩ Subst σ P)
--- Subst σ (fork (ch ⟨ p ⟩ (P ⟨ q ⟩ Q))) = fork (ch ⟨ p ⟩ (Subst σ P ⟨ q ⟩ Subst σ Q))
--- Subst σ (cut eq (P ⟨ p ⟩ Q)) = cut eq (Subst σ P ⟨ p ⟩ Subst σ Q)
-
--- Sing : ∀{Γ Σ} → Proc Σ Γ → ∀{Δ} → Δ ∈ (Γ ∷ Σ) → Proc Σ Δ
--- Sing P here = P
--- Sing P (next x) = call x refl
-
--- Unfold : ∀{Δ Σ} → Proc (Δ ∷ Σ) Δ → Proc Σ Δ
--- Unfold P = Subst (Sing (rec P refl)) P
-
--- Proc : Context → Set
--- Proc = Proc []
+substp σ (cut {A} eq (P ⟨ p ⟩ Q)) with ≅subst σ eq
+... | eq' rewrite Eq.sym (dual-subst σ A) = cut eq' (substp σ P ⟨ +-subst σ p ⟩ substp σ Q)

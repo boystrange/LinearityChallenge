@@ -1,4 +1,5 @@
 {-# OPTIONS --rewriting --guardedness #-}
+open import Function using (_∘_)
 open import Data.Fin using (Fin)
 open import Data.Nat
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
@@ -72,7 +73,14 @@ curry∗ : ∀{n} {P Q R : Pred (Context n) _} → ∀[ P ∗ Q ⇒ R ] → ∀[
 curry∗ F px σ qx = F (px ⟨ σ ⟩ qx)
 
 substc : ∀{m n} → (∀{s} → Fin m → PreType n s) → Context m → Context n
-substc σ = map (subst σ inv)
+substc σ = map (subst σ)
+
+substc-compose : ∀{m n o}
+                 (σ₁ : ∀{u} → Fin m → PreType n u) (σ₂ : ∀{u} → Fin n → PreType o u) →
+                 (Γ : Context m) →
+                 substc σ₂ (substc σ₁ Γ) ≡ substc (subst σ₂ ∘ σ₁) Γ
+substc-compose σ₁ σ₂ [] = refl
+substc-compose σ₁ σ₂ (A ∷ Γ) = cong₂ _∷_ (subst-compose σ₁ σ₂ A) (substc-compose σ₁ σ₂ Γ)
 
 +-subst : ∀{m n}{Γ Δ Θ : Context m} (σ : ∀{s} → Fin m → PreType n s) → Γ ≃ Δ + Θ → substc σ Γ ≃ substc σ Δ + substc σ Θ
 +-subst σ • = •

@@ -60,7 +60,7 @@ sim-dual le .sim-next tr with le .sim-next (transition-dual tr)
 -- ClosedSubstitution σ = ∀ x → Closed (σ x)
 
 _≲_ : ∀{n r} → PreType n r → PreType n r → Set
-_≲_ {n} {r} A B = ∀{m} {σ : ∀{s} → Fin n → PreType m s} → Sim (subst σ inv A) (subst σ inv B)
+_≲_ {n} {r} A B = ∀{m} {σ : ∀{s} → Fin n → PreType m s} → Sim (subst σ A) (subst σ B)
 
 ≲refl : ∀{n r} {A : PreType n r} → A ≲ A
 ≲refl = sim-refl
@@ -73,10 +73,10 @@ _≲_ {n} {r} A B = ∀{m} {σ : ∀{s} → Fin n → PreType m s} → Sim (subs
 
 ≲dual : ∀{n r} {A B : PreType n r} → A ≲ B → dual A ≲ dual B
 ≲dual {n} {r} {A} {B} le {_} {σ}
-  rewrite sym (dual-subst σ inv A) | sym (dual-subst σ inv B) = sim-dual le
+  rewrite sym (dual-subst σ A) | sym (dual-subst σ B) = sim-dual le
 
 ≲subst : ∀{m n r} {A B : PreType m r} (σ : ∀{s} → Fin m → PreType n s) →
-         A ≲ B → subst σ inv A ≲ subst σ inv B
+         A ≲ B → subst σ A ≲ subst σ B
 ≲subst {A = A} {B} σ le {_} {τ} rewrite subst-compose σ τ A | subst-compose σ τ B = le
 
 -- EQUIVALENCE
@@ -117,6 +117,6 @@ open _≅_ public
 -- closed-absorbing comp .from = closed-absorbing-l comp
 
 ≅subst : ∀{m n r} {A B : PreType m r} (σ : ∀{s} → Fin m → PreType n s) → A ≅ B →
-         subst σ inv A ≅ subst σ inv B
+         subst σ A ≅ subst σ B
 ≅subst {A = A} {B} σ eq .to = ≲subst {A = A} {B} σ (eq .to)
 ≅subst {A = A} {B} σ eq .from = ≲subst {A = B} {A} σ (eq .from)
