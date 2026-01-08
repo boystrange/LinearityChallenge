@@ -192,25 +192,8 @@ dual∘inv {n} {r} = extensionality aux
     aux : (x : Fin r) → dual {n} (inv x) ≡ inv x
     aux x = refl
 
--- dual-subst-inv : ∀{n m r} (σ : ∀{s} → Fin n → PreType m s) (A : PreType n r) →
---                  dual (subst σ inv A) ≡ subst σ inv (dual A)
--- dual-subst-inv {n} {m} {r} σ A =
---   begin
---     dual (subst σ inv A)          ≡⟨ dual-subst σ inv A ⟩
---     subst σ (dual ∘ inv) (dual A) ≡⟨ cong₂ (subst σ {r}) (dual∘inv {m} {r}) refl ⟩
---     subst σ inv (dual A) ∎
-
--- {-# REWRITE dual-subst #-}
-
 Type : ℕ → Set
 Type n = PreType n 0
-
-exts-inv : ∀{n r} → exts {n} {r} inv ≡ inv
-exts-inv {n} {r} = extensionality aux
-  where
-    aux : (x : Fin (suc r)) → exts {n} inv x ≡ inv x
-    aux zero = refl
-    aux (suc x) = refl
 
 subst-compose : ∀{m n o r}
                 (σ₁ : ∀{u} → Fin m → PreType n u) (σ₂ : ∀{u} → Fin n → PreType o u) →

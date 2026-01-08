@@ -24,7 +24,7 @@ record Sim {n r} (A B : PreType n r) : Set where
     sim-skip : Skip A → Skip B
     sim-next : ∀{ℓ A'} → A ⊨ ℓ ⇒ A' → ∃[ B' ] (B ⊨ ℓ ⇒ B' × Sim A' B')
 
-open Sim public
+open Sim
 
 sim-refl : ∀{n r} {A : PreType n r} → Sim A A
 sim-refl .sim-skip sk = sk
@@ -50,8 +50,10 @@ sim-dual le .sim-next tr with le .sim-next (transition-dual tr)
 ... | _ , tr' , le' = _ , transition-dual tr' , sim-dual le'
 
 sim-after : ∀{n r} {ℓ} {A B A' B' : PreType n r} → Sim A B → A ⊨ ℓ ⇒ A' → B ⊨ ℓ ⇒ B' → Sim A' B'
-sim-after le p q .sim-skip = {!!}
-sim-after le p q .sim-next = {!!}
+sim-after le p q .sim-skip sk with le .sim-next p
+... | _ , q' , le' rewrite deterministic q q' = le' .sim-skip sk
+sim-after le p q .sim-next tr with le .sim-next p
+... | _ , q' , le' rewrite deterministic q q' = {!!} , {!!} , {!!}
 
 -- closed-absorbing-r : ∀{n r} {A B : PreType n r} → Closed A → A sim- (A ⨟ B)
 -- closed-absorbing-r comp .sim-next tr = _ , seql tr (comp .closed-skip tr) , closed-absorbing-r (comp .closed-cont tr)
