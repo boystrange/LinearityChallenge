@@ -123,6 +123,25 @@ transition-dual (seql tr) = seql (transition-dual tr)
 transition-dual {A = rec A} (rec tr) with transition-dual tr
 ... | tr' rewrite dual-unfold A = rec tr'
 
+-- subst-next : ∀{m n r ℓ} {A B : PreType m r} (σ : ∀{s} → Fin m → PreType n s) →
+--              A ⊨ ℓ ⇒ B → subst σ A ⊨ ℓ ⇒ subst σ B
+-- subst-next σ ⊥ = ⊥
+-- subst-next σ 𝟙 = 𝟙
+-- subst-next σ ⊤ = ⊤
+-- subst-next σ 𝟘 = 𝟘
+-- subst-next σ &L = &L
+-- subst-next σ &R = &R
+-- subst-next σ ⊕L = ⊕L
+-- subst-next σ ⊕R = ⊕R
+-- subst-next σ ⅋L = ⅋L
+-- subst-next σ ⅋R = ⅋R
+-- subst-next σ ⊗L = ⊗L
+-- subst-next σ ⊗R = ⊗R
+-- subst-next σ (seql tr) = seql (subst-next σ tr)
+-- subst-next σ (seqr x tr) = seqr {!!} {!!}
+-- subst-next σ (rec {A} tr) with subst-next σ tr
+-- ... | tr' = rec {!!}
+
 record Closed {n r} (A : PreType n r) : Set where
   coinductive
   field

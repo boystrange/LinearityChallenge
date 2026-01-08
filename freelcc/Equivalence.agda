@@ -53,7 +53,7 @@ sim-after : ∀{n r} {ℓ} {A B A' B' : PreType n r} → Sim A B → A ⊨ ℓ �
 sim-after le p q .sim-skip sk with le .sim-next p
 ... | _ , q' , le' rewrite deterministic q q' = le' .sim-skip sk
 sim-after le p q .sim-next tr with le .sim-next p
-... | _ , q' , le' rewrite deterministic q q' = {!!} , {!!} , {!!}
+... | _ , q' , le' rewrite deterministic q q' = le' .sim-next tr
 
 -- closed-absorbing-r : ∀{n r} {A B : PreType n r} → Closed A → A sim- (A ⨟ B)
 -- closed-absorbing-r comp .sim-next tr = _ , seql tr (comp .closed-skip tr) , closed-absorbing-r (comp .closed-cont tr)
@@ -84,6 +84,9 @@ _≲_ {n} {r} A B = ∀{m} {σ : ∀{s} → Fin n → PreType m s} → Sim (subs
 ≲subst : ∀{m n r} {A B : PreType m r} (σ : ∀{s} → Fin m → PreType n s) →
          A ≲ B → subst σ A ≲ subst σ B
 ≲subst {A = A} {B} σ le {_} {τ} rewrite subst-compose σ τ A | subst-compose σ τ B = le
+
+≲-after : ∀{n r} {ℓ} {A B A' B' : PreType n r} → A ≲ B → A ⊨ ℓ ⇒ A' → B ⊨ ℓ ⇒ B' → A' ≲ B'
+≲-after le p q = sim-after le {!!} {!!}
 
 -- EQUIVALENCE
 
