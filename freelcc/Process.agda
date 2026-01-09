@@ -35,7 +35,7 @@ data Ch {n} (A : Type n) : Context n → Set where
 data Proc {n} (Σ : ProcContext) : Context n → Set where
   call     : ∀{T} → T ∈ Σ → (σ : ∀{s} → Fin (T .ProcType.n) → PreType n s) →
              ∀[ substc σ (T .context) ↭_ ⇒ Proc Σ ]
-  link     : ∀{A B} → dual A ≅ B → ∀[ Ch A ∗ Ch B ⇒ Proc Σ ]
+  link     : ∀{A B} → dual A ≈ B → ∀[ Ch A ∗ Ch B ⇒ Proc Σ ]
   fail     : ∀[ Ch ⊤ ∗ U ⇒ Proc Σ ]
   wait     : ∀[ Ch ⊥ ∗ Proc Σ ⇒ Proc Σ ]
   close    : ∀[ Ch 𝟙 ⇒ Proc Σ ]
@@ -43,7 +43,7 @@ data Proc {n} (Σ : ProcContext) : Context n → Set where
   select   : ∀{A B} → ∀[ Ch (A ⊕ B) ∗ ((A ∷_) ⊢ Proc Σ ∪ (B ∷_) ⊢ Proc Σ) ⇒ Proc Σ ]
   join     : ∀{A B} → ∀[ Ch (A ⅋ B) ∗ ((B ∷_) ⊢ (A ∷_) ⊢ Proc Σ) ⇒ Proc Σ ]
   fork     : ∀{A B} → ∀[ Ch (A ⊗ B) ∗ ((A ∷_) ⊢ Proc Σ) ∗ ((B ∷_) ⊢ Proc Σ) ⇒ Proc Σ ]
-  cut      : ∀{A B} → dual A ≅ B → ∀[ ((A ∷_) ⊢ Proc Σ) ∗ ((B ∷_) ⊢ Proc Σ) ⇒ Proc Σ ]
+  cut      : ∀{A B} → dual A ≈ B → ∀[ ((A ∷_) ⊢ Proc Σ) ∗ ((B ∷_) ⊢ Proc Σ) ⇒ Proc Σ ]
 
 data PreDef (Σ : ProcContext) : ProcContext → Set where
   []  : PreDef Σ []
@@ -82,7 +82,7 @@ lookup (_ ∷ def) (next x) = lookup def x
 substp : ∀{n m Σ} {Γ : Context n} (σ : ∀{s} → Fin n → PreType m s) → Proc Σ Γ → Proc Σ (substc σ Γ)
 substp σ (call {T} x σ' π) with ↭subst σ π
 ... | π' rewrite substc-compose σ' σ (T .context) = call x (Type.subst σ ∘ σ') π'
-substp σ (link {A} eq (ch ⟨ p ⟩ ch)) with ≅subst σ eq
+substp σ (link {A} eq (ch ⟨ p ⟩ ch)) with ≈subst σ eq
 ... | eq' rewrite Eq.sym (dual-subst σ A) = link eq' (ch ⟨ +-subst σ p ⟩ ch)
 substp σ (fail (ch ⟨ p ⟩ tt)) = fail (ch ⟨ +-subst σ p ⟩ tt)
 substp σ (wait (ch ⟨ p ⟩ P)) = wait (ch ⟨ +-subst σ p ⟩ substp σ P)
@@ -92,5 +92,5 @@ substp σ (select (ch ⟨ p ⟩ inj₁ P)) = select (ch ⟨ +-subst σ p ⟩ inj
 substp σ (select (ch ⟨ p ⟩ inj₂ Q)) = select (ch ⟨ +-subst σ p ⟩ inj₂ (substp σ Q))
 substp σ (join (ch ⟨ p ⟩ P)) = join (ch ⟨ +-subst σ p ⟩ substp σ P)
 substp σ (fork (ch ⟨ p ⟩ (P ⟨ q ⟩ Q))) = fork (ch ⟨ +-subst σ p ⟩ (substp σ P ⟨ +-subst σ q ⟩ substp σ Q))
-substp σ (cut {A} eq (P ⟨ p ⟩ Q)) with ≅subst σ eq
+substp σ (cut {A} eq (P ⟨ p ⟩ Q)) with ≈subst σ eq
 ... | eq' rewrite Eq.sym (dual-subst σ A) = cut eq' (substp σ P ⟨ +-subst σ p ⟩ substp σ Q)

@@ -9,9 +9,6 @@ open import Relation.Nullary using (¬_; contradiction)
 open import Relation.Binary.PropositionalEquality as Eq using (_≡_; _≢_; refl; cong; cong₂; sym)
 open import Agda.Builtin.Equality.Rewrite
 
--- open Eq using (_≡_; refl; trans; sym; cong; cong-app; subst)
-open Eq.≡-Reasoning
-
 open import Type
 open import Skip
 open import Transitions
@@ -55,16 +52,6 @@ sim-after le p q .sim-skip sk with le .sim-next p
 sim-after le p q .sim-next tr with le .sim-next p
 ... | _ , q' , le' rewrite deterministic q q' = le' .sim-next tr
 
--- closed-absorbing-r : ∀{n r} {A B : PreType n r} → Closed A → A sim- (A ⨟ B)
--- closed-absorbing-r comp .sim-next tr = _ , seql tr (comp .closed-skip tr) , closed-absorbing-r (comp .closed-cont tr)
-
--- closed-absorbing-l : ∀{n r} {A B : PreType n r} → Closed A → (A ⨟ B) sim- A
--- closed-absorbing-l comp .sim-next (seql tr neq) = _ , tr , closed-absorbing-l (comp .closed-cont tr)
--- closed-absorbing-l comp .sim-next (seqr tr tr') = contradiction refl (comp .closed-skip tr)
-
--- ClosedSubstitution : ∀{m n r} → (Fin m → PreType n r) → Set
--- ClosedSubstitution σ = ∀ x → Closed (σ x)
-
 _≲_ : ∀{n} → Type n → Type n → Set
 _≲_ {n} A B = ∀{σ : ∀{u} → Fin n → PreType 0 u} → Sim (subst σ A) (subst σ B)
 
@@ -74,9 +61,6 @@ _≲_ {n} A B = ∀{σ : ∀{u} → Fin n → PreType 0 u} → Sim (subst σ A) 
 ≲trans : ∀{n} {A B C : Type n} → A ≲ B → B ≲ C → A ≲ C
 ≲trans p q = sim-trans p q
 
--- ≲-unfold-rec : ∀{n r} {A B : PreType n (suc r)} → unfold A ≲ rec A
--- ≲-unfold-rec = {!!}
-
 ≲dual : ∀{n} {A B : Type n} → A ≲ B → dual A ≲ dual B
 ≲dual {n} {A} {B} le {σ}
   rewrite sym (dual-subst σ A) | sym (dual-subst σ B) = sim-dual le
@@ -84,9 +68,6 @@ _≲_ {n} A B = ∀{σ : ∀{u} → Fin n → PreType 0 u} → Sim (subst σ A) 
 ≲subst : ∀{m n} {A B : Type m} (σ : ∀{u} → Fin m → PreType n u) →
          A ≲ B → subst σ A ≲ subst σ B
 ≲subst {A = A} {B} σ le {τ} rewrite subst-compose σ τ A | subst-compose σ τ B = le
-
--- ≲-after : ∀{n ℓ} {A B A' B' : Type n} → A ≲ B → A ⊨ ℓ ⇒ A' → B ⊨ ℓ ⇒ B' → A' ≲ B'
--- ≲-after le p q = sim-after le {!!} {!!}
 
 ≲after⊕L : ∀{n} {A A' B B' : Type n} → (A ⊕ B) ≲ (A' ⊕ B') → A ≲ A'
 ≲after⊕L le {σ} .sim-skip sk with le {σ} .sim-next ⊕L
@@ -114,59 +95,46 @@ _≲_ {n} A B = ∀{σ : ∀{u} → Fin n → PreType 0 u} → Sim (subst σ A) 
 
 -- EQUIVALENCE
 
-record _≅_ {n} (A B : Type n) : Set where
+record _≈_ {n} (A B : Type n) : Set where
   field
     to   : A ≲ B
     from : B ≲ A
 
-open _≅_ public
+open _≈_ public
 
-≅refl : ∀{n} {A : Type n} → A ≅ A
-≅refl .to = sim-refl
-≅refl .from = sim-refl
+≈refl : ∀{n} {A : Type n} → A ≈ A
+≈refl .to = sim-refl
+≈refl .from = sim-refl
 
-≅sym : ∀{n} {A B : Type n} → A ≅ B → B ≅ A
-≅sym p .to = p .from
-≅sym p .from = p .to
+≈sym : ∀{n} {A B : Type n} → A ≈ B → B ≈ A
+≈sym p .to = p .from
+≈sym p .from = p .to
 
-≅trans : ∀{n} {A B C : Type n} → A ≅ B → B ≅ C → A ≅ C
-≅trans p q .to = sim-trans (p .to) (q .to)
-≅trans p q .from = sim-trans (q .from) (p .from)
+≈trans : ∀{n} {A B C : Type n} → A ≈ B → B ≈ C → A ≈ C
+≈trans p q .to = sim-trans (p .to) (q .to)
+≈trans p q .from = sim-trans (q .from) (p .from)
 
--- ≅after : ∀{n r} {ℓ} {A B A' B' : PreType n r} → A ≅ B → A ⊨ ℓ ⇒ A' → B ⊨ ℓ ⇒ B' → A' ≅ B'
--- ≅after eq at bt with eq .to .sim-next at | eq .from .sim-next bt
--- ... | _ , bt' , ale | _ , at' , ble rewrite deterministic at at' | deterministic bt bt' = record { to = ale ; from = ble }
+≈dual : ∀{n} {A B : Type n} → A ≈ B → dual A ≈ dual B
+≈dual {A = A} {B} eq .to   = ≲dual {A = A} {B} (eq .to)
+≈dual {A = A} {B} eq .from = ≲dual {A = B} {A} (eq .from)
 
-≅dual : ∀{n} {A B : Type n} → A ≅ B → dual A ≅ dual B
-≅dual {A = A} {B} eq .to   = ≲dual {A = A} {B} (eq .to)
-≅dual {A = A} {B} eq .from = ≲dual {A = B} {A} (eq .from)
+≈subst : ∀{m n} {A B : Type m} (σ : ∀{u} → Fin m → PreType n u) → A ≈ B →
+         subst σ A ≈ subst σ B
+≈subst {A = A} {B} σ eq .to = ≲subst {A = A} {B} σ (eq .to)
+≈subst {A = A} {B} σ eq .from = ≲subst {A = B} {A} σ (eq .from)
 
--- ≅unfold : ∀{n r} {A : PreType n (suc r)} → rec A ≅ unfold A
--- ≅unfold .to   = {!!}
--- ≅unfold .from = {!!}
+≈after⊕L : ∀{n} {A A' B B' : Type n} → (A ⊕ B) ≈ (A' ⊕ B') → A ≈ A'
+≈after⊕L {_} {A} {A'} {B} {B'} eq .to   = ≲after⊕L {_} {A} {A'} {B} {B'} (eq .to)
+≈after⊕L {_} {A} {A'} {B} {B'} eq .from = ≲after⊕L {_} {A'} {A} {B'} {B} (eq .from)
 
--- closed-absorbing : ∀{n r} {A B : PreType n r} → Closed A → A ≅ (A ⨟ B)
--- closed-absorbing comp .to = closed-absorbing-r comp
--- closed-absorbing comp .from = closed-absorbing-l comp
+≈after⊕R : ∀{n} {A A' B B' : Type n} → (A ⊕ B) ≈ (A' ⊕ B') → B ≈ B'
+≈after⊕R {_} {A} {A'} {B} {B'} eq .to   = ≲after⊕R {_} {A} {A'} {B} {B'} (eq .to)
+≈after⊕R {_} {A} {A'} {B} {B'} eq .from = ≲after⊕R {_} {A'} {A} {B'} {B} (eq .from)
 
-≅subst : ∀{m n} {A B : Type m} (σ : ∀{u} → Fin m → PreType n u) → A ≅ B →
-         subst σ A ≅ subst σ B
-≅subst {A = A} {B} σ eq .to = ≲subst {A = A} {B} σ (eq .to)
-≅subst {A = A} {B} σ eq .from = ≲subst {A = B} {A} σ (eq .from)
+≈after⊗L : ∀{n} {A A' B B' : Type n} → (A ⊗ B) ≈ (A' ⊗ B') → A ≈ A'
+≈after⊗L {_} {A} {A'} {B} {B'} eq .to   = ≲after⊗L {_} {A} {A'} {B} {B'} (eq .to)
+≈after⊗L {_} {A} {A'} {B} {B'} eq .from = ≲after⊗L {_} {A'} {A} {B'} {B} (eq .from)
 
-≅after⊕L : ∀{n} {A A' B B' : Type n} → (A ⊕ B) ≅ (A' ⊕ B') → A ≅ A'
-≅after⊕L {_} {A} {A'} {B} {B'} eq .to   = ≲after⊕L {_} {A} {A'} {B} {B'} (eq .to)
-≅after⊕L {_} {A} {A'} {B} {B'} eq .from = ≲after⊕L {_} {A'} {A} {B'} {B} (eq .from)
-
-≅after⊕R : ∀{n} {A A' B B' : Type n} → (A ⊕ B) ≅ (A' ⊕ B') → B ≅ B'
-≅after⊕R {_} {A} {A'} {B} {B'} eq .to   = ≲after⊕R {_} {A} {A'} {B} {B'} (eq .to)
-≅after⊕R {_} {A} {A'} {B} {B'} eq .from = ≲after⊕R {_} {A'} {A} {B'} {B} (eq .from)
-
-≅after⊗L : ∀{n} {A A' B B' : Type n} → (A ⊗ B) ≅ (A' ⊗ B') → A ≅ A'
-≅after⊗L {_} {A} {A'} {B} {B'} eq .to   = ≲after⊗L {_} {A} {A'} {B} {B'} (eq .to)
-≅after⊗L {_} {A} {A'} {B} {B'} eq .from = ≲after⊗L {_} {A'} {A} {B'} {B} (eq .from)
-
-≅after⊗R : ∀{n} {A A' B B' : Type n} → (A ⊗ B) ≅ (A' ⊗ B') → B ≅ B'
-≅after⊗R {_} {A} {A'} {B} {B'} eq .to   = ≲after⊗R {_} {A} {A'} {B} {B'} (eq .to)
-≅after⊗R {_} {A} {A'} {B} {B'} eq .from = ≲after⊗R {_} {A'} {A} {B'} {B} (eq .from)
-
+≈after⊗R : ∀{n} {A A' B B' : Type n} → (A ⊗ B) ≈ (A' ⊗ B') → B ≈ B'
+≈after⊗R {_} {A} {A'} {B} {B'} eq .to   = ≲after⊗R {_} {A} {A'} {B} {B'} (eq .to)
+≈after⊗R {_} {A} {A'} {B} {B'} eq .from = ≲after⊗R {_} {A'} {A} {B'} {B} (eq .from)
