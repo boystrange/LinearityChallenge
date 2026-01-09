@@ -35,4 +35,6 @@ data _⊢_↝_ {n Σ Γ} (ℙ : Def Σ) : Proc {n} Σ Γ → Proc Σ Γ → Set 
                 let _ , p' , q' = +-assoc-r p q in
                 ℙ ⊢ cut {A = A ⅋ B} eq (join (ch ⟨ < p₀ ⟩ P) ⟨ p ⟩ fork (ch ⟨ < q₀ ⟩ (Q ⟨ q ⟩ R))) ↝
                     cut (≈after⊗R eq) (cut (≈after⊗L eq) (P ⟨ < p' ⟩ Q) ⟨ q' ⟩ R)
+  r-cut        : ∀{Γ₁ Γ₂ A B P R Q} (eq : dual A ≈ B) (p : Γ ≃ Γ₁ + Γ₂) →
+                 ℙ ⊢ P ↝ Q → ℙ ⊢ cut {A = A} eq (P ⟨ p ⟩ R) ↝ cut eq (Q ⟨ p ⟩ R)
   r-cong       : ∀{P R Q} → P ⊒ R → ℙ ⊢ R ↝ Q → ℙ ⊢ P ↝ Q
