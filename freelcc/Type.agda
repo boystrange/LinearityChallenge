@@ -188,12 +188,6 @@ dual-subst σ (A ⊗ B) = cong₂ _⅋_ (dual-subst σ A) (dual-subst σ B)
 dual-subst σ (inv x) = refl
 dual-subst σ (rec A) = cong rec (dual-subst σ A)
 
-dual∘inv : ∀{n r} → dual {n} {r} ∘ inv ≡ inv
-dual∘inv {n} {r} = extensionality aux
-  where
-    aux : (x : Fin r) → dual {n} (inv x) ≡ inv x
-    aux x = refl
-
 Type : ℕ → Set
 Type n = PreType n 0
 

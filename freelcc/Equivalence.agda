@@ -33,14 +33,6 @@ sim-trans p q .sim-next tr with p .sim-next tr
 ... | _ , tr' , p' with q .sim-next tr'
 ... | _ , tr'' , q' = _ , tr'' , sim-trans p' q'
 
-sim-rec-unfold : ∀{A : PreType 0 1} → Sim (rec A) (unfold A)
-sim-rec-unfold .sim-skip (rec sk) = sk
-sim-rec-unfold .sim-next (rec tr) = _ , tr , sim-refl
-
-sim-unfold-rec : ∀{A : PreType 0 1} → Sim (unfold A) (rec A)
-sim-unfold-rec .sim-skip sk = rec sk
-sim-unfold-rec .sim-next tr = _ , rec tr , sim-refl
-
 sim-dual : ∀{A B} → Sim A B → Sim (dual A) (dual B)
 sim-dual le .sim-skip sk = skip-dual (le .sim-skip (skip-dual sk))
 sim-dual le .sim-next tr with le .sim-next (transition-dual tr)
@@ -51,6 +43,8 @@ sim-after le p q .sim-skip sk with le .sim-next p
 ... | _ , q' , le' rewrite deterministic q q' = le' .sim-skip sk
 sim-after le p q .sim-next tr with le .sim-next p
 ... | _ , q' , le' rewrite deterministic q q' = le' .sim-next tr
+
+-- HALF EQUIVALENCE
 
 _≲_ : ∀{n} → Type n → Type n → Set
 _≲_ {n} A B = ∀{σ : ∀{u} → Fin n → PreType 0 u} → Sim (subst σ A) (subst σ B)
@@ -70,27 +64,27 @@ _≲_ {n} A B = ∀{σ : ∀{u} → Fin n → PreType 0 u} → Sim (subst σ A) 
 ≲subst {A = A} {B} σ le {τ} rewrite subst-compose σ τ A | subst-compose σ τ B = le
 
 ≲after⊕L : ∀{n} {A A' B B' : Type n} → (A ⊕ B) ≲ (A' ⊕ B') → A ≲ A'
-≲after⊕L le {σ} .sim-skip sk with le {σ} .sim-next ⊕L
+≲after⊕L le .sim-skip sk with le .sim-next ⊕L
 ... | _ , ⊕L , le' = le' .sim-skip sk
-≲after⊕L le {σ} .sim-next tr with le {σ} .sim-next ⊕L
+≲after⊕L le .sim-next tr with le .sim-next ⊕L
 ... | _ , ⊕L , le' = le' .sim-next tr
 
 ≲after⊕R : ∀{n} {A A' B B' : Type n} → (A ⊕ B) ≲ (A' ⊕ B') → B ≲ B'
-≲after⊕R le {σ} .sim-skip sk with le {σ} .sim-next ⊕R
+≲after⊕R le .sim-skip sk with le .sim-next ⊕R
 ... | _ , ⊕R , le' = le' .sim-skip sk
-≲after⊕R le {σ} .sim-next tr with le {σ} .sim-next ⊕R
+≲after⊕R le .sim-next tr with le .sim-next ⊕R
 ... | _ , ⊕R , le' = le' .sim-next tr
 
 ≲after⊗L : ∀{n} {A A' B B' : Type n} → (A ⊗ B) ≲ (A' ⊗ B') → A ≲ A'
-≲after⊗L le {σ} .sim-skip sk with le {σ} .sim-next ⊗L
+≲after⊗L le .sim-skip sk with le .sim-next ⊗L
 ... | _ , ⊗L , le' = le' .sim-skip sk
-≲after⊗L le {σ} .sim-next tr with le {σ} .sim-next ⊗L
+≲after⊗L le .sim-next tr with le .sim-next ⊗L
 ... | _ , ⊗L , le' = le' .sim-next tr
 
 ≲after⊗R : ∀{n} {A A' B B' : Type n} → (A ⊗ B) ≲ (A' ⊗ B') → B ≲ B'
-≲after⊗R le {σ} .sim-skip sk with le {σ} .sim-next ⊗R
+≲after⊗R le .sim-skip sk with le .sim-next ⊗R
 ... | _ , ⊗R , le' = le' .sim-skip sk
-≲after⊗R le {σ} .sim-next tr with le {σ} .sim-next ⊗R
+≲after⊗R le .sim-next tr with le .sim-next ⊗R
 ... | _ , ⊗R , le' = le' .sim-next tr
 
 -- EQUIVALENCE
