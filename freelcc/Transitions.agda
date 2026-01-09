@@ -49,7 +49,7 @@ dual-label-inv {⊗R} = refl
 -- dual-label-not-skip : ∀{n} {ℓ : Label n} → ℓ ≢ ε → dual-label ℓ ≢ ε
 -- dual-label-not-skip neq eq = contradiction (cong dual-label eq) neq
 
-data _⊨_⇒_ {n r} : PreType n r → Label → PreType n r → Set where
+data _⊨_⇒_ : GroundType → Label → GroundType → Set where
   -- skip : skip ⊨ ε ⇒ skip
   ⊥    : ⊥ ⊨ ⊥ ⇒ ⊥
   𝟙    : 𝟙 ⊨ 𝟙 ⇒ 𝟙
@@ -75,12 +75,12 @@ data _⊨_⇒_ {n r} : PreType n r → Label → PreType n r → Set where
 -- only-skip (seqr _ x) (seqr _ y) = only-skip x y
 -- only-skip (rec x) (rec y) = only-skip x y
 
-transition-not-skip : ∀{n r ℓ} {A B : PreType n r} → A ⊨ ℓ ⇒ B → ¬ Skip A
+transition-not-skip : ∀{ℓ A B} → A ⊨ ℓ ⇒ B → ¬ Skip A
 transition-not-skip (seql tr) (seq sk _) = transition-not-skip tr sk
 transition-not-skip (seqr _ tr) (seq _ sk) = transition-not-skip tr sk
 transition-not-skip (rec tr) (rec sk) = transition-not-skip tr sk
 
-deterministic : ∀{n r ℓ} {A B C : PreType n r} → A ⊨ ℓ ⇒ B → A ⊨ ℓ ⇒ C → B ≡ C
+deterministic : ∀{ℓ A B C} → A ⊨ ℓ ⇒ B → A ⊨ ℓ ⇒ C → B ≡ C
 -- deterministic skip skip = refl
 deterministic ⊥ ⊥ = refl
 deterministic 𝟙 𝟙 = refl
@@ -102,7 +102,7 @@ deterministic (seqr sk _) (seql y) = contradiction sk (transition-not-skip y)
 deterministic (seqr _ x) (seqr _ y) = deterministic x y
 deterministic (rec x) (rec y) = deterministic x y
 
-transition-dual : ∀{n r} {A B : PreType n r} {ℓ} → A ⊨ ℓ ⇒ B → dual A ⊨ dual-label ℓ ⇒ dual B
+transition-dual : ∀{A B ℓ} → A ⊨ ℓ ⇒ B → dual A ⊨ dual-label ℓ ⇒ dual B
 -- transition-dual skip = skip
 transition-dual ⊥ = 𝟙
 transition-dual 𝟙 = ⊥
@@ -142,10 +142,10 @@ transition-dual {A = rec A} (rec tr) with transition-dual tr
 -- subst-next σ (rec {A} tr) with subst-next σ tr
 -- ... | tr' = rec {!!}
 
-record Closed {n r} (A : PreType n r) : Set where
-  coinductive
-  field
-    closed-skip : ¬ Skip A
-    closed-cont : ∀{ℓ B} → A ⊨ ℓ ⇒ B → Closed B
+-- record Closed {n r} (A : PreType n r) : Set where
+--   coinductive
+--   field
+--     closed-skip : ¬ Skip A
+--     closed-cont : ∀{ℓ B} → A ⊨ ℓ ⇒ B → Closed B
 
-open Closed public
+-- open Closed public

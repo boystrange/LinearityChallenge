@@ -155,7 +155,7 @@ dual-unfold A rewrite dual-rec-subst (s-just (rec A)) A | dual-s-just (rec A) = 
 
 -- POLYMORPHISM
 
-subst : ∀{n m r} → (∀{s} → Fin n → PreType m s) → PreType n r → PreType m r
+subst : ∀{n m r} → (∀{u} → Fin n → PreType m u) → PreType n r → PreType m r
 subst σ (var x) = σ x
 subst σ (rav x) = dual (σ x)
 subst σ skip = skip
@@ -171,7 +171,7 @@ subst σ (A ⊗ B) = subst σ A ⊗ subst σ B
 subst σ (inv x) = inv x
 subst σ (rec A) = rec (subst σ A)
 
-dual-subst : ∀{n m r} (σ : ∀{s} → Fin n → PreType m s) (A : PreType n r) →
+dual-subst : ∀{n m r} (σ : ∀{u} → Fin n → PreType m u) (A : PreType n r) →
              dual (subst σ A) ≡ subst σ (dual A)
 dual-subst σ (var x) = refl
 dual-subst σ (rav x) = refl
@@ -196,6 +196,13 @@ dual∘inv {n} {r} = extensionality aux
 
 Type : ℕ → Set
 Type n = PreType n 0
+
+GroundType : Set
+GroundType = Type 0
+
+-- subst (subst (rename (suc ∘ ρ) ∘ σ₂) ∘ rename (suc ∘ ρ) ∘ σ₁) A
+
+-- subst (rename suc ∘ subst (rename ρ ∘ σ₂) ∘ rename ρ ∘ σ₁) A
 
 subst-compose : ∀{m n o r}
                 (σ₁ : ∀{u} → Fin m → PreType n u) (σ₂ : ∀{u} → Fin n → PreType o u) →
