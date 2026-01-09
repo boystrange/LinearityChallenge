@@ -1,21 +1,18 @@
 {-# OPTIONS --rewriting --guardedness #-}
-open import Function using (id; _∘_)
-open import Data.Nat using (ℕ; zero; suc)
-open import Data.Fin using (Fin; zero; suc)
+open import Data.Nat using (ℕ)
+open import Data.Fin using (Fin)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
 open import Relation.Nullary using (¬_; contradiction)
 open import Relation.Binary.PropositionalEquality as Eq using (_≡_; _≢_; refl; cong; cong₂; sym)
 open import Agda.Builtin.Equality.Rewrite
 
 open import Type
-open import Skip
 
 data Label : Set where
-  -- ε : Label
-  ⊥ 𝟙 ⊤ 𝟘 &L &R ⊕L ⊕R ⅋L ⅋R ⊗L ⊗R : Label
+  ε ⊥ 𝟙 ⊤ 𝟘 &L &R ⊕L ⊕R ⅋L ⅋R ⊗L ⊗R : Label
 
 dual-label : Label → Label
--- dual-label ε = ε
+dual-label ε = ε
 dual-label ⊥ = 𝟙
 dual-label 𝟙 = ⊥
 dual-label ⊤ = 𝟘
@@ -30,7 +27,7 @@ dual-label ⊗L = ⅋L
 dual-label ⊗R = ⅋R
 
 dual-label-inv : ∀{ℓ} → dual-label (dual-label ℓ) ≡ ℓ
--- dual-label-inv {_} {ε} = refl
+dual-label-inv {ε} = refl
 dual-label-inv {⊥} = refl
 dual-label-inv {𝟙} = refl
 dual-label-inv {⊤} = refl
@@ -46,11 +43,11 @@ dual-label-inv {⊗R} = refl
 
 {-# REWRITE dual-label-inv #-}
 
--- dual-label-not-skip : ∀{n} {ℓ : Label n} → ℓ ≢ ε → dual-label ℓ ≢ ε
--- dual-label-not-skip neq eq = contradiction (cong dual-label eq) neq
+dual-label-not-skip : ∀{ℓ} → ℓ ≢ ε → dual-label ℓ ≢ ε
+dual-label-not-skip neq eq = contradiction (cong dual-label eq) neq
 
 data _⊨_⇒_ : GroundType → Label → GroundType → Set where
-  -- skip : skip ⊨ ε ⇒ skip
+  skip : skip ⊨ ε ⇒ skip
   ⊥    : ⊥ ⊨ ⊥ ⇒ ⊥
   𝟙    : 𝟙 ⊨ 𝟙 ⇒ 𝟙
   ⊤    : ⊤ ⊨ ⊤ ⇒ ⊤
@@ -63,25 +60,20 @@ data _⊨_⇒_ : GroundType → Label → GroundType → Set where
   ⅋R   :  ∀{A B} → (A ⅋ B) ⊨ ⅋R ⇒ B
   ⊗L   : ∀{A B} → (A ⊗ B) ⊨ ⊗L ⇒ A
   ⊗R   : ∀{A B} → (A ⊗ B) ⊨ ⊗R ⇒ B
-  seql : ∀{A B C ℓ} → A ⊨ ℓ ⇒ B → (A ⨟ C) ⊨ ℓ ⇒ (B ⨟ C)
-  seqr : ∀{A B C ℓ} → Skip A → B ⊨ ℓ ⇒ C → (A ⨟ B) ⊨ ℓ ⇒ C
+  seql : ∀{A B C ℓ} → A ⊨ ℓ ⇒ B → ℓ ≢ ε → (A ⨟ C) ⊨ ℓ ⇒ (B ⨟ C)
+  seqr : ∀{A B C ℓ} → A ⊨ ε ⇒ skip → B ⊨ ℓ ⇒ C → (A ⨟ B) ⊨ ℓ ⇒ C
   rec  : ∀{A B ℓ} → unfold A ⊨ ℓ ⇒ B → rec A ⊨ ℓ ⇒ B
 
--- only-skip : ∀{n r ℓ} {A B C : PreType n r} → A ⊨ ℓ ⇒ B → A ⊨ ε ⇒ C → ℓ ≡ ε
--- only-skip skip skip = refl
--- only-skip (seql _ _) (seql _ ne) = contradiction refl ne
--- only-skip (seqr _ _) (seql _ ne) = contradiction refl ne
--- only-skip (seql x ne) (seqr y _) = contradiction (only-skip x y) ne
--- only-skip (seqr _ x) (seqr _ y) = only-skip x y
--- only-skip (rec x) (rec y) = only-skip x y
-
-transition-not-skip : ∀{ℓ A B} → A ⊨ ℓ ⇒ B → ¬ Skip A
-transition-not-skip (seql tr) (seq sk _) = transition-not-skip tr sk
-transition-not-skip (seqr _ tr) (seq _ sk) = transition-not-skip tr sk
-transition-not-skip (rec tr) (rec sk) = transition-not-skip tr sk
+only-skip : ∀{ℓ A B C} → A ⊨ ℓ ⇒ B → A ⊨ ε ⇒ C → ℓ ≡ ε
+only-skip skip skip = refl
+only-skip (seql _ _) (seql _ ne) = contradiction refl ne
+only-skip (seqr _ _) (seql _ ne) = contradiction refl ne
+only-skip (seql x ne) (seqr y _) = contradiction (only-skip x y) ne
+only-skip (seqr _ x) (seqr _ y) = only-skip x y
+only-skip (rec x) (rec y) = only-skip x y
 
 deterministic : ∀{ℓ A B C} → A ⊨ ℓ ⇒ B → A ⊨ ℓ ⇒ C → B ≡ C
--- deterministic skip skip = refl
+deterministic skip skip = refl
 deterministic ⊥ ⊥ = refl
 deterministic 𝟙 𝟙 = refl
 deterministic ⊤ ⊤ = refl
@@ -94,16 +86,14 @@ deterministic ⅋L ⅋L = refl
 deterministic ⅋R ⅋R = refl
 deterministic ⊗L ⊗L = refl
 deterministic ⊗R ⊗R = refl
-deterministic (seql x) (seql y) = cong₂ _⨟_ (deterministic x y) refl
--- deterministic (seql x ne) (seqr y _) = contradiction (only-skip x y) ne
-deterministic (seql x) (seqr sk _) = contradiction sk (transition-not-skip x)
--- deterministic (seqr x _) (seql y ne) = contradiction (only-skip y x) ne
-deterministic (seqr sk _) (seql y) = contradiction sk (transition-not-skip y)
+deterministic (seql x ne) (seql y ne') = cong₂ _⨟_ (deterministic x y) refl
+deterministic (seql x ne) (seqr y _) = contradiction (only-skip x y) ne
+deterministic (seqr sk _) (seql y ne) = contradiction (only-skip y sk) ne
 deterministic (seqr _ x) (seqr _ y) = deterministic x y
 deterministic (rec x) (rec y) = deterministic x y
 
 transition-dual : ∀{A B ℓ} → A ⊨ ℓ ⇒ B → dual A ⊨ dual-label ℓ ⇒ dual B
--- transition-dual skip = skip
+transition-dual skip = skip
 transition-dual ⊥ = 𝟙
 transition-dual 𝟙 = ⊥
 transition-dual ⊤ = 𝟘
@@ -116,31 +106,10 @@ transition-dual ⅋L = ⊗L
 transition-dual ⅋R = ⊗R
 transition-dual ⊗L = ⅋L
 transition-dual ⊗R = ⅋R
--- transition-dual (seqr tr tr') = seqr (transition-dual tr) (transition-dual tr')
-transition-dual (seqr sk tr) = seqr (skip-dual sk) (transition-dual tr)
--- transition-dual (seql tr neq) = seql (transition-dual tr) (dual-label-not-skip neq)
-transition-dual (seql tr) = seql (transition-dual tr)
+transition-dual (seqr sk tr) = seqr (transition-dual sk) (transition-dual tr)
+transition-dual (seql tr ne) = seql (transition-dual tr) (dual-label-not-skip ne)
 transition-dual {A = rec A} (rec tr) with transition-dual tr
 ... | tr' rewrite dual-unfold A = rec tr'
-
--- subst-next : ∀{m n r ℓ} {A B : PreType m r} (σ : ∀{s} → Fin m → PreType n s) →
---              A ⊨ ℓ ⇒ B → subst σ A ⊨ ℓ ⇒ subst σ B
--- subst-next σ ⊥ = ⊥
--- subst-next σ 𝟙 = 𝟙
--- subst-next σ ⊤ = ⊤
--- subst-next σ 𝟘 = 𝟘
--- subst-next σ &L = &L
--- subst-next σ &R = &R
--- subst-next σ ⊕L = ⊕L
--- subst-next σ ⊕R = ⊕R
--- subst-next σ ⅋L = ⅋L
--- subst-next σ ⅋R = ⅋R
--- subst-next σ ⊗L = ⊗L
--- subst-next σ ⊗R = ⊗R
--- subst-next σ (seql tr) = seql (subst-next σ tr)
--- subst-next σ (seqr x tr) = seqr {!!} {!!}
--- subst-next σ (rec {A} tr) with subst-next σ tr
--- ... | tr' = rec {!!}
 
 -- record Closed {n r} (A : PreType n r) : Set where
 --   coinductive

@@ -10,8 +10,7 @@ open import Relation.Binary.HeterogeneousEquality as Heq using (_≅_; refl)
 open Eq.≡-Reasoning
 open import Agda.Builtin.Equality.Rewrite
 
-postulate
-  extensionality : ∀{A B : Set} {f g : A → B} → ((x : A) → f x ≡ g x) → f ≡ g
+open import Axioms
 
 data PreType (n : ℕ) : ℕ → Set where
   var rav              : ∀{r} → Fin n → PreType n r
@@ -193,10 +192,6 @@ Type n = PreType n 0
 
 GroundType : Set
 GroundType = Type 0
-
--- subst (subst (rename (suc ∘ ρ) ∘ σ₂) ∘ rename (suc ∘ ρ) ∘ σ₁) A
-
--- subst (rename suc ∘ subst (rename ρ ∘ σ₂) ∘ rename ρ ∘ σ₁) A
 
 subst-compose : ∀{m n o r}
                 (σ₁ : ∀{u} → Fin m → PreType n u) (σ₂ : ∀{u} → Fin n → PreType o u) →
