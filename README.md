@@ -2,3 +2,4 @@ This repository is meant to contain Agda formalizations of various versions of t
 
 * [LCC](lcc)
 * [LCC](rec) with infinite types and recursive processes
+* [FreeCP](freecp) with context-free session types, recursive processes, polymorphic recursion
