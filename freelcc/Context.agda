@@ -8,6 +8,7 @@ open import Relation.Unary
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong₂)
 
 open import Type
+open import Equivalence
 
 Context : ℕ → Set
 Context n = List (Type n)
@@ -86,3 +87,18 @@ substc-compose σ₁ σ₂ (A ∷ Γ) = cong₂ _∷_ (subst-compose σ₁ σ₂
 +-subst σ • = •
 +-subst σ (< p) = < +-subst σ p
 +-subst σ (> p) = > +-subst σ p
+
+data _≈c_ {n} : Context n → Context n → Set where
+  [] : [] ≈c []
+  _∷_ : ∀{A B Γ Δ} → A ≈ B → Γ ≈c Δ → (A ∷ Γ) ≈c (B ∷ Δ)
+
+≈c-refl : ∀{n} {Γ : Context n} → Γ ≈c Γ
+≈c-refl {_} {[]} = []
+≈c-refl {_} {A ∷ Γ} = ≈refl ∷ ≈c-refl
+
++≈ : ∀{n} {Γ Δ Δ' Θ : Context n} → Γ ≃ Δ + Θ → Δ ≈c Δ' → ∃[ Γ' ] Γ' ≃ Δ' + Θ × Γ ≈c Γ'
++≈ • [] = _ , • , []
++≈ (< p) (x ∷ eq) with +≈ p eq
+... | Γ' , p' , eq' = _ , < p' , x ∷ eq'
++≈ (> p) eq with +≈ p eq
+... | Γ' , p' , eq' = _ , > p' , ≈refl ∷ eq'

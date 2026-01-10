@@ -35,6 +35,46 @@ sim-after : ∀{ℓ A B A' B'} → Sim A B → A ⊨ ℓ ⇒ A' → B ⊨ ℓ �
 sim-after le p q .Sim.next tr with le .Sim.next p
 ... | _ , q' , le' rewrite deterministic q q' = le' .Sim.next tr
 
+sim⊥𝟙 : ¬ Sim ⊥ 𝟙
+sim⊥𝟙 sim with sim .Sim.next ⊥
+... | _ , () , _
+
+sim⊥⊕ : ∀{A B} → ¬ Sim ⊥ (A ⊕ B)
+sim⊥⊕ sim with sim .Sim.next ⊥
+... | _ , () , _
+
+sim⊥⊗ : ∀{A B} → ¬ Sim ⊥ (A ⊗ B)
+sim⊥⊗ sim with sim .Sim.next ⊥
+... | _ , () , _
+
+sim⊤𝟘 : ¬ Sim ⊤ 𝟘
+sim⊤𝟘 sim with sim .Sim.next ⊤
+... | _ , () , _
+
+sim⊤𝟙 : ¬ Sim ⊤ 𝟙
+sim⊤𝟙 sim with sim .Sim.next ⊤
+... | _ , () , _
+
+sim⊤⊕ : ∀{A B} → ¬ Sim ⊤ (A ⊕ B)
+sim⊤⊕ sim with sim .Sim.next ⊤
+... | _ , () , _
+
+sim⊤⊗ : ∀{A B} → ¬ Sim ⊤ (A ⊗ B)
+sim⊤⊗ sim with sim .Sim.next ⊤
+... | _ , () , _
+
+sim&⊕ : ∀{A B C D} → ¬ Sim (A & B) (C ⊕ D)
+sim&⊕ sim with sim .Sim.next &L
+... | _ , () , _
+
+sim&⊗ : ∀{A B C D} → ¬ Sim (A & B) (C ⊗ D)
+sim&⊗ sim with sim .Sim.next &L
+... | _ , () , _
+
+sim⅋⊗ : ∀{A B C D} → ¬ Sim (A ⅋ B) (C ⊗ D)
+sim⅋⊗ sim with sim .Sim.next ⅋L
+... | _ , () , _
+
 -- HALF EQUIVALENCE
 
 _≲_ : ∀{n} → Type n → Type n → Set
@@ -115,3 +155,6 @@ open _≈_ public
 ≈after⊗R : ∀{n} {A A' B B' : Type n} → (A ⊗ B) ≈ (A' ⊗ B') → B ≈ B'
 ≈after⊗R {_} {A} {A'} {B} {B'} eq .to   = ≲after⊗R {_} {A} {A'} {B} {B'} (eq .to)
 ≈after⊗R {_} {A} {A'} {B} {B'} eq .from = ≲after⊗R {_} {A'} {A} {B'} {B} (eq .from)
+
+not≈ : ∀{n} {A B : Type n} → ¬ Sim (subst (λ _ → skip) A) (subst (λ _ → skip) B) → ¬ A ≈ B
+not≈ nsim eq = contradiction (eq .to) nsim
