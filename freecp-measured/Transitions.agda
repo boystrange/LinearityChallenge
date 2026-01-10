@@ -10,6 +10,7 @@ open import Type
 
 data Label : Set where
   ε ⊥ 𝟙 ⊤ 𝟘 &L &R ⊕L ⊕R ⅋L ⅋R ⊗L ⊗R : Label
+  put get : ℕ → Label
 
 dual-label : Label → Label
 dual-label ε = ε
@@ -25,6 +26,8 @@ dual-label ⅋L = ⊗L
 dual-label ⅋R = ⊗R
 dual-label ⊗L = ⅋L
 dual-label ⊗R = ⅋R
+dual-label (put μ) = get μ
+dual-label (get μ) = put μ
 
 dual-label-inv : ∀{ℓ} → dual-label (dual-label ℓ) ≡ ℓ
 dual-label-inv {ε} = refl
@@ -40,6 +43,8 @@ dual-label-inv {⅋L} = refl
 dual-label-inv {⅋R} = refl
 dual-label-inv {⊗L} = refl
 dual-label-inv {⊗R} = refl
+dual-label-inv {put μ} = refl
+dual-label-inv {get μ} = refl
 
 {-# REWRITE dual-label-inv #-}
 
@@ -71,6 +76,8 @@ data _⊨_⇒_ : GroundType → Label → GroundType → Set where
   seqε : ∀{A B C ℓ} → A ⊨ ε ⇒ skip → B ⊨ ℓ ⇒ C → (A ⨟ B) ⊨ ℓ ⇒ C
   seq⊗ : ∀{A B C} → A ⊨ ⊗L ⇒ C → (A ⨟ B) ⊨ ⊗L ⇒ C
   seq⅋ : ∀{A B C} → A ⊨ ⅋L ⇒ C → (A ⨟ B) ⊨ ⅋L ⇒ C
+  put  : ∀{μ A} → (μ ⊲ A) ⊨ put μ ⇒ A
+  get  : ∀{μ A} → (μ ⊳ A) ⊨ get μ ⇒ A
   rec  : ∀{A B ℓ} → unfold A ⊨ ℓ ⇒ B → rec A ⊨ ℓ ⇒ B
 
 only-skip : ∀{ℓ A B C} → A ⊨ ε ⇒ B → A ⊨ ℓ ⇒ C → ℓ ≡ ε
@@ -116,6 +123,8 @@ deterministic (seq⅋ x) (seq y yns) = contradiction ⅋L yns
 deterministic (seq⅋ x) (seqε sk y) with only-skip sk x
 ... | ()
 deterministic (seq⅋ x) (seq⅋ y) = deterministic x y
+deterministic put put = refl
+deterministic get get = refl
 deterministic (rec x) (rec y) = deterministic x y
 
 transition-dual : ∀{A B ℓ} → A ⊨ ℓ ⇒ B → dual A ⊨ dual-label ℓ ⇒ dual B
@@ -136,6 +145,8 @@ transition-dual (seq x xns) = seq (transition-dual x) (contraposition dual-speci
 transition-dual (seqε sk x) = seqε (transition-dual sk) (transition-dual x)
 transition-dual (seq⊗ x) = seq⅋ (transition-dual x)
 transition-dual (seq⅋ x) = seq⊗ (transition-dual x)
+transition-dual put = get
+transition-dual get = put
 transition-dual {A = rec A} (rec x) with transition-dual x
 ... | y rewrite dual-unfold A = rec y
 

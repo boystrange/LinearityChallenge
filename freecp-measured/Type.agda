@@ -16,6 +16,7 @@ data PreType (n : ℕ) : ℕ → Set where
   var rav              : ∀{r} → Fin n → PreType n r
   skip ⊤ 𝟘 ⊥ 𝟙         : ∀{r} → PreType n r
   _⨟_ _&_ _⊕_ _⅋_ _⊗_  : ∀{r} → PreType n r → PreType n r → PreType n r
+  _⊲_ _⊳_              : ∀{r} → ℕ → PreType n r → PreType n r
   inv                  : ∀{r} → Fin r → PreType n r
   rec                  : ∀{r} → PreType n (suc r) → PreType n r
 
@@ -32,6 +33,8 @@ dual (A ⅋ B) = dual A ⊗ dual B
 dual (A ⊗ B) = dual A ⅋ dual B
 dual skip    = skip
 dual (A ⨟ B) = dual A ⨟ dual B
+dual (μ ⊲ A) = μ ⊳ dual A
+dual (μ ⊳ A) = μ ⊲ dual A
 dual (inv x) = inv x
 dual (rec A) = rec (dual A)
 
@@ -48,6 +51,8 @@ dual-inv {_} {_} {A & B} = cong₂ _&_ dual-inv dual-inv
 dual-inv {_} {_} {A ⊕ B} = cong₂ _⊕_ dual-inv dual-inv
 dual-inv {_} {_} {A ⅋ B} = cong₂ _⅋_ dual-inv dual-inv
 dual-inv {_} {_} {A ⊗ B} = cong₂ _⊗_ dual-inv dual-inv
+dual-inv {_} {_} {μ ⊲ A} = cong (μ ⊲_) dual-inv
+dual-inv {_} {_} {μ ⊳ A} = cong (μ ⊳_) dual-inv
 dual-inv {_} {_} {inv x} = refl
 dual-inv {_} {_} {rec A} = cong rec dual-inv
 
@@ -72,6 +77,8 @@ rename ρ (A & B) = rename ρ A & rename ρ B
 rename ρ (A ⊕ B) = rename ρ A ⊕ rename ρ B
 rename ρ (A ⅋ B) = rename ρ A ⅋ rename ρ B
 rename ρ (A ⊗ B) = rename ρ A ⊗ rename ρ B
+rename ρ (μ ⊲ A) = μ ⊲ rename ρ A
+rename ρ (μ ⊳ A) = μ ⊳ rename ρ A
 rename ρ (inv x) = inv (ρ x)
 rename ρ (rec A) = rec (rename (ext ρ) A)
 
@@ -88,6 +95,8 @@ dual-rename ρ (A & B) = cong₂ _⊕_ (dual-rename ρ A) (dual-rename ρ B)
 dual-rename ρ (A ⊕ B) = cong₂ _&_ (dual-rename ρ A) (dual-rename ρ B)
 dual-rename ρ (A ⅋ B) = cong₂ _⊗_ (dual-rename ρ A) (dual-rename ρ B)
 dual-rename ρ (A ⊗ B) = cong₂ _⅋_ (dual-rename ρ A) (dual-rename ρ B)
+dual-rename ρ (μ ⊲ A) = cong (μ ⊳_) (dual-rename ρ A)
+dual-rename ρ (μ ⊳ A) = cong (μ ⊲_) (dual-rename ρ A)
 dual-rename ρ (inv x) = refl
 dual-rename ρ (rec A) = cong rec (dual-rename (ext ρ) A)
 
@@ -115,6 +124,8 @@ rec-subst σ (A & B) = rec-subst σ A & rec-subst σ B
 rec-subst σ (A ⊕ B) = rec-subst σ A ⊕ rec-subst σ B
 rec-subst σ (A ⅋ B) = rec-subst σ A ⅋ rec-subst σ B
 rec-subst σ (A ⊗ B) = rec-subst σ A ⊗ rec-subst σ B
+rec-subst σ (μ ⊲ A) = μ ⊲ rec-subst σ A
+rec-subst σ (μ ⊳ A) = μ ⊳ rec-subst σ A
 rec-subst σ (inv x) = σ x
 rec-subst σ (rec A) = rec (rec-subst (exts σ) A)
 
@@ -132,6 +143,8 @@ dual-rec-subst σ (A & B) = cong₂ _⊕_ (dual-rec-subst σ A) (dual-rec-subst 
 dual-rec-subst σ (A ⊕ B) = cong₂ _&_ (dual-rec-subst σ A) (dual-rec-subst σ B)
 dual-rec-subst σ (A ⅋ B) = cong₂ _⊗_ (dual-rec-subst σ A) (dual-rec-subst σ B)
 dual-rec-subst σ (A ⊗ B) = cong₂ _⅋_ (dual-rec-subst σ A) (dual-rec-subst σ B)
+dual-rec-subst σ (μ ⊲ A) = cong (μ ⊳_) (dual-rec-subst σ A)
+dual-rec-subst σ (μ ⊳ A) = cong (μ ⊲_) (dual-rec-subst σ A)
 dual-rec-subst σ (inv x) = refl
 dual-rec-subst σ (rec A) rewrite dual-exts σ = cong rec (dual-rec-subst (exts σ) A)
 
@@ -167,6 +180,8 @@ subst σ (A & B) = subst σ A & subst σ B
 subst σ (A ⊕ B) = subst σ A ⊕ subst σ B
 subst σ (A ⅋ B) = subst σ A ⅋ subst σ B
 subst σ (A ⊗ B) = subst σ A ⊗ subst σ B
+subst σ (μ ⊲ A) = μ ⊲ subst σ A
+subst σ (μ ⊳ A) = μ ⊳ subst σ A
 subst σ (inv x) = inv x
 subst σ (rec A) = rec (subst σ A)
 
@@ -184,6 +199,8 @@ dual-subst σ (A & B) = cong₂ _⊕_ (dual-subst σ A) (dual-subst σ B)
 dual-subst σ (A ⊕ B) = cong₂ _&_ (dual-subst σ A) (dual-subst σ B)
 dual-subst σ (A ⅋ B) = cong₂ _⊗_ (dual-subst σ A) (dual-subst σ B)
 dual-subst σ (A ⊗ B) = cong₂ _⅋_ (dual-subst σ A) (dual-subst σ B)
+dual-subst σ (μ ⊲ A) = cong (μ ⊳_) (dual-subst σ A)
+dual-subst σ (μ ⊳ A) = cong (μ ⊲_) (dual-subst σ A)
 dual-subst σ (inv x) = refl
 dual-subst σ (rec A) = cong rec (dual-subst σ A)
 
@@ -209,5 +226,7 @@ subst-compose σ₁ σ₂ (A & B) = cong₂ _&_ (subst-compose σ₁ σ₂ A) (s
 subst-compose σ₁ σ₂ (A ⊕ B) = cong₂ _⊕_ (subst-compose σ₁ σ₂ A) (subst-compose σ₁ σ₂ B)
 subst-compose σ₁ σ₂ (A ⅋ B) = cong₂ _⅋_ (subst-compose σ₁ σ₂ A) (subst-compose σ₁ σ₂ B)
 subst-compose σ₁ σ₂ (A ⊗ B) = cong₂ _⊗_ (subst-compose σ₁ σ₂ A) (subst-compose σ₁ σ₂ B)
+subst-compose σ₁ σ₂ (μ ⊲ A) = cong (μ ⊲_) (subst-compose σ₁ σ₂ A)
+subst-compose σ₁ σ₂ (μ ⊳ A) = cong (μ ⊳_) (subst-compose σ₁ σ₂ A)
 subst-compose σ₁ σ₂ (inv x) = refl
 subst-compose σ₁ σ₂ (rec A) = cong rec (subst-compose σ₁ σ₂ A)
