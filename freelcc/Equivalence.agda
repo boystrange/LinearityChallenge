@@ -43,6 +43,14 @@ sim⊥⊕ : ∀{A B} → ¬ Sim ⊥ (A ⊕ B)
 sim⊥⊕ sim with sim .Sim.next ⊥
 ... | _ , () , _
 
+sim𝟙⊕ : ∀{A B} → ¬ Sim 𝟙 (A ⊕ B)
+sim𝟙⊕ sim with sim .Sim.next 𝟙
+... | _ , () , _
+
+sim𝟙⊗ : ∀{A B} → ¬ Sim 𝟙 (A ⊗ B)
+sim𝟙⊗ sim with sim .Sim.next 𝟙
+... | _ , () , _
+
 sim⊥⊗ : ∀{A B} → ¬ Sim ⊥ (A ⊗ B)
 sim⊥⊗ sim with sim .Sim.next ⊥
 ... | _ , () , _
@@ -55,12 +63,24 @@ sim⊤𝟙 : ¬ Sim ⊤ 𝟙
 sim⊤𝟙 sim with sim .Sim.next ⊤
 ... | _ , () , _
 
+sim𝟘𝟙 : ¬ Sim 𝟘 𝟙
+sim𝟘𝟙 sim with sim .Sim.next 𝟘
+... | _ , () , _
+
 sim⊤⊕ : ∀{A B} → ¬ Sim ⊤ (A ⊕ B)
 sim⊤⊕ sim with sim .Sim.next ⊤
 ... | _ , () , _
 
+sim⊤& : ∀{A B} → ¬ Sim ⊤ (A & B)
+sim⊤& sim with sim .Sim.next ⊤
+... | _ , () , _
+
 sim⊤⊗ : ∀{A B} → ¬ Sim ⊤ (A ⊗ B)
 sim⊤⊗ sim with sim .Sim.next ⊤
+... | _ , () , _
+
+sim⊤⅋ : ∀{A B} → ¬ Sim ⊤ (A ⅋ B)
+sim⊤⅋ sim with sim .Sim.next ⊤
 ... | _ , () , _
 
 sim&⊕ : ∀{A B C D} → ¬ Sim (A & B) (C ⊕ D)
@@ -69,6 +89,10 @@ sim&⊕ sim with sim .Sim.next &L
 
 sim&⊗ : ∀{A B C D} → ¬ Sim (A & B) (C ⊗ D)
 sim&⊗ sim with sim .Sim.next &L
+... | _ , () , _
+
+sim⊕⊗ : ∀{A B C D} → ¬ Sim (A ⊕ B) (C ⊗ D)
+sim⊕⊗ sim with sim .Sim.next ⊕L
 ... | _ , () , _
 
 sim⅋⊗ : ∀{A B C D} → ¬ Sim (A ⅋ B) (C ⊗ D)

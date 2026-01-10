@@ -1,16 +1,15 @@
 {-# OPTIONS --rewriting --guardedness #-}
 open import Data.Unit using (tt)
 open import Data.Sum
-open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
+open import Data.Product using (_×_; _,_; ∃; ∃-syntax; Σ-syntax)
 open import Data.List.Base using ([]; _∷_; [_])
 open import Relation.Nullary using (¬_; contradiction)
-open import Relation.Unary
 open import Relation.Binary.PropositionalEquality using (refl)
 
 open import Type
 open import Equivalence
 open import Context
-open import Process
+open import Process hiding (_∈_)
 open import Reduction
 open import Congruence
 
@@ -51,7 +50,7 @@ Observable : ∀{n Σ Γ} → Proc {n} Σ Γ → Set
 Observable P = ∃[ Q ] P ⊒ Q × Thread Q
 
 Reducible : ∀{n Σ Γ} → Def Σ → Proc {n} Σ Γ → Set
-Reducible ℙ P = ∃[ Q ] ∃[ eq ] ℙ ⊢ P ↝ Q ⊣ eq
+Reducible {_} {Σ} ℙ P = ∃[ Δ ] Σ[ Q ∈ Proc Σ Δ ] (ℙ ⊢ P ↝ Q)
 
 Alive : ∀{n Σ Γ} → Def Σ → Proc {n} Σ Γ → Set
 Alive ℙ P = Observable P ⊎ Reducible ℙ P
@@ -142,62 +141,77 @@ canonical-cut eq pc (input x) (input y) = contradiction (x , y) (input-input eq)
 
 ⊒Alive : ∀{n Σ Γ} {P Q : Proc {n} Σ Γ} (ℙ : Def Σ) → P ⊒ Q → Alive ℙ Q → Alive ℙ P
 ⊒Alive ℙ pcong (inj₁ (_ , x , th)) = inj₁ (_ , s-tran pcong x , th)
-⊒Alive ℙ pcong (inj₂ (_ , eq , red)) = inj₂ (_ , {!!} , r-cong {!!} pcong {!red!})
+⊒Alive ℙ pcong (inj₂ (_ , Q , red)) = inj₂ (_ , Q , r-cong pcong red)
 
 canonical-cut-alive : ∀{n Σ Γ} {C : Proc {n} Σ Γ} (ℙ : Def Σ) → CanonicalCut C → Alive ℙ C
 canonical-cut-alive ℙ (cc-link eq pc (link eq' (< > •))) =
-  inj₂ ({!!} , {!!} , r-link eq eq' pc)
--- canonical-cut-alive ℙ (cc-link pc (link (> < •))) =
---   inj₂ (_ , r-cong (s-cong pc (s-link _) s-refl) (r-link pc))
--- canonical-cut-alive ℙ (cc-redex pc (inj₁ (wait p)) close) with +-empty-l p | +-empty-l (+-comm pc)
--- ... | refl | refl = inj₂ (_ , r-close pc p)
--- canonical-cut-alive ℙ (cc-redex pc (inj₁ (case p)) (select-l q)) with +-empty-l p | +-empty-l q
--- ... | refl | refl = inj₂ (_ , r-select-l pc p q)
--- canonical-cut-alive ℙ (cc-redex pc (inj₁ (case p)) (select-r q)) with +-empty-l p | +-empty-l q
--- ... | refl | refl = inj₂ (_ , r-select-r pc p q)
--- canonical-cut-alive ℙ (cc-redex pc (inj₁ (join p)) (fork q r)) with +-empty-l p | +-empty-l q
--- ... | refl | refl = inj₂ (_ , r-fork pc p r q)
--- canonical-cut-alive ℙ (cc-delayed pc (fail p)) =
---   let _ , _ , p' = +-assoc-l pc p in
---   inj₁ (_ , s-fail pc p , fail→thread p')
--- canonical-cut-alive ℙ (cc-delayed pc (wait p)) =
---   let _ , _ , p' = +-assoc-l pc p in
---   inj₁ (_ , s-wait pc p , wait→thread p')
--- canonical-cut-alive ℙ (cc-delayed pc (case p)) =
---   let _ , _ , p' = +-assoc-l pc p in
---   inj₁ (_ , s-case pc p , case→thread p')
--- canonical-cut-alive ℙ (cc-delayed pc (join p)) =
---   let _ , _ , p' = +-assoc-l pc p in
---   inj₁ (_ , s-join pc p , join→thread p')
--- canonical-cut-alive ℙ (cc-delayed pc (select-l p)) =
---   let _ , _ , p' = +-assoc-l pc p in
---   inj₁ (_ , s-select-l pc p , left→thread p')
--- canonical-cut-alive ℙ (cc-delayed pc (select-r p)) =
---   let _ , _ , p' = +-assoc-l pc p in
---   inj₁ (_ , s-select-r pc p , right→thread p')
--- canonical-cut-alive ℙ (cc-delayed p (fork-l q r)) =
---   let _ , p' , q' = +-assoc-l p q in
---   let _ , p'' , r' = +-assoc-l p' r in
---   let _ , q'' , r'' = +-assoc-r r' (+-comm p'') in
---   inj₁ (_ , s-fork-l p q r , fork→thread q' r'')
--- canonical-cut-alive ℙ (cc-delayed p (fork-r q r)) =
---   let _ , p' , q' = +-assoc-l p q in
---   let _ , p'' , r' = +-assoc-l p' r in
---   inj₁ (_ , s-fork-r p q r , fork→thread q' r')
+  inj₂ (_ , _ , r-link eq eq' pc)
+canonical-cut-alive ℙ (cc-link eq pc (link eq' (> < •))) =
+  inj₂ (_ , _ , r-cong (s-cong eq pc (s-link eq' _) s-refl) (r-link eq (≈sym (≈dual eq')) pc))
+canonical-cut-alive ℙ (cc-redex eq p (fail _) close) = contradiction eq (not≈ sim𝟘𝟙)
+canonical-cut-alive ℙ (cc-redex eq p (fail _) (select-l _)) = contradiction (≈dual eq) (not≈ sim⊤&)
+canonical-cut-alive ℙ (cc-redex eq p (fail _) (select-r _)) = contradiction (≈dual eq) (not≈ sim⊤&)
+canonical-cut-alive ℙ (cc-redex eq p (fail _) (fork _ _)) = contradiction (≈dual eq) (not≈ sim⊤⅋)
+canonical-cut-alive ℙ (cc-redex eq pc (wait p) close) with +-empty-l p | +-empty-l (+-comm pc)
+... | refl | refl = inj₂ (_ , _ , r-close eq pc p)
+canonical-cut-alive ℙ (cc-redex eq p (wait _) (select-l _)) = contradiction eq (not≈ sim𝟙⊕)
+canonical-cut-alive ℙ (cc-redex eq p (wait _) (select-r _)) = contradiction eq (not≈ sim𝟙⊕)
+canonical-cut-alive ℙ (cc-redex eq p (wait _) (fork _ _)) = contradiction eq (not≈ sim𝟙⊗)
+canonical-cut-alive ℙ (cc-redex eq p (case _) close) = contradiction (≈sym eq) (not≈ sim𝟙⊕)
+canonical-cut-alive ℙ (cc-redex eq pc (case p) (select-l q)) with +-empty-l p | +-empty-l q
+... | refl | refl = inj₂ (_ , _ , r-select-l eq pc p q)
+canonical-cut-alive ℙ (cc-redex eq pc (case p) (select-r q)) with +-empty-l p | +-empty-l q
+... | refl | refl = inj₂ (_ , _ , r-select-r eq pc p q)
+canonical-cut-alive ℙ (cc-redex eq p (case _) (fork _ _)) = contradiction eq (not≈ sim⊕⊗)
+canonical-cut-alive ℙ (cc-redex eq p (join _) close) = contradiction (≈sym eq) (not≈ sim𝟙⊗)
+canonical-cut-alive ℙ (cc-redex eq p (join _) (select-l _)) = contradiction (≈sym eq) (not≈ sim⊕⊗)
+canonical-cut-alive ℙ (cc-redex eq p (join _) (select-r _)) = contradiction (≈sym eq) (not≈ sim⊕⊗)
+canonical-cut-alive ℙ (cc-redex eq pc (join p) (fork q r)) with +-empty-l p | +-empty-l q
+... | refl | refl = inj₂ (_ , _ , r-fork eq pc p r q)
+canonical-cut-alive ℙ (cc-delayed eq p (fail q)) =
+  let _ , _ , q' = +-assoc-l p q in
+  inj₁ (_ , s-fail eq p q , fail→thread q')
+canonical-cut-alive ℙ (cc-delayed eq p (wait q)) =
+  let _ , _ , q' = +-assoc-l p q in
+  inj₁ (_ , s-wait eq p q , wait→thread q')
+canonical-cut-alive ℙ (cc-delayed eq p (case q)) =
+  let _ , _ , q' = +-assoc-l p q in
+  inj₁ (_ , s-case eq p q , case→thread q')
+canonical-cut-alive ℙ (cc-delayed eq p (select-l q)) =
+  let _ , _ , q' = +-assoc-l p q in
+  inj₁ (_ , s-select-l eq p q , left→thread q')
+canonical-cut-alive ℙ (cc-delayed eq p (select-r q)) =
+  let _ , _ , q' = +-assoc-l p q in
+  inj₁ (_ , s-select-r eq p q , right→thread q')
+canonical-cut-alive ℙ (cc-delayed eq p (join q)) =
+  let _ , _ , q' = +-assoc-l p q in
+  inj₁ (_ , s-join eq p q , join→thread q')
+canonical-cut-alive ℙ (cc-delayed eq p (fork-l q r)) =
+  let _ , p' , q' = +-assoc-l p q in
+  let _ , p'' , r' = +-assoc-l p' r in
+  let _ , q'' , r'' = +-assoc-r r' (+-comm p'') in
+  inj₁ (_ , s-fork-l eq p q r , fork→thread q' r'')
+canonical-cut-alive ℙ (cc-delayed eq p (fork-r q r)) =
+  let _ , p' , q' = +-assoc-l p q in
+  let _ , p'' , r' = +-assoc-l p' r in
+  inj₁ (_ , s-fork-r eq p q r , fork→thread q' r')
 
--- deadlock-freedom : ∀{Γ} (P : Proc Γ) → Alive P
--- deadlock-freedom (link (ch ⟨ p ⟩ ch)) = inj₁ (_ , s-refl , link (link p))
--- deadlock-freedom (fail (ch ⟨ p ⟩ _)) = inj₁ (_ , s-refl , fail→thread p)
--- deadlock-freedom (wait (ch ⟨ p ⟩ _)) = inj₁ (_ , s-refl , wait→thread p)
--- deadlock-freedom (close ch) = inj₁ (_ , s-refl , output close)
--- deadlock-freedom (case (ch ⟨ p ⟩ _)) = inj₁ (_ , s-refl , case→thread p)
--- deadlock-freedom (select (ch ⟨ p ⟩ inj₁ _)) = inj₁ (_ , s-refl , left→thread p)
--- deadlock-freedom (select (ch ⟨ p ⟩ inj₂ _)) = inj₁ (_ , s-refl , right→thread p)
--- deadlock-freedom (join (ch ⟨ p ⟩ _)) = inj₁ (_ , s-refl , join→thread p)
--- deadlock-freedom (fork (ch ⟨ p ⟩ (P ⟨ q ⟩ Q))) = inj₁ (_ , s-refl , fork→thread p q)
--- deadlock-freedom (cut (P ⟨ p ⟩ Q)) with deadlock-freedom P
--- ... | inj₂ (_ , red) = inj₂ (_ , r-cut p red)
--- ... | inj₁ (_ , Pc , Pt) with deadlock-freedom Q
--- ... | inj₂ (_ , red) = inj₂ (_ , r-cong (s-comm p) (r-cut (+-comm p) red))
--- ... | inj₁ (_ , Qc , Qt) with canonical-cut p Pt Qt
--- ... | _ , cc , pcong = ⊒Alive (s-tran (s-cong p Pc Qc) pcong) (canonical-cut-alive cc)
+deadlock-freedom : ∀{n Σ Γ} (ℙ : Def Σ) (P : Proc {n} Σ Γ) → Alive ℙ P
+deadlock-freedom ℙ (call x σ π) = inj₂ (_ , _ , r-call x σ π)
+deadlock-freedom ℙ (link eq (ch ⟨ p ⟩ ch)) = inj₁ (_ , s-refl , link (link eq p))
+deadlock-freedom ℙ (fail (ch ⟨ p ⟩ _)) = inj₁ (_ , s-refl , fail→thread p)
+deadlock-freedom ℙ (wait (ch ⟨ p ⟩ _)) = inj₁ (_ , s-refl , wait→thread p)
+deadlock-freedom ℙ (close ch) = inj₁ (_ , s-refl , output close)
+deadlock-freedom ℙ (case (ch ⟨ p ⟩ _)) = inj₁ (_ , s-refl , case→thread p)
+deadlock-freedom ℙ (select (ch ⟨ p ⟩ inj₁ _)) = inj₁ (_ , s-refl , left→thread p)
+deadlock-freedom ℙ (select (ch ⟨ p ⟩ inj₂ _)) = inj₁ (_ , s-refl , right→thread p)
+deadlock-freedom ℙ (join (ch ⟨ p ⟩ _)) = inj₁ (_ , s-refl , join→thread p)
+deadlock-freedom ℙ (fork (ch ⟨ p ⟩ (P ⟨ q ⟩ Q))) = inj₁ (_ , s-refl , fork→thread p q)
+deadlock-freedom ℙ (cut eq (P ⟨ p ⟩ R)) with deadlock-freedom ℙ P
+deadlock-freedom ℙ (cut eq (P ⟨ p ⟩ R)) | inj₂ (_ , Q , red) with ↝≈ red
+... | eqA ∷ eqC = inj₂ (_ , _ , r-cut eq eqA eqC p red)
+deadlock-freedom ℙ (cut eq (P ⟨ p ⟩ Q)) | inj₁ (_ , Pc , Pt) with deadlock-freedom ℙ Q
+deadlock-freedom ℙ (cut eq (P ⟨ p ⟩ Q)) | inj₁ (_ , Pc , Pt) | inj₂ (_ , Q' , red) with ↝≈ red
+... | eqB ∷ eqC = inj₂ (_ , _ , r-cong (s-comm eq p) (r-cut (≈sym (≈dual eq)) eqB eqC (+-comm p) red))
+deadlock-freedom ℙ (cut eq (P ⟨ p ⟩ Q)) | inj₁ (_ , Pc , Pt) | inj₁ (_ , Qc , Qt) with canonical-cut eq p Pt Qt
+... | _ , cc , pcong = ⊒Alive ℙ (s-tran (s-cong eq p Pc Qc) pcong) (canonical-cut-alive ℙ cc)

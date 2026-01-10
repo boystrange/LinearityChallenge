@@ -48,7 +48,7 @@ data _⊒_ {n Σ Γ} : Proc {n} Σ Γ → Proc Σ Γ → Set where
     join (ch ⟨ q′ ⟩ cut eq (↭proc (↭shift {_} {A} {B ∷ C ∷ []}) P ⟨ < < p′ ⟩ Q))
   s-fork-l :
     ∀{Γ₁ Γ₂ Δ Δ₁ Δ₂ A A' B C P Q R}
-    (p : Γ ≃ Γ₁ + Γ₂) (eq : dual A ≈ A') (q : Γ₁ ≃ [ B ⊗ C ] + Δ) (r : Δ ≃ Δ₁ + Δ₂) →
+    (eq : dual A ≈ A') (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ [ B ⊗ C ] + Δ) (r : Δ ≃ Δ₁ + Δ₂) →
     let _ , p′ , q′ = +-assoc-l p q in
     let _ , p′′ , r′ = +-assoc-l p′ r in
     let _ , q′′ , r′′ = +-assoc-r r′ (+-comm p′′) in
