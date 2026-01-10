@@ -1,15 +1,7 @@
 {-# OPTIONS --rewriting --guardedness #-}
-open import Function using (id; _∘_)
-open import Data.Unit using (tt)
-open import Data.Fin using (Fin)
-open import Data.Nat using (ℕ; suc; z≤n; s≤s; _+_; _≤_)
+open import Data.Nat using (ℕ; z≤n; s≤s; _≤_)
 import Data.Nat.Properties as Nat
-open import Data.Sum
-open import Data.Product using (Σ; _,_; ∃; ∃-syntax)
-open import Data.List.Base using (List; []; _∷_; [_]; map)
-open import Data.Vec using (Vec)
-open import Relation.Unary hiding (_∈_)
-open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂)
+open import Data.Product using (_,_; ∃; ∃-syntax)
 
 open import Process
 open import Reduction
