@@ -44,6 +44,8 @@ data Proc {n} (Σ : ProcContext) : ℕ → Context n → Set where
   select   : ∀{A B μ} → ∀[ Ch (A ⊕ B) ∗ ((A ∷_) ⊢ Proc Σ μ ∪ (B ∷_) ⊢ Proc Σ μ) ⇒ Proc Σ (suc μ) ]
   join     : ∀{A B μ} → ∀[ Ch (A ⅋ B) ∗ ((B ∷_) ⊢ (A ∷_) ⊢ Proc Σ μ) ⇒ Proc Σ μ ]
   fork     : ∀{A B μ ν} → ∀[ Ch (A ⊗ B) ∗ ((A ∷_) ⊢ Proc Σ μ) ∗ ((B ∷_) ⊢ Proc Σ ν) ⇒ Proc Σ (suc μ + ν) ]
+  put      : ∀{A μ ω} → ∀[ Ch (ω ⊲ A) ∗ ((A ∷_) ⊢ Proc Σ μ) ⇒ Proc Σ (suc μ + ω) ]
+  get      : ∀{A μ ν ω} → μ ≡ ν + ω → ∀[ Ch (ω ⊳ A) ∗ ((A ∷_) ⊢ Proc Σ μ) ⇒ Proc Σ ν ]
   cut      : ∀{A B μ ν} → dual A ≈ B → ∀[ ((A ∷_) ⊢ Proc Σ μ) ∗ ((B ∷_) ⊢ Proc Σ ν) ⇒ Proc Σ (μ + ν) ]
 
 data PreDef (Σ : ProcContext) : ProcContext → Set where
@@ -77,6 +79,10 @@ lookup (_ ∷ def) (next x) = lookup def x
 ↭proc π (fork (ch ⟨ p ⟩ (P ⟨ q ⟩ Q))) with ↭solo π p
 ... | _ , p' , π' with ↭split π' q
 ... | Δ₁ , Δ₂ , q' , π₁ , π₂ = fork (ch ⟨ p' ⟩ (↭proc (prep π₁) P ⟨ q' ⟩ ↭proc (prep π₂) Q))
+↭proc π (put (ch ⟨ p ⟩ P)) with ↭solo π p
+... | _ , q , π' = put (ch ⟨ q ⟩ ↭proc (prep π') P)
+↭proc π (get eq (ch ⟨ p ⟩ P)) with ↭solo π p
+... | _ , q , π' = get eq (ch ⟨ q ⟩ ↭proc (prep π') P)
 ↭proc π (cut eq (P ⟨ p ⟩ Q)) with ↭split π p
 ... | Δ₁ , Δ₂ , q , π₁ , π₂ = cut eq (↭proc (prep π₁) P ⟨ q ⟩ ↭proc (prep π₂) Q)
 
@@ -93,5 +99,7 @@ substp σ (select (ch ⟨ p ⟩ inj₁ P)) = select (ch ⟨ +-subst σ p ⟩ inj
 substp σ (select (ch ⟨ p ⟩ inj₂ Q)) = select (ch ⟨ +-subst σ p ⟩ inj₂ (substp σ Q))
 substp σ (join (ch ⟨ p ⟩ P)) = join (ch ⟨ +-subst σ p ⟩ substp σ P)
 substp σ (fork (ch ⟨ p ⟩ (P ⟨ q ⟩ Q))) = fork (ch ⟨ +-subst σ p ⟩ (substp σ P ⟨ +-subst σ q ⟩ substp σ Q))
+substp σ (put (ch ⟨ p ⟩ P)) = put (ch ⟨ +-subst σ p ⟩ substp σ P)
+substp σ (get eq (ch ⟨ p ⟩ P)) = get eq (ch ⟨ +-subst σ p ⟩ substp σ P)
 substp σ (cut {A} eq (P ⟨ p ⟩ Q)) with ≈subst σ eq
 ... | eq' rewrite Eq.sym (dual-subst σ A) = cut eq' (substp σ P ⟨ +-subst σ p ⟩ substp σ Q)

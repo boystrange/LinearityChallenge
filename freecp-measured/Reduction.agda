@@ -7,7 +7,7 @@ import Data.Nat.Properties as Nat
 open import Data.List.Base using ([]; _∷_; [_]; _++_)
 open import Data.List.Properties using (++-assoc)
 open import Relation.Unary hiding (_∈_)
-open import Relation.Binary.PropositionalEquality using (refl; sym)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym)
 
 open import Type
 open import Equivalence
@@ -29,26 +29,29 @@ data _⊢_↝_ {n Σ Γ} (ℙ : Def Σ) : ∀{Δ μ ν} → Proc {n} Σ μ Γ �
   r-select-l  : ∀{Γ₁ Γ₂ A B A' B' μ ν} {P : Proc Σ μ (A ∷ Γ₁)} {Q : Proc Σ μ (B ∷ Γ₁)} {R : Proc Σ ν (A' ∷ Γ₂)}
                 (eq : (dual A ⊕ dual B) ≈ (A' ⊕ B'))
                 (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) →
-                ℙ ⊢ cut {A = A & B} eq (case (ch ⟨ < p₀ ⟩ (P , Q)) ⟨ p ⟩
-                                       select (ch ⟨ < q₀ ⟩ inj₁ R)) ↝
+                ℙ ⊢ cut eq (case (ch ⟨ < p₀ ⟩ (P , Q)) ⟨ p ⟩ select (ch ⟨ < q₀ ⟩ inj₁ R)) ↝
                     cut (≈after⊕L eq) (P ⟨ p ⟩ R)
   r-select-r  : ∀{Γ₁ Γ₂ A B A' B' μ ν} {P : Proc Σ μ (A ∷ Γ₁)} {Q : Proc Σ μ (B ∷ Γ₁)} {R : Proc Σ ν (B' ∷ Γ₂)}
                 (eq : (dual A ⊕ dual B) ≈ (A' ⊕ B'))
                 (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) →
-                ℙ ⊢ cut {A = A & B} eq (case (ch ⟨ < p₀ ⟩ (P , Q)) ⟨ p ⟩
-                                       select (ch ⟨ < q₀ ⟩ inj₂ R)) ↝
+                ℙ ⊢ cut eq (case (ch ⟨ < p₀ ⟩ (P , Q)) ⟨ p ⟩ select (ch ⟨ < q₀ ⟩ inj₂ R)) ↝
                     cut (≈after⊕R eq) (Q ⟨ p ⟩ R)
   r-fork      : ∀{Γ₁ Γ₂ Γ₃ Δ A B A' B' μ ν ω} {P : Proc Σ μ (A ∷ B ∷ Γ₁)} {Q : Proc Σ ν (A' ∷ Γ₂)} {R : Proc Σ ω (B' ∷ Γ₃)}
                 (eq : (dual A ⊗ dual B) ≈ (A' ⊗ B'))
                 (p : Γ ≃ Γ₁ + Δ) (p₀ : Γ₁ ≃ [] + Γ₁) (q : Δ ≃ Γ₂ + Γ₃) (q₀ : Δ ≃ [] + Δ) →
                 let _ , p' , q' = +-assoc-r p q in
-                ℙ ⊢ cut {A = A ⅋ B} eq (join (ch ⟨ < p₀ ⟩ P) ⟨ p ⟩ fork (ch ⟨ < q₀ ⟩ (Q ⟨ q ⟩ R))) ↝
+                ℙ ⊢ cut eq (join (ch ⟨ < p₀ ⟩ P) ⟨ p ⟩ fork (ch ⟨ < q₀ ⟩ (Q ⟨ q ⟩ R))) ↝
                     cut (≈after⊗R eq) (cut (≈after⊗L eq) (P ⟨ < p' ⟩ Q) ⟨ q' ⟩ R)
+  r-put        : ∀{Γ₁ Γ₂ A A' μ₁ μ₂ ν ω} {P : Proc Σ μ₁ (A ∷ Γ₁)} {Q : Proc Σ μ₂ (A' ∷ Γ₂)}
+                (eq : (ω ⊲ dual A) ≈ (ω ⊲ A')) (eq' : μ₁ ≡ ν + ω)
+                (p : Γ ≃ Γ₁ + Γ₂) (p₀ : Γ₁ ≃ [] + Γ₁) (q₀ : Γ₂ ≃ [] + Γ₂) →
+                ℙ ⊢ cut eq (get eq' (ch ⟨ < p₀ ⟩ P) ⟨ p ⟩ put (ch ⟨ (< q₀) ⟩ Q)) ↝
+                cut (≈after-put eq) (P ⟨ p ⟩ Q)
   r-cut        : ∀{Γ₁ Γ₂ A B A' Γ₁' μ ν ω} {P : Proc Σ μ (A ∷ Γ₁)} {R : Proc Σ ν (B ∷ Γ₂)} {Q : Proc Σ ω (A' ∷ Γ₁')}
                  (eq : dual A ≈ B) (eqA : A ≈ A') (eqC : Γ₁ ≈c Γ₁') (p : Γ ≃ Γ₁ + Γ₂) →
                  ℙ ⊢ P ↝ Q →
                  let _ , p' , eq'' = +≈ p eqC in
-                 ℙ ⊢ cut {A = A} eq (P ⟨ p ⟩ R) ↝ cut {A = A'} (≈trans (≈dual (≈sym eqA)) eq) (Q ⟨ p' ⟩ R)
+                 ℙ ⊢ cut eq (P ⟨ p ⟩ R) ↝ cut (≈trans (≈dual (≈sym eqA)) eq) (Q ⟨ p' ⟩ R)
   r-cong       : ∀{Δ μ ν ω} {P : Proc {n} Σ μ Γ} {R : Proc Σ ν Γ} {Q : Proc Σ ω Δ} →
                  P ⊒ R → ℙ ⊢ R ↝ Q → ℙ ⊢ P ↝ Q
 
@@ -60,6 +63,7 @@ data _⊢_↝_ {n Σ Γ} (ℙ : Def Σ) : ∀{Δ μ ν} → Proc {n} Σ μ Γ �
 ↝≈ (r-select-l eq p p₀ q₀) = ≈c-refl
 ↝≈ (r-select-r eq p p₀ q₀) = ≈c-refl
 ↝≈ (r-fork eq p p₀ q q₀) = ≈c-refl
+↝≈ (r-put eq eq' p p₀ q₀) = ≈c-refl
 ↝≈ (r-cut eq eqA eqC p red ) with +≈ p eqC
 ... | _ , _ , eq' = eq'
 ↝≈ (r-cong _ red) = ↝≈ red
@@ -72,6 +76,8 @@ data _⊢_↝_ {n Σ Γ} (ℙ : Def Σ) : ∀{Δ μ ν} → Proc {n} Σ μ Γ �
 ↝size (r-select-r {μ = μ} eq p p₀ q₀) = Nat.+-monoʳ-< μ Nat.≤-refl
 ↝size (r-fork {μ = μ} {ν} {ω} eq p p₀ q q₀)
   rewrite Nat.+-assoc μ ν ω | Nat.+-suc μ (ν + ω) = Nat.≤-refl
+↝size (r-put {μ₂ = μ₂} {ν} {ω} eq refl p p₀ q₀)
+  rewrite Nat.+-assoc ν ω μ₂ | Nat.+-suc ν (μ₂ + ω) | Nat.+-comm ω μ₂ = Nat.≤-refl
 ↝size (r-cut {ν = ν} eq eqA eqC p red) = Nat.+-monoˡ-< ν (↝size red)
 ↝size (r-cong pc red) with ⊒size pc
 ... | refl = ↝size red

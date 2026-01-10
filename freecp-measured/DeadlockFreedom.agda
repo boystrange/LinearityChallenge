@@ -2,10 +2,10 @@
 open import Data.Unit using (tt)
 open import Data.Sum
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax; Σ-syntax)
-open import Data.Nat using (suc)
+open import Data.Nat using (suc; _+_)
 open import Data.List.Base using ([]; _∷_; [_])
 open import Relation.Nullary using (¬_; contradiction)
-open import Relation.Binary.PropositionalEquality using (refl)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 open import Type
 open import Equivalence
@@ -20,14 +20,16 @@ data Link {n Σ} : ∀{μ Γ} → Proc {n} Σ μ Γ → Set where
 data Input {n Σ} : ∀{μ Γ} → Proc {n} Σ μ Γ → Set where
   fail : ∀{Γ Δ μ} (p : Γ ≃ [] + Δ) → Input (fail {μ = μ} (ch ⟨ < p ⟩ tt))
   wait : ∀{Γ Δ μ} {P : Proc Σ μ Δ} (p : Γ ≃ [] + Δ) → Input (wait (ch ⟨ < p ⟩ P))
-  case : ∀{Γ Δ A B μ} {P : Proc Σ μ (A ∷ Δ)} {Q : Proc Σ μ (B ∷ Δ)} (p : Γ ≃ [] + Δ) → Input (case {A = A} {B} (ch ⟨ < p ⟩ (P , Q)))
-  join : ∀{Γ Δ A B μ} {P : Proc Σ μ (A ∷ B ∷ Δ)} (p : Γ ≃ [] + Δ) → Input (join {A = A} {B} (ch ⟨ < p ⟩ P))
+  case : ∀{Γ Δ A B μ} {P : Proc Σ μ (A ∷ Δ)} {Q : Proc Σ μ (B ∷ Δ)} (p : Γ ≃ [] + Δ) → Input (case (ch ⟨ < p ⟩ (P , Q)))
+  join : ∀{Γ Δ A B μ} {P : Proc Σ μ (A ∷ B ∷ Δ)} (p : Γ ≃ [] + Δ) → Input (join (ch ⟨ < p ⟩ P))
+  get  : ∀{Γ Δ A μ ν ω} {P : Proc Σ μ (A ∷ Δ)} (eq : μ ≡ ν + ω) (p : Γ ≃ [] + Δ) → Input (get {ω = ω} eq (ch ⟨ < p ⟩ P))
 
 data Output {n Σ} : ∀{μ Γ} → Proc {n} Σ μ Γ → Set where
   close    : ∀{μ} → Output (close {μ = μ} ch)
   select-l : ∀{Γ Δ A B μ} {P : Proc Σ μ (A ∷ Δ)} (p : Γ ≃ [] + Δ) → Output (select {B = B} (ch ⟨ < p ⟩ inj₁ P))
   select-r : ∀{Γ Δ A B μ} {P : Proc Σ μ (B ∷ Δ)} (p : Γ ≃ [] + Δ) → Output (select {A = A} (ch ⟨ < p ⟩ inj₂ P))
   fork     : ∀{Γ Δ Δ₁ Δ₂ A B μ ν} {P : Proc Σ μ (A ∷ Δ₁)} {Q : Proc Σ ν (B ∷ Δ₂)} (p : Γ ≃ [] + Δ) (q : Δ ≃ Δ₁ + Δ₂) → Output (fork (ch ⟨ < p ⟩ (P ⟨ q ⟩ Q)))
+  put      : ∀{Γ Δ A μ ω} {P : Proc Σ μ (A ∷ Δ)} (p : Γ ≃ [] + Δ) → Output (put {ω = ω} (ch ⟨ < p ⟩ P))
 
 data Delayed {n Σ} : ∀{μ Γ} → Proc {n} Σ μ Γ → Set where
   fail     : ∀{C Γ Δ μ} (p : Γ ≃ [ ⊤ ] + Δ) → Delayed (fail {μ = μ} (ch ⟨ >_ {_} {C} p ⟩ tt))
@@ -40,6 +42,8 @@ data Delayed {n Σ} : ∀{μ Γ} → Proc {n} Σ μ Γ → Set where
              (p : Γ ≃ [ A ⊗ B ] + Δ) (q : Δ ≃ Δ₁ + Δ₂) → Delayed (fork (ch ⟨ > p ⟩ (P ⟨ < q ⟩ Q)))
   fork-r   : ∀{Γ Δ Δ₁ Δ₂ C A B μ ν} {P : Proc Σ μ (A ∷ Δ₁)} {Q : Proc Σ ν (B ∷ C ∷ Δ₂)}
              (p : Γ ≃ [ A ⊗ B ] + Δ) (q : Δ ≃ Δ₁ + Δ₂) → Delayed (fork (ch ⟨ > p ⟩ (P ⟨ > q ⟩ Q)))
+  put      : ∀{Γ Δ C A μ ω} {P : Proc Σ μ (A ∷ C ∷ Δ)} (p : Γ ≃ [ ω ⊲ A ] + Δ) → Delayed (put (ch ⟨ > p ⟩ P))
+  get      : ∀{Γ Δ C A μ ν ω} {P : Proc Σ μ (A ∷ C ∷ Δ)} (eq : μ ≡ ν + ω) (p : Γ ≃ [ ω ⊳ A ] + Δ) → Delayed (get eq (ch ⟨ > p ⟩ P))
 
 data Thread {n Σ μ Γ} (P : Proc {n} Σ μ Γ) : Set where
   link    : Link P → Thread P
@@ -85,6 +89,14 @@ fork→thread (< p) q = output (fork p q)
 fork→thread (> p) (< q) = delayed (fork-l p q)
 fork→thread (> p) (> q) = delayed (fork-r p q)
 
+put→thread : ∀{n Σ A μ ω Γ Δ} {P : Proc Σ μ (A ∷ Δ)} (p : Γ ≃ [ ω ⊲ A ] + Δ) → Thread {n} {Σ} (put (ch ⟨ p ⟩ P))
+put→thread (< p) = output (put p)
+put→thread (> p) = delayed (put p)
+
+get→thread : ∀{n Σ A μ ν ω Γ Δ} {P : Proc Σ μ (A ∷ Δ)} (eq : μ ≡ ν + ω) (p : Γ ≃ [ ω ⊳ A ] + Δ) → Thread {n} {Σ} (get eq (ch ⟨ p ⟩ P))
+get→thread eq (< p) = input (get eq p)
+get→thread eq (> p) = delayed (get eq p)
+
 data CanonicalCut {n Σ Γ} : ∀{μ} → Proc {n} Σ μ Γ → Set where
   cc-link    : ∀{Γ₁ Γ₂ A B μ ν} {P : Proc Σ μ (A ∷ Γ₁)} {Q : Proc Σ ν (B ∷ Γ₂)}
                (eq : dual A ≈ B) (p : Γ ≃ Γ₁ + Γ₂) →
@@ -102,35 +114,53 @@ output-output eq (close , select-l p) = not≈ sim⊥⊕ eq
 output-output eq (close , select-r p) = not≈ sim⊥⊕ eq
 output-output eq (close , fork p q) = not≈ sim⊥⊗ eq
 output-output eq (select-l p , close) = not≈ sim⊥⊕ (≈sym (≈dual eq))
-output-output eq (select-l p , select-l p₁) = not≈ sim&⊕ eq
-output-output eq (select-l p , select-r p₁) = not≈ sim&⊕ eq
-output-output eq (select-l p , fork p₁ q) = not≈ sim&⊗ eq
+output-output eq (select-l p , select-l _) = not≈ sim&⊕ eq
+output-output eq (select-l p , select-r _) = not≈ sim&⊕ eq
+output-output eq (select-l p , fork _ q) = not≈ sim&⊗ eq
 output-output eq (select-r p , close) = not≈ sim⊥⊕ (≈sym (≈dual eq))
-output-output eq (select-r p , select-l p₁) = not≈ sim&⊕ eq
-output-output eq (select-r p , select-r p₁) = not≈ sim&⊕ eq
-output-output eq (select-r p , fork p₁ q) = not≈ sim&⊗ eq
+output-output eq (select-r p , select-l _) = not≈ sim&⊕ eq
+output-output eq (select-r p , select-r _) = not≈ sim&⊕ eq
+output-output eq (select-r p , fork _ q) = not≈ sim&⊗ eq
 output-output eq (fork p q , close) = not≈ sim⊥⊗ (≈sym (≈dual eq))
-output-output eq (fork p q , select-l p₁) = not≈ sim&⊗ (≈sym (≈dual eq))
-output-output eq (fork p q , select-r p₁) = not≈ sim&⊗ (≈sym (≈dual eq))
-output-output eq (fork p q , fork p₁ q₁) = not≈ sim⅋⊗ eq
+output-output eq (fork p q , select-l _) = not≈ sim&⊗ (≈sym (≈dual eq))
+output-output eq (fork p q , select-r _) = not≈ sim&⊗ (≈sym (≈dual eq))
+output-output eq (fork p q , fork _ _) = not≈ sim⅋⊗ eq
+output-output eq (close , put _) = not≈ sim⊥put eq
+output-output eq (select-l p , put _) = not≈ sim&put eq
+output-output eq (select-r p , put _) = not≈ sim&put eq
+output-output eq (fork p q , put _) = not≈ sim⅋put eq
+output-output eq (put p , close) = not≈ sim⊥put (≈sym (≈dual eq))
+output-output eq (put p , select-l _) = not≈ sim&put (≈sym (≈dual eq))
+output-output eq (put p , select-r _) = not≈ sim&put (≈sym (≈dual eq))
+output-output eq (put p , fork _ q) = not≈ sim⅋put (≈sym (≈dual eq))
+output-output eq (put p , put _) = not≈ simgetput eq
 
 input-input : ∀{n Σ A B μ ν Γ Δ} {P : Proc {n} Σ μ (A ∷ Γ)} {Q : Proc Σ ν (B ∷ Δ)} → dual A ≈ B → ¬ (Input P × Input Q)
-input-input eq (fail p , fail p₁) = not≈ sim⊤𝟘 (≈dual eq)
-input-input eq (fail p , wait p₁) = not≈ sim⊤𝟙 (≈dual eq)
-input-input eq (fail p , case p₁) = not≈ sim⊤⊕ (≈dual eq)
-input-input eq (fail p , join p₁) = not≈ sim⊤⊗ (≈dual eq)
-input-input eq (wait p , fail p₁) = not≈ sim⊤𝟙 (≈sym eq)
-input-input eq (wait p , wait p₁) = not≈ sim⊥𝟙 (≈sym eq)
-input-input eq (wait p , case p₁) = not≈ sim⊥⊕ (≈dual eq)
-input-input eq (wait p , join p₁) = not≈ sim⊥⊗ (≈dual eq)
-input-input eq (case p , fail p₁) = not≈ sim⊤⊕ (≈sym eq)
-input-input eq (case p , wait p₁) = not≈ sim⊥⊕ (≈sym eq)
-input-input eq (case p , case p₁) = not≈ sim&⊕ (≈sym eq)
-input-input eq (case p , join p₁) = not≈ sim&⊗ (≈dual eq)
-input-input eq (join p , fail p₁) = not≈ sim⊤⊗ (≈sym eq)
-input-input eq (join p , wait p₁) = not≈ sim⊥⊗ (≈sym eq)
-input-input eq (join p , case p₁) = not≈ sim&⊗ (≈sym eq)
-input-input eq (join p , join p₁) = not≈ sim⅋⊗ (≈sym eq)
+input-input eq (fail p , fail _) = not≈ sim⊤𝟘 (≈dual eq)
+input-input eq (fail p , wait _) = not≈ sim⊤𝟙 (≈dual eq)
+input-input eq (fail p , case _) = not≈ sim⊤⊕ (≈dual eq)
+input-input eq (fail p , join _) = not≈ sim⊤⊗ (≈dual eq)
+input-input eq (wait p , fail _) = not≈ sim⊤𝟙 (≈sym eq)
+input-input eq (wait p , wait _) = not≈ sim⊥𝟙 (≈sym eq)
+input-input eq (wait p , case _) = not≈ sim⊥⊕ (≈dual eq)
+input-input eq (wait p , join _) = not≈ sim⊥⊗ (≈dual eq)
+input-input eq (case p , fail _) = not≈ sim⊤⊕ (≈sym eq)
+input-input eq (case p , wait _) = not≈ sim⊥⊕ (≈sym eq)
+input-input eq (case p , case _) = not≈ sim&⊕ (≈sym eq)
+input-input eq (case p , join _) = not≈ sim&⊗ (≈dual eq)
+input-input eq (join p , fail _) = not≈ sim⊤⊗ (≈sym eq)
+input-input eq (join p , wait _) = not≈ sim⊥⊗ (≈sym eq)
+input-input eq (join p , case _) = not≈ sim&⊗ (≈sym eq)
+input-input eq (join p , join _) = not≈ sim⅋⊗ (≈sym eq)
+input-input eq (fail p , get eq₁ _) = not≈ sim⊤put (≈dual eq)
+input-input eq (wait p , get eq₁ _) = not≈ sim⊥put (≈dual eq)
+input-input eq (case p , get eq₁ _) = not≈ sim&put (≈dual eq)
+input-input eq (join p , get eq₁ _) = not≈ sim⅋put (≈dual eq)
+input-input eq (get eq₁ p , fail _) = not≈ sim⊤put (≈sym eq)
+input-input eq (get eq₁ p , wait _) = not≈ sim⊥put (≈sym eq)
+input-input eq (get eq₁ p , case _) = not≈ sim&put (≈sym eq)
+input-input eq (get eq₁ p , join _) = not≈ sim⅋put (≈sym eq)
+input-input eq (get eq₁ p , get eq₂ _) = not≈ simgetput (≈sym eq)
 
 canonical-cut : ∀{n Σ A B μ ν Γ Γ₁ Γ₂} {P : Proc Σ μ (A ∷ Γ₁)} {Q : Proc Σ ν (B ∷ Γ₂)}
                 (eq : dual A ≈ B) (p : Γ ≃ Γ₁ + Γ₂) →
@@ -158,22 +188,32 @@ canonical-cut-alive ℙ (cc-redex eq p (fail _) close) = contradiction eq (not�
 canonical-cut-alive ℙ (cc-redex eq p (fail _) (select-l _)) = contradiction (≈dual eq) (not≈ sim⊤&)
 canonical-cut-alive ℙ (cc-redex eq p (fail _) (select-r _)) = contradiction (≈dual eq) (not≈ sim⊤&)
 canonical-cut-alive ℙ (cc-redex eq p (fail _) (fork _ _)) = contradiction (≈dual eq) (not≈ sim⊤⅋)
+canonical-cut-alive ℙ (cc-redex eq p (fail _) (put _)) = contradiction (≈dual eq) (not≈ sim⊤get)
 canonical-cut-alive ℙ (cc-redex eq pc (wait p) close) with +-empty-l p | +-empty-l (+-comm pc)
 ... | refl | refl = inj₂ (_ , _ , _ , r-close eq pc p)
 canonical-cut-alive ℙ (cc-redex eq p (wait _) (select-l _)) = contradiction eq (not≈ sim𝟙⊕)
 canonical-cut-alive ℙ (cc-redex eq p (wait _) (select-r _)) = contradiction eq (not≈ sim𝟙⊕)
 canonical-cut-alive ℙ (cc-redex eq p (wait _) (fork _ _)) = contradiction eq (not≈ sim𝟙⊗)
+canonical-cut-alive ℙ (cc-redex eq p (wait _) (put _)) = contradiction eq (not≈ sim𝟙put)
 canonical-cut-alive ℙ (cc-redex eq p (case _) close) = contradiction (≈sym eq) (not≈ sim𝟙⊕)
 canonical-cut-alive ℙ (cc-redex eq pc (case p) (select-l q)) with +-empty-l p | +-empty-l q
 ... | refl | refl = inj₂ (_ , _ , _ , r-select-l eq pc p q)
 canonical-cut-alive ℙ (cc-redex eq pc (case p) (select-r q)) with +-empty-l p | +-empty-l q
 ... | refl | refl = inj₂ (_ , _ , _ , r-select-r eq pc p q)
 canonical-cut-alive ℙ (cc-redex eq p (case _) (fork _ _)) = contradiction eq (not≈ sim⊕⊗)
+canonical-cut-alive ℙ (cc-redex eq p (case _) (put _)) = contradiction eq (not≈ sim⊕put)
 canonical-cut-alive ℙ (cc-redex eq p (join _) close) = contradiction (≈sym eq) (not≈ sim𝟙⊗)
 canonical-cut-alive ℙ (cc-redex eq p (join _) (select-l _)) = contradiction (≈sym eq) (not≈ sim⊕⊗)
 canonical-cut-alive ℙ (cc-redex eq p (join _) (select-r _)) = contradiction (≈sym eq) (not≈ sim⊕⊗)
 canonical-cut-alive ℙ (cc-redex eq pc (join p) (fork q r)) with +-empty-l p | +-empty-l q
 ... | refl | refl = inj₂ (_ , _ , _ , r-fork eq pc p r q)
+canonical-cut-alive ℙ (cc-redex eq p (join _) (put _)) = contradiction eq (not≈ sim⊗put)
+canonical-cut-alive ℙ (cc-redex eq p (get _ _) close) = contradiction (≈sym eq) (not≈ sim𝟙put)
+canonical-cut-alive ℙ (cc-redex eq p (get _ _) (select-l _)) = contradiction (≈sym eq) (not≈ sim⊕put)
+canonical-cut-alive ℙ (cc-redex eq p (get _ _) (select-r _)) = contradiction (≈sym eq) (not≈ sim⊕put)
+canonical-cut-alive ℙ (cc-redex eq p (get _ _) (fork _ q)) = contradiction (≈sym eq) (not≈ sim⊗put)
+canonical-cut-alive ℙ (cc-redex eq pc (get eq' p) (put q)) with +-empty-l p | +-empty-l q | ≈measure eq
+... | refl | refl | refl = inj₂ (_ , _ , _ , r-put eq eq' pc p q)
 canonical-cut-alive ℙ (cc-delayed eq p (fail q)) =
   let _ , _ , q' = +-assoc-l p q in
   inj₁ (_ , _ , s-fail eq p q , fail→thread q')
@@ -201,6 +241,12 @@ canonical-cut-alive ℙ (cc-delayed eq p (fork-r q r)) =
   let _ , p' , q' = +-assoc-l p q in
   let _ , p'' , r' = +-assoc-l p' r in
   inj₁ (_ , _ , s-fork-r eq p q r , fork→thread q' r')
+canonical-cut-alive ℙ (cc-delayed eq p (put q)) =
+  let _ , _ , q' = +-assoc-l p q in
+  inj₁ (_ , _ , s-put eq p q , put→thread q')
+canonical-cut-alive ℙ (cc-delayed {μ = μ₁} {μ₂} eq p (get {μ = μ} {ν} {ω} eq' q)) =
+  let _ , _ , q' = +-assoc-l p q in
+  inj₁ (_ , _ , s-get eq eq' p q , get→thread (ugly-assoc μ μ₂ μ₁ ω eq') q')
 
 deadlock-freedom : ∀{n Σ μ Γ} (ℙ : Def Σ) (P : Proc {n} Σ μ Γ) → Alive ℙ P
 deadlock-freedom ℙ (call x σ π) = inj₂ (_ , _ , _ , r-call x σ π)
@@ -213,6 +259,8 @@ deadlock-freedom ℙ (select (ch ⟨ p ⟩ inj₁ _)) = inj₁ (_ , _ , s-refl ,
 deadlock-freedom ℙ (select (ch ⟨ p ⟩ inj₂ _)) = inj₁ (_ , _ , s-refl , right→thread p)
 deadlock-freedom ℙ (join (ch ⟨ p ⟩ _)) = inj₁ (_ , _ , s-refl , join→thread p)
 deadlock-freedom ℙ (fork (ch ⟨ p ⟩ (P ⟨ q ⟩ Q))) = inj₁ (_ , _ , s-refl , fork→thread p q)
+deadlock-freedom ℙ (put (ch ⟨ p ⟩ _)) = inj₁ (_ , _ , s-refl , put→thread p)
+deadlock-freedom ℙ (get eq (ch ⟨ p ⟩ _)) = inj₁ (_ , _ , s-refl , get→thread eq p)
 deadlock-freedom ℙ (cut eq (P ⟨ p ⟩ R)) with deadlock-freedom ℙ P
 deadlock-freedom ℙ (cut eq (P ⟨ p ⟩ R)) | inj₂ (_ , _ , Q , red) with ↝≈ red
 ... | eqA ∷ eqC = inj₂ (_ , _ , _ , r-cut eq eqA eqC p red)

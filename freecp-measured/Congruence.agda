@@ -2,7 +2,7 @@
 open import Data.Unit using (tt)
 open import Data.Sum using (inj₁; inj₂)
 open import Data.Product using (_,_)
-open import Data.Nat using (suc; _+_)
+open import Data.Nat using (ℕ; suc; _+_)
 import Data.Nat.Properties as Nat using (+-comm; +-assoc)
 open import Data.List.Base using ([]; _∷_; [_])
 open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂)
@@ -12,6 +12,10 @@ open import Equivalence
 open import Context
 open import Permutations
 open import Process
+
+ugly-assoc : (a b c d : ℕ) → a ≡ c + d → a + b ≡ (c + b) + d
+ugly-assoc a b c d refl
+  rewrite Nat.+-assoc c d b | Nat.+-comm d b | Eq.sym (Nat.+-assoc c b d) = refl
 
 data _⊒_ {n Σ Γ} : ∀{μ ν} → Proc {n} Σ μ Γ → Proc Σ ν Γ → Set where
   s-comm :
@@ -71,6 +75,19 @@ data _⊒_ {n Σ Γ} : ∀{μ ν} → Proc {n} Σ μ Γ → Proc Σ ν Γ → Se
     let _ , p′′ , r′ = +-assoc-l p′ r in
     cut {A = A} {A'} eq (fork (ch ⟨ > q ⟩ (P ⟨ > r ⟩ Q)) ⟨ p ⟩ R) ⊒
     fork (ch ⟨ q′ ⟩ (P ⟨ r′ ⟩ cut eq (↭proc swap Q ⟨ < p′′ ⟩ R)))
+  s-put :
+    ∀{Γ₁ Γ₂ Δ A A' B μ ν ω} {P : Proc Σ μ (B ∷ A ∷ Δ)} {Q : Proc Σ ν (A' ∷ Γ₂)}
+    (eq : dual A ≈ A') (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ [ ω ⊲ B ] + Δ) →
+    let _ , p′ , q′ = +-assoc-l p q in
+    cut eq (put (ch ⟨ > q ⟩ P) ⟨ p ⟩ Q) ⊒
+    put (ch ⟨ q′ ⟩ (cut eq (↭proc swap P ⟨ < p′ ⟩ Q)))
+  s-get :
+    ∀{Γ₁ Γ₂ Δ A A' B μ₁ μ₂ ν ω} {P : Proc Σ μ₁ (B ∷ A ∷ Δ)} {Q : Proc Σ μ₂ (A' ∷ Γ₂)}
+    (eq : dual A ≈ A') (eq' : μ₁ ≡ ν + ω) (p : Γ ≃ Γ₁ + Γ₂) (q : Γ₁ ≃ [ ω ⊳ B ] + Δ) →
+    let _ , p′ , q′ = +-assoc-l p q in
+    cut {μ = ν} eq (get eq' (ch ⟨ > q ⟩ P) ⟨ p ⟩ Q) ⊒
+    get (ugly-assoc μ₁ μ₂ ν ω eq') (ch ⟨ q′ ⟩ cut eq (↭proc swap P ⟨ < p′ ⟩ Q))
+    -- get (ch ⟨ q′ ⟩ (cut eq (↭proc swap P ⟨ < p′ ⟩ Q)))
   s-refl  : ∀{μ} {P : Proc Σ μ Γ} → P ⊒ P
   s-tran  : ∀{μ ν ω} {P : Proc Σ μ Γ} {Q : Proc Σ ν Γ} {R : Proc Σ ω Γ} → P ⊒ Q → Q ⊒ R → P ⊒ R
   s-cong  : ∀{Γ₁ Γ₂ A A' μ μ' ν ν'} {P : Proc Σ μ (A ∷ Γ₁)} {Q : Proc Σ ν (A ∷ Γ₁)} {P′ : Proc Σ μ' (A' ∷ Γ₂)} {Q′ : Proc Σ ν' (A' ∷ Γ₂)}
@@ -89,6 +106,9 @@ data _⊒_ {n Σ Γ} : ∀{μ ν} → Proc {n} Σ μ Γ → Proc Σ ν Γ → Se
 ⊒size (s-fork-l {μ = μ} {ν} {ω} eq p q r)
   rewrite Nat.+-assoc μ ν ω | Nat.+-comm ν ω | Eq.sym (Nat.+-assoc μ ω ν) = refl
 ⊒size (s-fork-r {μ = μ} {ν} {ω} eq p q r) rewrite Nat.+-assoc μ ν ω = refl
+⊒size (s-put {μ = μ} {ν} {ω} eq p q)
+  rewrite Nat.+-assoc μ ν ω | Nat.+-comm ν ω | Eq.sym (Nat.+-assoc μ ω ν) = refl
+⊒size (s-get eq eq' p q) = refl
 ⊒size s-refl = refl
 ⊒size (s-tran pc pc') rewrite ⊒size pc' = ⊒size pc
 ⊒size (s-cong eq p pc pc') = cong₂ _+_ (⊒size pc) (⊒size pc')
