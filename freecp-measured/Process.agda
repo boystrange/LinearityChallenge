@@ -1,14 +1,13 @@
 {-# OPTIONS --rewriting --guardedness #-}
-open import Function using (id; _∘_)
+open import Function using (_∘_)
 open import Data.Unit using (tt)
+open import Data.Sum using (_⊎_; inj₁; inj₂)
+open import Data.Product using (Σ; _,_)
 open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ; suc; _+_)
-open import Data.Sum
-open import Data.Product using (Σ; _,_)
-open import Data.List.Base using (List; []; _∷_; [_]; map)
-open import Data.Vec using (Vec)
+open import Data.List.Base using (List; []; _∷_; [_])
 open import Relation.Unary hiding (_∈_)
-open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym)
 
 open import Type
 open import Equivalence
@@ -18,7 +17,7 @@ open import Permutations
 record ProcType : Set where
   field
     {n} : ℕ
-    size : ℕ
+    measure : ℕ
     context : Context n
 
 open ProcType public
@@ -35,7 +34,7 @@ data Ch {n} (A : Type n) : Context n → Set where
 
 data Proc {n} (Σ : ProcContext) : ℕ → Context n → Set where
   call     : ∀{T} → T ∈ Σ → (σ : ∀{s} → Fin (T .ProcType.n) → PreType n s) →
-             ∀[ substc σ (T .context) ↭_ ⇒ Proc Σ (suc (T .size)) ]
+             ∀[ substc σ (T .context) ↭_ ⇒ Proc Σ (suc (T .measure)) ]
   link     : ∀{A B μ} → dual A ≈ B → ∀[ Ch A ∗ Ch B ⇒ Proc Σ (suc μ) ]
   fail     : ∀{μ} → ∀[ Ch ⊤ ∗ U ⇒ Proc Σ μ ]
   wait     : ∀{μ} → ∀[ Ch ⊥ ∗ Proc Σ μ ⇒ Proc Σ μ ]
@@ -50,12 +49,12 @@ data Proc {n} (Σ : ProcContext) : ℕ → Context n → Set where
 
 data PreDef (Σ : ProcContext) : ProcContext → Set where
   []  : PreDef Σ []
-  _∷_ : ∀{T Σ'} → Proc Σ (T .size) (T .context) → PreDef Σ Σ' → PreDef Σ (T ∷ Σ')
+  _∷_ : ∀{T Σ'} → Proc Σ (T .measure) (T .context) → PreDef Σ Σ' → PreDef Σ (T ∷ Σ')
 
 Def : ProcContext → Set
 Def Σ = PreDef Σ Σ
 
-lookup : ∀{Σ Σ' T} → PreDef Σ Σ' → T ∈ Σ' → Proc Σ (T .size) (T .context)
+lookup : ∀{Σ Σ' T} → PreDef Σ Σ' → T ∈ Σ' → Proc Σ (T .measure) (T .context)
 lookup (P ∷ def) here = P
 lookup (_ ∷ def) (next x) = lookup def x
 
@@ -90,7 +89,7 @@ substp : ∀{n m Σ μ} {Γ : Context n} (σ : ∀{s} → Fin n → PreType m s)
 substp σ (call {T} x σ' π) with ↭subst σ π
 ... | π' rewrite substc-compose σ' σ (T .context) = call x (Type.subst σ ∘ σ') π'
 substp σ (link {A} eq (ch ⟨ p ⟩ ch)) with ≈subst σ eq
-... | eq' rewrite Eq.sym (dual-subst σ A) = link eq' (ch ⟨ +-subst σ p ⟩ ch)
+... | eq' rewrite sym (dual-subst σ A) = link eq' (ch ⟨ +-subst σ p ⟩ ch)
 substp σ (fail (ch ⟨ p ⟩ tt)) = fail (ch ⟨ +-subst σ p ⟩ tt)
 substp σ (wait (ch ⟨ p ⟩ P)) = wait (ch ⟨ +-subst σ p ⟩ substp σ P)
 substp σ (close ch) = close ch
@@ -102,4 +101,4 @@ substp σ (fork (ch ⟨ p ⟩ (P ⟨ q ⟩ Q))) = fork (ch ⟨ +-subst σ p ⟩ 
 substp σ (put (ch ⟨ p ⟩ P)) = put (ch ⟨ +-subst σ p ⟩ substp σ P)
 substp σ (get eq (ch ⟨ p ⟩ P)) = get eq (ch ⟨ +-subst σ p ⟩ substp σ P)
 substp σ (cut {A} eq (P ⟨ p ⟩ Q)) with ≈subst σ eq
-... | eq' rewrite Eq.sym (dual-subst σ A) = cut eq' (substp σ P ⟨ +-subst σ p ⟩ substp σ Q)
+... | eq' rewrite sym (dual-subst σ A) = cut eq' (substp σ P ⟨ +-subst σ p ⟩ substp σ Q)

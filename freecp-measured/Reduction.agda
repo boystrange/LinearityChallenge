@@ -7,7 +7,7 @@ import Data.Nat.Properties as Nat
 open import Data.List.Base using ([]; _∷_; [_]; _++_)
 open import Data.List.Properties using (++-assoc)
 open import Relation.Unary hiding (_∈_)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 open import Type
 open import Equivalence

@@ -5,7 +5,7 @@ open import Data.Product using (_,_)
 open import Data.Nat using (ℕ; suc; _+_)
 import Data.Nat.Properties as Nat using (+-comm; +-assoc)
 open import Data.List.Base using ([]; _∷_; [_])
-open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂)
+open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong₂)
 
 open import Type
 open import Equivalence
@@ -87,7 +87,6 @@ data _⊒_ {n Σ Γ} : ∀{μ ν} → Proc {n} Σ μ Γ → Proc Σ ν Γ → Se
     let _ , p′ , q′ = +-assoc-l p q in
     cut {μ = ν} eq (get eq' (ch ⟨ > q ⟩ P) ⟨ p ⟩ Q) ⊒
     get (ugly-assoc μ₁ μ₂ ν ω eq') (ch ⟨ q′ ⟩ cut eq (↭proc swap P ⟨ < p′ ⟩ Q))
-    -- get (ch ⟨ q′ ⟩ (cut eq (↭proc swap P ⟨ < p′ ⟩ Q)))
   s-refl  : ∀{μ} {P : Proc Σ μ Γ} → P ⊒ P
   s-tran  : ∀{μ ν ω} {P : Proc Σ μ Γ} {Q : Proc Σ ν Γ} {R : Proc Σ ω Γ} → P ⊒ Q → Q ⊒ R → P ⊒ R
   s-cong  : ∀{Γ₁ Γ₂ A A' μ μ' ν ν'} {P : Proc Σ μ (A ∷ Γ₁)} {Q : Proc Σ ν (A ∷ Γ₁)} {P′ : Proc Σ μ' (A' ∷ Γ₂)} {Q′ : Proc Σ ν' (A' ∷ Γ₂)}

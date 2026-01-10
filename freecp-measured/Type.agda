@@ -1,13 +1,9 @@
 {-# OPTIONS --rewriting --guardedness #-}
-open import Function using (id; _∘_)
-open import Data.Nat using (ℕ; zero; suc; _≤_; _<_)
-open import Data.Fin using (Fin; zero; suc; toℕ; #_)
-open import Data.Fin.Properties using (toℕ<n)
+open import Function using (_∘_)
+open import Data.Nat using (ℕ; zero; suc)
+open import Data.Fin using (Fin; zero; suc)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
-open import Relation.Nullary using (¬_; contradiction)
-open import Relation.Binary.PropositionalEquality as Eq using (_≡_; _≢_; refl; cong; cong₂; sym)
-open import Relation.Binary.HeterogeneousEquality as Heq using (_≅_; refl)
-open Eq.≡-Reasoning
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong₂; sym)
 open import Agda.Builtin.Equality.Rewrite
 
 open import Axioms

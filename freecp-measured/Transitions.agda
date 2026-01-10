@@ -1,10 +1,8 @@
 {-# OPTIONS --rewriting --guardedness #-}
 open import Data.Nat using (ℕ)
-open import Data.Fin using (Fin)
-open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
+open import Data.Product using (_,_)
 open import Relation.Nullary using (¬_; contradiction; contraposition)
-open import Relation.Binary.PropositionalEquality as Eq using (_≡_; _≢_; refl; cong; cong₂; sym)
-open import Agda.Builtin.Equality.Rewrite
+open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong₂)
 
 open import Type
 
@@ -149,11 +147,3 @@ transition-dual put = get
 transition-dual get = put
 transition-dual {A = rec A} (rec x) with transition-dual x
 ... | y rewrite dual-unfold A = rec y
-
--- record Closed {n r} (A : PreType n r) : Set where
---   coinductive
---   field
---     closed-skip : ¬ Skip A
---     closed-cont : ∀{ℓ B} → A ⊨ ℓ ⇒ B → Closed B
-
--- open Closed public

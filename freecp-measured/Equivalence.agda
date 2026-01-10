@@ -1,13 +1,10 @@
 {-# OPTIONS --rewriting --guardedness #-}
-open import Function using (id; _∘_)
-open import Data.Sum using (_⊎_; inj₁; inj₂)
-open import Data.Nat using (ℕ; zero; suc)
-open import Data.Fin using (Fin; zero; suc)
+open import Data.Nat using (ℕ)
+open import Data.Fin using (Fin)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
-open import Data.List.Base using (List; []; _∷_; [_]; _++_; map)
+open import Data.List.Base using (List; []; _∷_; [_])
 open import Relation.Nullary using (¬_; contradiction)
-open import Relation.Binary.PropositionalEquality as Eq using (_≡_; _≢_; refl; cong; cong₂; sym)
-open import Agda.Builtin.Equality.Rewrite
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym)
 
 open import Type
 open import Transitions
