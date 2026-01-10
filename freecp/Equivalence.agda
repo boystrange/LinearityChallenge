@@ -1,13 +1,10 @@
 {-# OPTIONS --rewriting --guardedness #-}
-open import Function using (id; _∘_)
-open import Data.Sum using (_⊎_; inj₁; inj₂)
-open import Data.Nat using (ℕ; zero; suc)
-open import Data.Fin using (Fin; zero; suc)
+open import Data.Nat using (ℕ)
+open import Data.Fin using (Fin)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
-open import Data.List.Base using (List; []; _∷_; [_]; _++_; map)
+open import Data.List.Base using (List; []; _∷_; [_])
 open import Relation.Nullary using (¬_; contradiction)
-open import Relation.Binary.PropositionalEquality as Eq using (_≡_; _≢_; refl; cong; cong₂; sym)
-open import Agda.Builtin.Equality.Rewrite
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym)
 
 open import Type
 open import Transitions
@@ -55,12 +52,28 @@ sim⊥⊗ : ∀{A B} → ¬ Sim ⊥ (A ⊗ B)
 sim⊥⊗ sim with sim .Sim.next ⊥
 ... | _ , () , _
 
+sim⊥put : ∀{μ A} → ¬ Sim ⊥ (μ ⊲ A)
+sim⊥put sim with sim .Sim.next ⊥
+... | _ , () , _
+
+sim𝟙put : ∀{μ A} → ¬ Sim 𝟙 (μ ⊲ A)
+sim𝟙put sim with sim .Sim.next 𝟙
+... | _ , () , _
+
 sim⊤𝟘 : ¬ Sim ⊤ 𝟘
 sim⊤𝟘 sim with sim .Sim.next ⊤
 ... | _ , () , _
 
 sim⊤𝟙 : ¬ Sim ⊤ 𝟙
 sim⊤𝟙 sim with sim .Sim.next ⊤
+... | _ , () , _
+
+sim⊤put : ∀{μ A} → ¬ Sim ⊤ (μ ⊲ A)
+sim⊤put sim with sim .Sim.next ⊤
+... | _ , () , _
+
+sim⊤get : ∀{μ A} → ¬ Sim ⊤ (μ ⊳ A)
+sim⊤get sim with sim .Sim.next ⊤
 ... | _ , () , _
 
 sim𝟘𝟙 : ¬ Sim 𝟘 𝟙
@@ -89,6 +102,26 @@ sim&⊕ sim with sim .Sim.next &L
 
 sim&⊗ : ∀{A B C D} → ¬ Sim (A & B) (C ⊗ D)
 sim&⊗ sim with sim .Sim.next &L
+... | _ , () , _
+
+sim&put : ∀{A B μ C} → ¬ Sim (A & B) (μ ⊲ C)
+sim&put sim with sim .Sim.next &L
+... | _ , () , _
+
+sim⊕put : ∀{A B μ C} → ¬ Sim (A ⊕ B) (μ ⊲ C)
+sim⊕put sim with sim .Sim.next ⊕L
+... | _ , () , _
+
+sim⅋put : ∀{A B μ C} → ¬ Sim (A ⅋ B) (μ ⊲ C)
+sim⅋put sim with sim .Sim.next ⅋L
+... | _ , () , _
+
+sim⊗put : ∀{A B μ C} → ¬ Sim (A ⊗ B) (μ ⊲ C)
+sim⊗put sim with sim .Sim.next ⊗L
+... | _ , () , _
+
+simgetput : ∀{A B μ ν} → ¬ Sim (μ ⊳ A) (ν ⊲ B)
+simgetput sim with sim .Sim.next get
 ... | _ , () , _
 
 sim⊕⊗ : ∀{A B C D} → ¬ Sim (A ⊕ B) (C ⊗ D)
@@ -133,6 +166,10 @@ _≲_ {n} A B = ∀{σ : ∀{u} → Fin n → PreType 0 u} → Sim (subst σ A) 
 ≲after⊗R : ∀{n} {A A' B B' : Type n} → (A ⊗ B) ≲ (A' ⊗ B') → B ≲ B'
 ≲after⊗R le .Sim.next tr with le .Sim.next ⊗R
 ... | _ , ⊗R , le' = le' .Sim.next tr
+
+≲after-put : ∀{n μ} {A A' : Type n}  → (μ ⊲ A) ≲ (μ ⊲ A') → A ≲ A'
+≲after-put le .Sim.next tr with le .Sim.next put
+... | _ , put , le' = le' .Sim.next tr
 
 -- EQUIVALENCE
 
@@ -180,5 +217,14 @@ open _≈_ public
 ≈after⊗R {_} {A} {A'} {B} {B'} eq .to   = ≲after⊗R {_} {A} {A'} {B} {B'} (eq .to)
 ≈after⊗R {_} {A} {A'} {B} {B'} eq .from = ≲after⊗R {_} {A'} {A} {B'} {B} (eq .from)
 
+≈after-put : ∀{n μ} {A A' : Type n}  → (μ ⊲ A) ≈ (μ ⊲ A') → A ≈ A'
+≈after-put {_} {μ} {A} {A'} eq .to = ≲after-put {_} {μ} {A} {A'} (eq .to)
+≈after-put {_} {μ} {A} {A'} eq .from = ≲after-put {_} {μ} {A'} {A} (eq .from)
+
 not≈ : ∀{n} {A B : Type n} → ¬ Sim (subst (λ _ → skip) A) (subst (λ _ → skip) B) → ¬ A ≈ B
 not≈ nsim eq = contradiction (eq .to) nsim
+
+≈measure : ∀{n} {μ ν} {A B : Type n} → (μ ⊲ A) ≈ (ν ⊲ B) → μ ≡ ν
+≈measure eq with eq .to {σ = λ _ → skip} .Sim.next put
+... | _ , put , _ = refl
+
