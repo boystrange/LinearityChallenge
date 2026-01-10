@@ -2,7 +2,7 @@
 open import Data.Sum using (inj₁; inj₂)
 open import Data.Product using (_,_)
 open import Data.Fin using (Fin)
-open import Data.Nat using (suc; _+_; _≤_; _<_)
+open import Data.Nat using (ℕ; suc; _+_; _≤_; _<_)
 import Data.Nat.Properties as Nat
 open import Data.List.Base using ([]; _∷_; [_]; _++_)
 open import Data.List.Properties using (++-assoc)
@@ -75,3 +75,13 @@ data _⊢_↝_ {n Σ Γ} (ℙ : Def Σ) : ∀{Δ μ ν} → Proc {n} Σ μ Γ �
 ↝size (r-cut {ν = ν} eq eqA eqC p red) = Nat.+-monoˡ-< ν (↝size red)
 ↝size (r-cong pc red) with ⊒size pc
 ... | refl = ↝size red
+
+data _⊢_↝*_ {n Σ Γ} (ℙ : Def Σ) : ∀{Δ μ ν} → Proc {n} Σ μ Γ → Proc {n} Σ ν Δ → Set where
+  refl  : ∀{μ} {P : Proc Σ μ Γ} → ℙ ⊢ P ↝* P
+  trans : ∀{μ ν ω Δ Θ} {P : Proc Σ μ Γ} {Q : Proc Σ ν Δ} {R : Proc Σ ω Θ} →
+          ℙ ⊢ P ↝ Q → ℙ ⊢ Q ↝* R → ℙ ⊢ P ↝* R
+
+run-length : ∀{n Σ μ ν Γ Δ} (ℙ : Def Σ) {P : Proc {n} Σ μ Γ} {Q : Proc Σ ν Δ} ->
+             ℙ ⊢ P ↝* Q -> ℕ
+run-length _ refl = 0
+run-length ℙ (trans _ reds) = suc (run-length ℙ reds)
