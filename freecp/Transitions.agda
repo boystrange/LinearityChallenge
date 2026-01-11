@@ -3,7 +3,7 @@ open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
 open import Relation.Nullary using (¬_; contradiction; contraposition)
-open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong₂)
+open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂)
 
 open import Type
 
@@ -79,6 +79,72 @@ data _⊨_⇒_ {n r} : PreType n r → Label → PreType n r → Set where
   get  : ∀{μ A} → (μ ⊳ A) ⊨ get μ ⇒ A
   rec  : ∀{A B ℓ} → unfold A ⊨ ℓ ⇒ B → rec A ⊨ ℓ ⇒ B
 
+-- data _⊨_ {n r} : PreType n r → Label → Set where
+--   skip : skip ⊨ ε
+--   ⊥    : ⊥ ⊨ ⊥
+--   𝟙    : 𝟙 ⊨ 𝟙
+--   ⊤    : ⊤ ⊨ ⊤
+--   𝟘    : 𝟘 ⊨ 𝟘
+--   &L   : ∀{A B} → (A & B) ⊨ &L
+--   &R   : ∀{A B} → (A & B) ⊨ &R
+--   ⊕L   : ∀{A B} → (A ⊕ B) ⊨ ⊕L
+--   ⊕R   : ∀{A B} → (A ⊕ B) ⊨ ⊕R
+--   ⅋L   : ∀{A B} → (A ⅋ B) ⊨ ⅋L
+--   ⅋R   :  ∀{A B} → (A ⅋ B) ⊨ ⅋R
+--   ⊗L   : ∀{A B} → (A ⊗ B) ⊨ ⊗L
+--   ⊗R   : ∀{A B} → (A ⊗ B) ⊨ ⊗R
+--   seq  : ∀{A B ℓ} → ¬ Special ℓ → A ⊨ ℓ → (A ⨟ B) ⊨ ℓ
+--   seqε : ∀{A B ℓ} → A ⊨ ε → B ⊨ ℓ → (A ⨟ B) ⊨ ℓ
+--   seq⊗ : ∀{A B} → A ⊨ ⊗L → (A ⨟ B) ⊨ ⊗L
+--   seq⅋ : ∀{A B} → A ⊨ ⅋L → (A ⨟ B) ⊨ ⅋L
+--   put  : ∀{μ A} → (μ ⊲ A) ⊨ put μ
+--   get  : ∀{μ A} → (μ ⊳ A) ⊨ get μ
+--   rec  : ∀{A ℓ} → unfold A ⊨ ℓ → rec A ⊨ ℓ
+
+-- dual-transition : ∀{n r ℓ} {A : PreType n r} → A ⊨ ℓ → dual A ⊨ dual-label ℓ
+-- dual-transition skip = skip
+-- dual-transition ⊥ = 𝟙
+-- dual-transition 𝟙 = ⊥
+-- dual-transition ⊤ = 𝟘
+-- dual-transition 𝟘 = ⊤
+-- dual-transition &L = ⊕L
+-- dual-transition &R = ⊕R
+-- dual-transition ⊕L = &L
+-- dual-transition ⊕R = &R
+-- dual-transition ⅋L = ⊗L
+-- dual-transition ⅋R = ⊗R
+-- dual-transition ⊗L = ⅋L
+-- dual-transition ⊗R = ⅋R
+-- dual-transition (seq ns tr) = seq (contraposition dual-special ns) (dual-transition tr)
+-- dual-transition (seqε sk tr) = seqε (dual-transition sk) (dual-transition tr)
+-- dual-transition (seq⊗ tr) = seq⅋ (dual-transition tr)
+-- dual-transition (seq⅋ tr) = seq⊗ (dual-transition tr)
+-- dual-transition put = get
+-- dual-transition get = put
+-- dual-transition {A = rec A} (rec tr) = rec (dual-transition tr)
+
+-- after : ∀{n r ℓ} {A : PreType n r} → A ⊨ ℓ → PreType n r
+-- after {A = skip} skip = skip
+-- after {A = ⊤} ⊤ = ⊤
+-- after {A = 𝟘} 𝟘 = 𝟘
+-- after {A = ⊥} ⊥ = ⊥
+-- after {A = 𝟙} 𝟙 = 𝟙
+-- after {A = A ⨟ B} (seq ns tr) = after tr ⨟ B
+-- after {A = A ⨟ B} (seqε sk tr) = after tr
+-- after {A = A ⨟ B} (seq⊗ tr) = after tr
+-- after {A = A ⨟ B} (seq⅋ tr) = after tr
+-- after {A = A & B} &L = A
+-- after {A = A & B} &R = B
+-- after {A = A ⊕ B} ⊕L = A
+-- after {A = A ⊕ B} ⊕R = B
+-- after {A = A ⅋ B} ⅋L = A
+-- after {A = A ⅋ B} ⅋R = B
+-- after {A = A ⊗ B} ⊗L = A
+-- after {A = A ⊗ B} ⊗R = B
+-- after {A = _ ⊲ A} put = A
+-- after {A = _ ⊳ A} get = A
+-- after {A = rec A} (rec tr) = after tr
+
 only-skip : ∀{n ℓ} {A B C : Type n} → A ⊨ ε ⇒ B → A ⊨ ℓ ⇒ C → ℓ ≡ ε
 only-skip skip skip = refl
 only-skip (seq x xns) _ = contradiction ε xns
@@ -146,5 +212,4 @@ transition-dual (seq⊗ x) = seq⅋ (transition-dual x)
 transition-dual (seq⅋ x) = seq⊗ (transition-dual x)
 transition-dual put = get
 transition-dual get = put
-transition-dual {A = rec A} (rec x) with transition-dual x
-... | y rewrite dual-unfold A = rec y
+transition-dual {A = rec A} (rec x) = rec (transition-dual x)

@@ -161,6 +161,8 @@ unfold A = rec-subst (s-just (rec A)) A
 dual-unfold : ∀{n r} (A : PreType n (suc r)) → dual (unfold A) ≡ unfold (dual A)
 dual-unfold A rewrite dual-rec-subst (s-just (rec A)) A | dual-s-just (rec A) = refl
 
+{-# REWRITE dual-unfold #-}
+
 -- POLYMORPHISM
 
 subst : ∀{n m r} → (∀{u} → Fin n → PreType m u) → PreType n r → PreType m r
