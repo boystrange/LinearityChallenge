@@ -3,13 +3,20 @@
 Formalization of FreeCP, a version of CP with **context-free**
 session types.
 
-* [type representation](freecp/Type.agda) (recursive, polymorphic,
-  context-free session types)
-* [labelled transition system for types](freecp/Transitions.agda)
-* [type equivalence](freecp/Equivalence.agda)
-* [process representation](freecp/Process.agda) (includes support
-  for polymorphic recursion)
-* [congruence preserves typing](freecp/Congruence.agda)
-* [reduction preserves typing](freecp/Reduction.agda)
-* [deadlock freedom](freecp/DeadlockFreedom.agda)
-* [strong termination](freecp/Termination.agda)
+## Modules
+
+* [Type](freecp/Type.agda) representation of recursive, polymorphic,
+  context-free session types
+* [Transitions](freecp/Transitions.agda) labelled transition system
+  for context-free session types
+* [Equivalence](freecp/Equivalence.agda) bisimulation and type
+  equivalence
+* [Process](freecp/Process.agda) intrinsically-typed representation
+  of processes and typing rules
+* [Congruence](freecp/Congruence.agda) pre-congruence relation and
+  typing preservation for processes
+* [Reduction](freecp/Reduction.agda) reduction relation and typing
+  preservation for processes
+* [DeadlockFreedom](freecp/DeadlockFreedom.agda) proof of deadlock freedom
+* [Termination](freecp/Termination.agda) proof of strong termination
+  and normalization function
