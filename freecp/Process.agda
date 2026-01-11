@@ -20,7 +20,7 @@ record ProcType : Set where
     measure : ℕ
     context : Context n
 
-open ProcType public
+open ProcType
 
 ProcContext : Set
 ProcContext = List ProcType

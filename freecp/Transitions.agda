@@ -1,6 +1,7 @@
 {-# OPTIONS --rewriting --guardedness #-}
+open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ)
-open import Data.Product using (_,_)
+open import Data.Product using (_×_; _,_; ∃; ∃-syntax)
 open import Relation.Nullary using (¬_; contradiction; contraposition)
 open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong₂)
 
@@ -56,7 +57,7 @@ dual-special ε = ε
 dual-special ⊗L = ⅋L
 dual-special ⅋L = ⊗L
 
-data _⊨_⇒_ {n} : Type n → Label → Type n → Set where
+data _⊨_⇒_ {n r} : PreType n r → Label → PreType n r → Set where
   skip : skip ⊨ ε ⇒ skip
   ⊥    : ⊥ ⊨ ⊥ ⇒ ⊥
   𝟙    : 𝟙 ⊨ 𝟙 ⇒ 𝟙
@@ -82,7 +83,7 @@ only-skip : ∀{n ℓ} {A B C : Type n} → A ⊨ ε ⇒ B → A ⊨ ℓ ⇒ C �
 only-skip skip skip = refl
 only-skip (seq x xns) _ = contradiction ε xns
 only-skip (seqε sk x) (seq y yns) rewrite only-skip sk y = refl
-only-skip (seqε sk x) (seqε sk' y) = only-skip x y
+only-skip (seqε _ x) (seqε _ y) = only-skip x y
 only-skip (seqε sk x) (seq⊗ y) with only-skip sk y
 ... | ()
 only-skip (seqε sk x) (seq⅋ y) with only-skip sk y

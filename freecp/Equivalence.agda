@@ -167,9 +167,13 @@ _≲_ {n} A B = ∀{σ : ∀{u} → Fin n → PreType 0 u} → Sim (subst σ A) 
 ≲after⊗R le .Sim.next tr with le .Sim.next ⊗R
 ... | _ , ⊗R , le' = le' .Sim.next tr
 
-≲after-put : ∀{n μ} {A A' : Type n}  → (μ ⊲ A) ≲ (μ ⊲ A') → A ≲ A'
+≲after-put : ∀{n μ} {A A' : Type n} → (μ ⊲ A) ≲ (μ ⊲ A') → A ≲ A'
 ≲after-put le .Sim.next tr with le .Sim.next put
 ... | _ , put , le' = le' .Sim.next tr
+
+-- ≲after : ∀{n ℓ} {A B A' B' : Type n} → A ⊨ ℓ ⇒ A' → B ⊨ ℓ ⇒ B' → A ≲ B → A' ≲ B'
+-- ≲after x y le {σ} with le {σ}
+-- ... | sim = {!!}
 
 -- EQUIVALENCE
 
