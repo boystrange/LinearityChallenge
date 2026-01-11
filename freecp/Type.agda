@@ -203,9 +203,6 @@ dual-subst σ (rec A) = cong rec (dual-subst σ A)
 Type : ℕ → Set
 Type n = PreType n 0
 
-GroundType : Set
-GroundType = Type 0
-
 subst-compose : ∀{m n o r}
                 (σ₁ : ∀{u} → Fin m → PreType n u) (σ₂ : ∀{u} → Fin n → PreType o u) →
                 (A : PreType m r) →

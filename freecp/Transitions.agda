@@ -56,7 +56,7 @@ dual-special ε = ε
 dual-special ⊗L = ⅋L
 dual-special ⅋L = ⊗L
 
-data _⊨_⇒_ : GroundType → Label → GroundType → Set where
+data _⊨_⇒_ {n} : Type n → Label → Type n → Set where
   skip : skip ⊨ ε ⇒ skip
   ⊥    : ⊥ ⊨ ⊥ ⇒ ⊥
   𝟙    : 𝟙 ⊨ 𝟙 ⇒ 𝟙
@@ -78,7 +78,7 @@ data _⊨_⇒_ : GroundType → Label → GroundType → Set where
   get  : ∀{μ A} → (μ ⊳ A) ⊨ get μ ⇒ A
   rec  : ∀{A B ℓ} → unfold A ⊨ ℓ ⇒ B → rec A ⊨ ℓ ⇒ B
 
-only-skip : ∀{ℓ A B C} → A ⊨ ε ⇒ B → A ⊨ ℓ ⇒ C → ℓ ≡ ε
+only-skip : ∀{n ℓ} {A B C : Type n} → A ⊨ ε ⇒ B → A ⊨ ℓ ⇒ C → ℓ ≡ ε
 only-skip skip skip = refl
 only-skip (seq x xns) _ = contradiction ε xns
 only-skip (seqε sk x) (seq y yns) rewrite only-skip sk y = refl
@@ -89,7 +89,7 @@ only-skip (seqε sk x) (seq⅋ y) with only-skip sk y
 ... | ()
 only-skip (rec x) (rec y) = only-skip x y
 
-deterministic : ∀{ℓ A B C} → A ⊨ ℓ ⇒ B → A ⊨ ℓ ⇒ C → B ≡ C
+deterministic : ∀{n ℓ} {A B C : Type n} → A ⊨ ℓ ⇒ B → A ⊨ ℓ ⇒ C → B ≡ C
 deterministic skip skip = refl
 deterministic ⊥ ⊥ = refl
 deterministic 𝟙 𝟙 = refl
@@ -125,7 +125,7 @@ deterministic put put = refl
 deterministic get get = refl
 deterministic (rec x) (rec y) = deterministic x y
 
-transition-dual : ∀{A B ℓ} → A ⊨ ℓ ⇒ B → dual A ⊨ dual-label ℓ ⇒ dual B
+transition-dual : ∀{n ℓ} {A B : Type n} → A ⊨ ℓ ⇒ B → dual A ⊨ dual-label ℓ ⇒ dual B
 transition-dual skip = skip
 transition-dual ⊥ = 𝟙
 transition-dual 𝟙 = ⊥

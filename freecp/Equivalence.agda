@@ -11,124 +11,124 @@ open import Transitions
 
 -- SIMULATION
 
-record Sim (A B : GroundType) : Set where
+record Sim {n} (A B : Type n) : Set where
   coinductive
   field
     next : ∀{ℓ A'} → A ⊨ ℓ ⇒ A' → ∃[ B' ] (B ⊨ ℓ ⇒ B' × Sim A' B')
 
-sim-refl : ∀{A} → Sim A A
+sim-refl : ∀{n} {A : Type n} → Sim A A
 sim-refl .Sim.next tr = _ , tr , sim-refl
 
-sim-trans : ∀{A B C} → Sim A B → Sim B C → Sim A C
+sim-trans : ∀{n} {A B C : Type n} → Sim A B → Sim B C → Sim A C
 sim-trans p q .Sim.next tr with p .Sim.next tr
 ... | _ , tr' , p' with q .Sim.next tr'
 ... | _ , tr'' , q' = _ , tr'' , sim-trans p' q'
 
-sim-dual : ∀{A B} → Sim A B → Sim (dual A) (dual B)
+sim-dual : ∀{n} {A B : Type n} → Sim A B → Sim (dual A) (dual B)
 sim-dual le .Sim.next tr with le .Sim.next (transition-dual tr)
 ... | _ , tr' , le' = _ , transition-dual tr' , sim-dual le'
 
-sim-after : ∀{ℓ A B A' B'} → Sim A B → A ⊨ ℓ ⇒ A' → B ⊨ ℓ ⇒ B' → Sim A' B'
+sim-after : ∀{n ℓ} {A B A' B' : Type n} → Sim A B → A ⊨ ℓ ⇒ A' → B ⊨ ℓ ⇒ B' → Sim A' B'
 sim-after le p q .Sim.next tr with le .Sim.next p
 ... | _ , q' , le' rewrite deterministic q q' = le' .Sim.next tr
 
-sim⊥𝟙 : ¬ Sim ⊥ 𝟙
+sim⊥𝟙 : ∀{n} → ¬ Sim {n} ⊥ 𝟙
 sim⊥𝟙 sim with sim .Sim.next ⊥
 ... | _ , () , _
 
-sim⊥⊕ : ∀{A B} → ¬ Sim ⊥ (A ⊕ B)
+sim⊥⊕ : ∀{n A B} → ¬ Sim {n} ⊥ (A ⊕ B)
 sim⊥⊕ sim with sim .Sim.next ⊥
 ... | _ , () , _
 
-sim𝟙⊕ : ∀{A B} → ¬ Sim 𝟙 (A ⊕ B)
+sim𝟙⊕ : ∀{n A B} → ¬ Sim {n} 𝟙 (A ⊕ B)
 sim𝟙⊕ sim with sim .Sim.next 𝟙
 ... | _ , () , _
 
-sim𝟙⊗ : ∀{A B} → ¬ Sim 𝟙 (A ⊗ B)
+sim𝟙⊗ : ∀{n A B} → ¬ Sim {n} 𝟙 (A ⊗ B)
 sim𝟙⊗ sim with sim .Sim.next 𝟙
 ... | _ , () , _
 
-sim⊥⊗ : ∀{A B} → ¬ Sim ⊥ (A ⊗ B)
+sim⊥⊗ : ∀{n A B} → ¬ Sim {n} ⊥ (A ⊗ B)
 sim⊥⊗ sim with sim .Sim.next ⊥
 ... | _ , () , _
 
-sim⊥put : ∀{μ A} → ¬ Sim ⊥ (μ ⊲ A)
+sim⊥put : ∀{n μ A} → ¬ Sim {n} ⊥ (μ ⊲ A)
 sim⊥put sim with sim .Sim.next ⊥
 ... | _ , () , _
 
-sim𝟙put : ∀{μ A} → ¬ Sim 𝟙 (μ ⊲ A)
+sim𝟙put : ∀{n μ A} → ¬ Sim {n} 𝟙 (μ ⊲ A)
 sim𝟙put sim with sim .Sim.next 𝟙
 ... | _ , () , _
 
-sim⊤𝟘 : ¬ Sim ⊤ 𝟘
+sim⊤𝟘 : ∀{n} → ¬ Sim {n} ⊤ 𝟘
 sim⊤𝟘 sim with sim .Sim.next ⊤
 ... | _ , () , _
 
-sim⊤𝟙 : ¬ Sim ⊤ 𝟙
+sim⊤𝟙 : ∀{n} → ¬ Sim {n} ⊤ 𝟙
 sim⊤𝟙 sim with sim .Sim.next ⊤
 ... | _ , () , _
 
-sim⊤put : ∀{μ A} → ¬ Sim ⊤ (μ ⊲ A)
+sim⊤put : ∀{n μ A} → ¬ Sim {n} ⊤ (μ ⊲ A)
 sim⊤put sim with sim .Sim.next ⊤
 ... | _ , () , _
 
-sim⊤get : ∀{μ A} → ¬ Sim ⊤ (μ ⊳ A)
+sim⊤get : ∀{n μ A} → ¬ Sim {n} ⊤ (μ ⊳ A)
 sim⊤get sim with sim .Sim.next ⊤
 ... | _ , () , _
 
-sim𝟘𝟙 : ¬ Sim 𝟘 𝟙
+sim𝟘𝟙 : ∀{n} → ¬ Sim {n} 𝟘 𝟙
 sim𝟘𝟙 sim with sim .Sim.next 𝟘
 ... | _ , () , _
 
-sim⊤⊕ : ∀{A B} → ¬ Sim ⊤ (A ⊕ B)
+sim⊤⊕ : ∀{n A B} → ¬ Sim {n} ⊤ (A ⊕ B)
 sim⊤⊕ sim with sim .Sim.next ⊤
 ... | _ , () , _
 
-sim⊤& : ∀{A B} → ¬ Sim ⊤ (A & B)
+sim⊤& : ∀{n A B} → ¬ Sim {n} ⊤ (A & B)
 sim⊤& sim with sim .Sim.next ⊤
 ... | _ , () , _
 
-sim⊤⊗ : ∀{A B} → ¬ Sim ⊤ (A ⊗ B)
+sim⊤⊗ : ∀{n A B} → ¬ Sim {n} ⊤ (A ⊗ B)
 sim⊤⊗ sim with sim .Sim.next ⊤
 ... | _ , () , _
 
-sim⊤⅋ : ∀{A B} → ¬ Sim ⊤ (A ⅋ B)
+sim⊤⅋ : ∀{n A B} → ¬ Sim {n} ⊤ (A ⅋ B)
 sim⊤⅋ sim with sim .Sim.next ⊤
 ... | _ , () , _
 
-sim&⊕ : ∀{A B C D} → ¬ Sim (A & B) (C ⊕ D)
+sim&⊕ : ∀{n A B C D} → ¬ Sim {n} (A & B) (C ⊕ D)
 sim&⊕ sim with sim .Sim.next &L
 ... | _ , () , _
 
-sim&⊗ : ∀{A B C D} → ¬ Sim (A & B) (C ⊗ D)
+sim&⊗ : ∀{n A B C D} → ¬ Sim {n} (A & B) (C ⊗ D)
 sim&⊗ sim with sim .Sim.next &L
 ... | _ , () , _
 
-sim&put : ∀{A B μ C} → ¬ Sim (A & B) (μ ⊲ C)
+sim&put : ∀{n A B μ C} → ¬ Sim {n} (A & B) (μ ⊲ C)
 sim&put sim with sim .Sim.next &L
 ... | _ , () , _
 
-sim⊕put : ∀{A B μ C} → ¬ Sim (A ⊕ B) (μ ⊲ C)
+sim⊕put : ∀{n A B μ C} → ¬ Sim {n} (A ⊕ B) (μ ⊲ C)
 sim⊕put sim with sim .Sim.next ⊕L
 ... | _ , () , _
 
-sim⅋put : ∀{A B μ C} → ¬ Sim (A ⅋ B) (μ ⊲ C)
+sim⅋put : ∀{n A B μ C} → ¬ Sim {n} (A ⅋ B) (μ ⊲ C)
 sim⅋put sim with sim .Sim.next ⅋L
 ... | _ , () , _
 
-sim⊗put : ∀{A B μ C} → ¬ Sim (A ⊗ B) (μ ⊲ C)
+sim⊗put : ∀{n A B μ C} → ¬ Sim {n} (A ⊗ B) (μ ⊲ C)
 sim⊗put sim with sim .Sim.next ⊗L
 ... | _ , () , _
 
-simgetput : ∀{A B μ ν} → ¬ Sim (μ ⊳ A) (ν ⊲ B)
+simgetput : ∀{n A B μ ν} → ¬ Sim {n} (μ ⊳ A) (ν ⊲ B)
 simgetput sim with sim .Sim.next get
 ... | _ , () , _
 
-sim⊕⊗ : ∀{A B C D} → ¬ Sim (A ⊕ B) (C ⊗ D)
+sim⊕⊗ : ∀{n A B C D} → ¬ Sim {n} (A ⊕ B) (C ⊗ D)
 sim⊕⊗ sim with sim .Sim.next ⊕L
 ... | _ , () , _
 
-sim⅋⊗ : ∀{A B C D} → ¬ Sim (A ⅋ B) (C ⊗ D)
+sim⅋⊗ : ∀{n A B C D} → ¬ Sim {n} (A ⅋ B) (C ⊗ D)
 sim⅋⊗ sim with sim .Sim.next ⅋L
 ... | _ , () , _
 
