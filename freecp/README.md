@@ -1,4 +1,4 @@
-# README
+# FreeCP - CP with context-free session types
 
 Formalization of FreeCP, a version of CP with **context-free**
 session types.
