@@ -5,18 +5,18 @@ session types.
 
 ## Modules
 
-* [Type](freecp/Type.agda) representation of recursive, polymorphic,
+* [Type](Type.agda): representation of recursive, polymorphic,
   context-free session types
-* [Transitions](freecp/Transitions.agda) labelled transition system
+* [Transitions](Transitions.agda): labelled transition system
   for context-free session types
-* [Equivalence](freecp/Equivalence.agda) bisimulation and type
+* [Equivalence](Equivalence.agda): bisimulation and type
   equivalence
-* [Process](freecp/Process.agda) intrinsically-typed representation
+* [Process](Process.agda): intrinsically-typed representation
   of processes and typing rules
-* [Congruence](freecp/Congruence.agda) pre-congruence relation and
+* [Congruence](Congruence.agda): pre-congruence relation and
   typing preservation for processes
-* [Reduction](freecp/Reduction.agda) reduction relation and typing
+* [Reduction](Reduction.agda): reduction relation and typing
   preservation for processes
-* [DeadlockFreedom](freecp/DeadlockFreedom.agda) proof of deadlock freedom
-* [Termination](freecp/Termination.agda) proof of strong termination
+* [DeadlockFreedom](DeadlockFreedom.agda): proof of deadlock freedom
+* [Termination](Termination.agda): proof of strong termination
   and normalization function
