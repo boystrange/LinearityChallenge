@@ -128,11 +128,12 @@ red< {_} {cut _ _ (select false _ P) (case _ Q R)} (r-select-r d e p p₀ q₀) 
   suc (size P) + (size Q ⊔ size R) ≤⟨ +-monoʳ-≤ (suc (size P)) (n≤1+n _) ⟩
   suc (size P) + suc (size Q ⊔ size R) ∎
   where open ≤-Reasoning
-red< {_} {cut _ p (fork _ _ P Q) (join _ R)} (r-fork d e p p₀ q q₀)
-  rewrite +-assoc (size P) (size Q) (size R) = begin
-  suc (size P) + (size Q + size R) ≡⟨ sym (+-assoc (suc (size P)) (size Q) (size R)) ⟩
-  (suc (size P) + size Q) + size R ≤⟨ +-monoʳ-≤ (suc (size P) + size Q) (n≤1+n _) ⟩
-  (suc (size P) + size Q) + suc (size R) ∎
+red< {_} {cut _ p (fork _ _ P Q) (join _ R)} (r-fork d e p p₀ q q₀) =
+  begin
+    suc (size P + (size Q + size R)) ≡⟨ cong suc (sym (+-assoc (size P) (size Q) (size R))) ⟩
+    (suc (size P + size Q) + size R) ≤⟨ +-monoʳ-≤ (suc (size P + size Q)) (n≤1+n _) ⟩
+    (suc (size P + size Q) + suc (size R))
+  ∎
   where open ≤-Reasoning
 red< {_} {cut d q P R} (r-cut d q red) = +-monoˡ-< (size R) (red< red)
 red< {_} {P} (r-cong pc red) = ≤-trans (red< red) (cong≤ pc)
