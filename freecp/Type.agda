@@ -8,13 +8,13 @@ open import Agda.Builtin.Equality.Rewrite
 
 open import Axioms
 
-data PreType (n : ℕ) : ℕ → Set where
-  var rav              : ∀{r} → Fin n → PreType n r
-  skip ⊤ 𝟘 ⊥ 𝟙         : ∀{r} → PreType n r
-  _⨟_ _&_ _⊕_ _⅋_ _⊗_  : ∀{r} → PreType n r → PreType n r → PreType n r
-  _⊲_ _⊳_              : ∀{r} → ℕ → PreType n r → PreType n r
-  inv                  : ∀{r} → Fin r → PreType n r
-  rec                  : ∀{r} → PreType n (suc r) → PreType n r
+data PreType (n r : ℕ) : Set where
+  var rav              : Fin n → PreType n r
+  skip ⊤ 𝟘 ⊥ 𝟙         : PreType n r
+  _⨟_ _&_ _⊕_ _⅋_ _⊗_  : PreType n r → PreType n r → PreType n r
+  _⊲_ _⊳_              : ℕ → PreType n r → PreType n r
+  inv                  : Fin r → PreType n r
+  rec                  : PreType n (suc r) → PreType n r
 
 dual : ∀{n r} → PreType n r → PreType n r
 dual (var x) = rav x
