@@ -47,16 +47,8 @@ data Proc {n} (Σ : ProcContext) : ℕ → Context n → Set where
   get      : ∀{A μ ν ω} → μ ≡ ν + ω → ∀[ Ch (ω ⊳ A) ∗ ((A ∷_) ⊢ Proc Σ μ) ⇒ Proc Σ ν ]
   cut      : ∀{A B μ ν} → dual A ≈ B → ∀[ ((A ∷_) ⊢ Proc Σ μ) ∗ ((B ∷_) ⊢ Proc Σ ν) ⇒ Proc Σ (μ + ν) ]
 
-data PreDef (Σ : ProcContext) : ProcContext → Set where
-  []  : PreDef Σ []
-  _∷_ : ∀{T Σ'} → Proc Σ (T .measure) (T .context) → PreDef Σ Σ' → PreDef Σ (T ∷ Σ')
-
 Def : ProcContext → Set
-Def Σ = PreDef Σ Σ
-
-lookup : ∀{Σ Σ' T} → PreDef Σ Σ' → T ∈ Σ' → Proc Σ (T .measure) (T .context)
-lookup (P ∷ def) here = P
-lookup (_ ∷ def) (next x) = lookup def x
+Def Σ = ∀{T} → T ∈ Σ → Proc Σ (T .measure) (T .context)
 
 ↭proc : ∀{n} {Γ Δ : Context n} {Σ μ} → Γ ↭ Δ → Proc Σ μ Γ → Proc Σ μ Δ
 ↭proc π (call x σ π') = call x σ (trans π' π)
