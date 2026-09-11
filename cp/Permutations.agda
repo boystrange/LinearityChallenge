@@ -5,7 +5,6 @@ open import Data.Product using (_×_; _,_; ∃; ∃-syntax; proj₁)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Nat using (suc)
 
-
 open import Type
 open import Context
 
@@ -26,7 +25,7 @@ data _↭_ : Context → Context → Set where
 ↭empty (trans p q) with ↭empty q
 ... | refl         = ↭empty p
 
-↭solo-inv : ∀{A Γ} → [ A ] ↭ Γ → Γ ≡ [ A ] 
+↭solo-inv : ∀{A Γ} → [ A ] ↭ Γ → Γ ≡ [ A ]
 ↭solo-inv refl        = refl
 ↭solo-inv (prep p) with ↭empty (↭sym p)
 ... | refl            = refl
@@ -37,7 +36,7 @@ data _↭_ : Context → Context → Set where
 ↭pair-inv refl         = inj₁ refl
 ↭pair-inv swap         = inj₂ refl
 ↭pair-inv (prep π)     = inj₁ (cong (_ ∷_) (↭solo-inv π))
-↭pair-inv (trans π π₁) with ↭pair-inv π 
+↭pair-inv (trans π π₁) with ↭pair-inv π
 ... | inj₁ refl        = ↭pair-inv π₁
 ... | inj₂ refl with ↭pair-inv π₁
 ... | inj₁ refl        = inj₂ refl
@@ -57,14 +56,14 @@ data _↭_ : Context → Context → Set where
 ... | Δ₁ , Δ₂ , s₁ , p₁ , p₂ =  Δ₁ , _ ∷ Δ₂ , (> s₁) , p₁ , prep p₂
 ↭split (trans p q) s with ↭split p s
 ... | Θ₁ , Θ₂ , s₁ , p₁ , p₂ with ↭split q s₁
-... | Δ₁ , Δ₂ , s₂ , q₁ , q₂ = Δ₁ , Δ₂ , s₂ , trans p₁ q₁ , trans p₂ q₂ 
+... | Δ₁ , Δ₂ , s₂ , q₁ , q₂ = Δ₁ , Δ₂ , s₂ , trans p₁ q₁ , trans p₂ q₂
 
 ↭empty-inv : ∀{Γ} → [] ↭ Γ → Γ ≡ []
 ↭empty-inv π = ↭empty (↭sym π)
 
 ↭solo-eq : ∀{Γ Δ A} → Γ ↭ Δ → Γ ≡ [ A ] → Δ ≡ [ A ]
 ↭solo-eq refl         refl = refl
-↭solo-eq (prep π)     refl with ↭empty-inv π 
+↭solo-eq (prep π)     refl with ↭empty-inv π
 ... | refl                 = refl
 ↭solo-eq (trans π π`) refl with ↭solo-eq π refl
 ... | refl with ↭solo-eq π` refl
@@ -94,7 +93,7 @@ data _↭_ : Context → Context → Set where
 ↭-pull-contract here = refl
 ↭-pull-contract (next U) = prep (↭-pull-update U)
 
-↭-update : ∀{Γ Γ` A Δ Θ n} → Γ ↭ Γ` →  Update A Θ n Γ Δ → ∃[ m ] ∃[ Δ` ] (Update A Θ m Γ` Δ` × Δ ↭ Δ`)
+↭-update : ∀{Γ Γ` A Δ Θ n} → Γ ↭ Γ` → Update A Θ n Γ Δ → ∃[ m ] ∃[ Δ` ] (Update A Θ m Γ` Δ` × Δ ↭ Δ`)
 ↭-update refl U = _ , _ , U , refl
 ↭-update swap here = _ , _ , next here , ↭-pull
 ↭-update swap (next here) = _ , _ , here , ↭-push
@@ -105,7 +104,6 @@ data _↭_ : Context → Context → Set where
 ↭-update (trans π π₁) U with ↭-update π U
 ... | _ , _ , U₁ , π₂ with ↭-update π₁ U₁
 ... | _ , _ , U₂ , π₃                 = _ , _ , U₂ , trans π₂ π₃
-
 
 ↭-update-con : ∀ {Γ Γ' A Δ n} → Γ ↭ Γ' → Update A [] n Δ Γ → ∃[ m ] ∃[ Δ' ] (Update A [] m Δ' Γ' × Δ ↭ Δ')
 ↭-update-con refl U = _ , _ , U , refl
@@ -131,21 +129,21 @@ data _↭_ : Context → Context → Set where
 ... | _ , U' with ↭-update-id π₂ U'
 ... | m , U'' = m , U''
 
-↭-update-same-i : ∀ {Γ Γ' A Π Π₁ Δ₁ Δ₂ n} → (π : Γ ↭ Γ') → (U : Update A Π n Γ Δ₁) → (U' : Update A Π₁ n Γ Δ₂) → proj₁ (↭-update π U) ≡ proj₁ (↭-update π U')
+↭-update-same-i : ∀ {Γ Γ' A Π Π₁ Δ₁ Δ₂ n} (π : Γ ↭ Γ') (U : Update A Π n Γ Δ₁) (U' : Update A Π₁ n Γ Δ₂) → proj₁ (↭-update π U) ≡ proj₁ (↭-update π U')
 ↭-update-same-i refl U U₁ = refl
 ↭-update-same-i swap here here = refl
 ↭-update-same-i swap (next here) (next here) = refl
 ↭-update-same-i swap (next (next U)) (next (next U₁)) = refl
 ↭-update-same-i (prep π) here here = refl
 ↭-update-same-i (prep π) (next U) (next U₁) = cong suc (↭-update-same-i π U U₁)
-↭-update-same-i (trans π π₁) U U₁ with ↭-update π U | ↭-update π U₁ | ↭-update-same-i π U U₁ 
+↭-update-same-i (trans π π₁) U U₁ with ↭-update π U | ↭-update π U₁ | ↭-update-same-i π U U₁
 ... | _ , _ , U₂ , _ | _ , _ , U₃ , _ | refl = ↭-update-same-i π₁ U₂ U₃
 
 ↭-update-inv-id : ∀{Γ Γ₁ Π A n Δ}
                 → (π : Γ ↭ Γ₁)
                 → (U : Update A Π n Γ Δ)
-                → let _ , _ , U₁ , _ = ↭-update π U 
-                  in proj₁ (↭-update (↭sym π) U₁) ≡ n
+                → let _ , _ , U₁ , _ = ↭-update π U
+                   in proj₁ (↭-update (↭sym π) U₁) ≡ n
 ↭-update-inv-id refl     U               = refl
 ↭-update-inv-id swap     here            = refl
 ↭-update-inv-id swap     (next here)     = refl

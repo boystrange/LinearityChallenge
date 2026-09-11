@@ -18,7 +18,7 @@ cut-l σ ∁ Q ⟦ P ⟧ = cut σ (∁ ⟦ P ⟧) Q
 cut-r σ Q ∁ ⟦ P ⟧ = cut σ Q (∁ ⟦ P ⟧)
 
 WellFormed : ∀{Γ} → Proc Γ → Set
-WellFormed {Γ} P = ∀{Δ} {∁ : ReductionContext Δ Γ} {Q : Proc Δ} → 
+WellFormed {Γ} P = ∀{Δ} {∁ : ReductionContext Δ Γ} {Q : Proc Δ} →
     P ⊒ ((∁ ⟦ Q ⟧)) → Alive Q
 
 type-safety : ∀{Γ} (P : Proc Γ) → WellFormed P

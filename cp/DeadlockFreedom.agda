@@ -40,7 +40,7 @@ data Delayed : ∀{Γ} → Proc Γ → Set where
     select-r : ∀{Γ Δ C P A B n} {U : Update (A ⊕ B) [ B ] n Γ Δ} → Delayed (select-r (next {C = C} U) P)
     join     : ∀{Γ Δ C A B n} {U : Update (A ⅋ B) [ B ] n Γ Δ} (P : Proc (A ∷ C ∷ Δ)) → Delayed (join (next {C = C} U) P)
     fork-l   : ∀{Γ Δ Θ A B C Θ` P Q n} {U : Update (A ⊗ B) [ B ] n Θ Θ`} (σ : Γ ≃ Δ + Θ) → Delayed (fork (<_ {C} σ) U P Q)
-    fork-r   : ∀{Γ Δ Θ A B C Θ` P Q n} {U : Update (A ⊗ B) [ B ] n Θ Θ`} (σ : Γ ≃ Δ + Θ) → Delayed (fork (> σ) (next {C = C} U) P Q) 
+    fork-r   : ∀{Γ Δ Θ A B C Θ` P Q n} {U : Update (A ⊗ B) [ B ] n Θ Θ`} (σ : Γ ≃ Δ + Θ) → Delayed (fork (> σ) (next {C = C} U) P Q)
     client   : ∀{Γ Δ A C n P} {U : Update (`? A) [ A ] n Γ Δ} → Delayed (client (next {C = C} U) P)
     weaken   : ∀{Γ Δ A C n P} {U : Update (`? A) [] n Γ Δ} → Delayed (weaken (next {C = C} U) P)
     contract : ∀{Γ Δ m n A C P} → {U : Update (`? A) [] m Δ (C ∷ Γ)} → {U₁ : Update (`? A) [ `? A  ] n Γ Γ} → Delayed (contract U (next U₁) P)
@@ -50,7 +50,7 @@ data Delayed : ∀{Γ} → Proc Γ → Set where
 
 data Server : ∀{Γ} → Proc Γ → Set where
     server : ∀{Δ A} → (P : Proc (A ∷ Δ)) → (un : Un Δ) → Server (server here un here P)
-    
+
 data DelayedServer : ∀{Γ} → Proc Γ → Set where
     server : ∀{Γ Δ Θ A C n P} (U : Update (`! A) [] n Γ Δ) → (un : Un Δ) → (U₁ : Update (`! A) [ A ] n Γ Θ) → DelayedServer (server (next U) (un-∷ {A = C} un) (next U₁) P)
 
@@ -199,12 +199,12 @@ canonical-cut-alive (cc-redex σ (client P)   (inj₂ (server P₁ un))) = inj�
 canonical-cut-alive (cc-redex σ (weaken P)   (inj₂ (server P₁ un))) = inj₂ (_ , (r-weaken σ P P₁ un))
 canonical-cut-alive (cc-redex σ (contract P) (inj₂ (server P₁ un))) = inj₂ (_ , r-contract σ P P₁ _ un)
 canonical-cut-alive (cc-redex σ (ex P)       (inj₁ (all {P = P₁}))) = inj₂ (_ , r-exists σ P P₁)
-canonical-cut-alive (cc-delayed σ (fail {U = U})) = 
-    let _ , _ , _ , U₁ = ≃-update-l σ U in 
-    inj₁ (_ , (s-fail σ U , (fail→thread U₁)))
-canonical-cut-alive (cc-delayed σ (wait {U = U})) = 
+canonical-cut-alive (cc-delayed σ (fail {U = U})) =
     let _ , _ , _ , U₁ = ≃-update-l σ U in
-    inj₁ (_ , ((s-wait σ U) , (wait→thread U₁))) 
+    inj₁ (_ , (s-fail σ U , (fail→thread U₁)))
+canonical-cut-alive (cc-delayed σ (wait {U = U})) =
+    let _ , _ , _ , U₁ = ≃-update-l σ U in
+    inj₁ (_ , ((s-wait σ U) , (wait→thread U₁)))
 canonical-cut-alive (cc-delayed σ (case {U = U₁} {U` = U₂})) =
     let _ , _ , _ , _ , _ , U₃ , U₄ = ≃-update-l-gen σ U₁ U₂ in
     inj₁ (_ , ((s-case σ U₁ U₂) , case→thread U₃ U₄))
@@ -214,48 +214,48 @@ canonical-cut-alive (cc-delayed σ (select-l {U = U})) =
 canonical-cut-alive (cc-delayed σ (select-r {U = U})) =
     let _ , _ , _ , U₁ = ≃-update-l σ U in
     inj₁ (_ , (s-select-r σ U , (select-r→thread U₁)))
-canonical-cut-alive (cc-delayed σ (join {U = U} P)) = 
+canonical-cut-alive (cc-delayed σ (join {U = U} P)) =
     let _ , _ , _ , U₁ = ≃-update-l σ U in
     inj₁ (_ , (s-join σ U , (join→thread U₁)))
-canonical-cut-alive (cc-delayed σ (fork-l {U = U} σ₁)) = 
-    let 
-        _ , σ₂ , σ₃ = +-assoc-l σ σ₁ 
+canonical-cut-alive (cc-delayed σ (fork-l {U = U} σ₁)) =
+    let
+        _ , σ₂ , σ₃ = +-assoc-l σ σ₁
     in
     inj₁ (_ , (s-tran (s-comm σ) (s-fork-l (+-comm σ) σ₁ U)) , fork→thread _ U)
-canonical-cut-alive (cc-delayed σ (fork-r {U = U} σ₁)) = 
-    let 
-        _ , σ₂ , σ₃ = +-assoc-l σ σ₁ 
+canonical-cut-alive (cc-delayed σ (fork-r {U = U} σ₁)) =
+    let
+        _ , σ₂ , σ₃ = +-assoc-l σ σ₁
     in
     inj₁ (_ , ((s-tran (s-comm σ) (s-fork-r (+-comm σ) σ₁ U)) , (fork→thread _ _)))
-canonical-cut-alive (cc-delayed σ (client {U = U})) = 
+canonical-cut-alive (cc-delayed σ (client {U = U})) =
     let _ , _ , _ , U₁ = ≃-update-l σ U in
     inj₁ (_ , s-client σ U , client→thread U₁)
 canonical-cut-alive (cc-delayed σ (weaken {U = U})) =
     let _ , _ , _ , U₁ = ≃-update-l σ U in
     inj₁ (_ , s-weaken σ U , weaken→thread U₁)
-canonical-cut-alive (cc-delayed σ (contract {U = here} {U₁ = U₁})) = 
-    let 
+canonical-cut-alive (cc-delayed σ (contract {U = here} {U₁ = U₁})) =
+    let
         _ , U₃ = ≃-update-id-l σ U₁
     in
     inj₁ (_ , s-contract-here σ U₁ , contract→thread _ U₃)
-canonical-cut-alive (cc-delayed σ (contract {U = next U} {U₁ = U₁})) = 
-    let 
+canonical-cut-alive (cc-delayed σ (contract {U = next U} {U₁ = U₁})) =
+    let
         _ , U₃ = ≃-update-id-l σ U₁
     in
     inj₁ (_ , s-contract-next σ U U₁ , contract→thread _ U₃)
 canonical-cut-alive (cc-delayed σ (ex {U = U})) =
-    let 
+    let
         _ , _ , _ , U₁ = ≃-update-l σ U
-    in 
+    in
     inj₁ (_ , s-ex σ U , ex→thread U₁)
 canonical-cut-alive (cc-delayed σ (all {P = P} {U = U}))=
-    let 
+    let
         _ , _ , _ , U₁ = ≃-update-l σ U
-    in  
+    in
     inj₁ (_ , s-all σ U P , all→thread U₁)
 canonical-cut-alive (cc-servers σ (server U un U₁) (server P un₁)) =
-    let 
-        _ , _ , _ , σ₁ , σ₂ , U₂ , U₃ = ≃-update-l-gen σ U U₁ 
+    let
+        _ , _ , _ , σ₁ , σ₂ , U₂ , U₃ = ≃-update-l-gen σ U U₁
         un₂ = ≃-un σ₁ un un₁
     in
     inj₁ (_ , s-server σ U U₁ un un₁ , server→thread U₂ un₂ U₃)
@@ -285,5 +285,5 @@ deadlock-freedom (cut σ P Q)     with deadlock-freedom P
 ... | inj₂ (_ , Red) = inj₂ (_ , (r-cut _ P Q Red))
 ... | inj₁ (_ , κ  , τ) with deadlock-freedom Q
 ... | inj₂ (_ , Red) = inj₂ (_ , r-cong (s-comm σ) (r-cut _ Q P Red))
-... | inj₁ (_ , κ₁ , τ₁) with canonical-cut σ τ τ₁ 
+... | inj₁ (_ , κ₁ , τ₁) with canonical-cut σ τ τ₁
 ... | _ , CC , κ₂ = ⊒Alive (s-tran (s-cong σ κ κ₁) κ₂) (canonical-cut-alive CC)
