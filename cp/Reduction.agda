@@ -19,11 +19,11 @@ weakening Un σ P = ↭proc (↭concat σ) (weakening-lemma Un P)
 
 contraction-lemma :  ∀{Γ₁ Γ₂} → Un Γ₁ → Proc (Γ₁ ++ Γ₁ ++ Γ₂) → Proc (Γ₁ ++ Γ₂)
 contraction-lemma                  un-[]     P = P
-contraction-lemma {`? A ∷ Γ₁} {Γ₂} (un-∷ un) P with ↭proc (↭shift {`? A} {`? A ∷ Γ₁} {Γ₁ ++ Γ₂}) P
-... | P₁ with contract here here P₁
-... | P₂ rewrite sym (++-assoc (`? A ∷ Γ₁) Γ₁ Γ₂) with ↭proc (↭sym (↭shift {`? A} {Γ₁ ++ Γ₁})) P₂
+contraction-lemma {`? A ∷ Γ₁} {Γ₂} (un-∷ un) P with ↭proc (↭-pull {`? A} {`? A ∷ Γ₁} {Γ₁ ++ Γ₂}) P
+... | P₁ with contract here here P₁ 
+... | P₂ rewrite sym (++-assoc (`? A ∷ Γ₁) Γ₁ Γ₂) with ↭proc (↭sym (↭-pull {`? A} {Γ₁ ++ Γ₁})) P₂
 ... | P₃ rewrite ++-assoc Γ₁ Γ₁ (`? A ∷ Γ₂) with contraction-lemma un P₃
-... | P₄ = ↭proc ↭shift P₄
+... | P₄ = ↭proc ↭-pull P₄
 
 contraction : ∀{Γ Γ₁ Γ₂} (un : Un Γ₁) → Γ ≃ Γ₁ + Γ₂ → Proc (Γ₁ ++ Γ) → Proc Γ
 contraction Un σ P  = ↭proc (↭concat σ) (contraction-lemma Un (↭proc (↭left (↭sym (↭concat σ))) P))

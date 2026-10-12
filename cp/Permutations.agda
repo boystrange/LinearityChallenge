@@ -155,10 +155,6 @@ data _↭_ : Context → Context → Set where
 ... | _ , _ , U₂ , _ | refl with ↭-update (↭sym π₂) U₂
 ... | _ , _ , U₃ , _ rewrite ↭-update-same-i (↭sym π₁) U₃ U₁ = eq₁
 
-↭shift : ∀{A Γ Δ} → (Γ ++ A ∷ Δ) ↭ (A ∷ Γ ++ Δ)
-↭shift {_} {[]}    = refl
-↭shift {_} {_ ∷ _} = trans (prep ↭shift) swap
-
 ↭left : ∀{Γ Δ Θ} → Γ ↭ Δ → (Θ ++ Γ) ↭ (Θ ++ Δ)
 ↭left {Θ = []}    π = π
 ↭left {Θ = _ ∷ _} π = prep (↭left π)
